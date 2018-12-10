@@ -9,5 +9,5 @@ setup(name='sam',
       license='',
       packages=['sam'],
       zip_safe=False,
-      install_requires=[]
+      install_requires=['pandas']
       )
