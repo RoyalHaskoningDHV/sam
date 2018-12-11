@@ -85,15 +85,17 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         if not isinstance(self.keep_original, bool):
             raise TypeError("keep_original must be a boolean")
 
-        regex_result = re.search("^(\d+) ?(\w+)$", self.freq)
-        if regex_result is None:
-            raise ValueError("The frequency '%s' must be of the form 'num unit', \
-                              where num is an integer and unit is a string" % self.freq)
+        if self.freq is not None:
+            regex_result = re.search("^(\d+) ?(\w+)$", self.freq)
+            if regex_result is None:
+                raise ValueError("The frequency '%s' must be of the form 'num unit', \
+                                  where num is an integer and unit is a string" % self.freq)
 
         if not (isinstance(self.shift, (list, tuple)) or
                 (type(self.shift) is np.ndarray and self.shift.ndim == 1) or
-                self.shift is None):
-            raise TypeError("shift must be None, list or 1d numpy array")
+                self.shift is None or
+                isinstance(self.shift, (int, float))):
+            raise TypeError("shift must be None, numeric, list or 1d numpy array")
 
     def _calc_shift(self, values_roll, unit_roll, freq):
         """Determine number of rows to use in rolling
@@ -192,6 +194,9 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             self.suffix_ = [self.rolling_type + "_" + str(i) + "_" + self.unit_roll for i in self._values_roll]
         else:
             self.shift_ = self.shift
+            # Singleton shift is also allowed
+            if isinstance(self.shift_, (int, float)):
+                self.shift_ = [self.shift_]
             self.suffix_ = [self.rolling_type + "_" + str(shift) for shift in self.shift_]
 
         self.rolling_fun_ = self._get_rolling_fun(self.rolling_type)
@@ -228,5 +233,11 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                 foo = X.apply(lambda arr: self.rolling_fun_(arr, shift).shift(self.lookback))
                 foo.columns = ["_".join([str(col), suffix]) for col in foo.columns]
                 result = pd.concat([result, foo], axis=1)
+        
+        self._feature_names = list(result.columns.values)
 
         return(result)
+
+    def get_feature_names(self):
+        check_is_fitted(self, '_feature_names')
+        return self._feature_names
