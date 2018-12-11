@@ -227,6 +227,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                 for column in X.columns:
                     foo = fourier(X[column], shift).shift(self.lookback)
                     foo.columns = ["_".join([str(column), suffix, str(j)]) for j in range(shift)]
+                    foo = foo.set_index(X.index)
                     result = pd.concat([result, foo], axis=1)
         else:
             for shift, suffix in zip(self.shift_, self.suffix_):
@@ -239,5 +240,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         return(result)
 
     def get_feature_names(self):
+        """
+        Returns feature names for last transform call
+        """
         check_is_fitted(self, '_feature_names')
         return self._feature_names
