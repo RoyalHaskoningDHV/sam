@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Anomaly detection feedback &mdash; sam 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Production platform" href="production_platform.html" />
+    <link rel="prev" title="General documents" href="../general_documents.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> sam
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Project specific information</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../general_documents.html">General documents</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Anomaly detection feedback</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#comments">Comments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#by-tim">By Tim</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#by-rutger">By Rutger</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="production_platform.html">Production platform</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_engineering.html">Feature Engineering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">sam</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../general_documents.html">General documents</a> &raquo;</li>
+        
+      <li>Anomaly detection feedback</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/general_documents/anomaly_detection.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="anomaly-detection-feedback">
+<span id="anomaly-detection-feedback"></span><h1>Anomaly detection feedback<a class="headerlink" href="#anomaly-detection-feedback" title="Permalink to this headline">¶</a></h1>
+<p>Anomaly detection feedback should have two functions:</p>
+<ol class="simple">
+<li>Labelling unlabeled anomalies</li>
+<li>Visualizing different categories of anomalies</li>
+</ol>
+<p>However, the way to visualize both points can be done the same. In order to not reinvent the wheel, it is best to reuse the layout from the main Nereda screen.</p>
+<p>For both, the left side of the screen contains a plot with the prediction, measurement and anomalies. Below that is a table where anomalies can be selected, which are then visualized in the earlier mentioned plot.</p>
+<p>The right side of the screen should contain selectable options. You could keep the options for a date timeframe, location and goal variable, but add an option for the type of anomaly if you want to see specific categories of anomalies.</p>
+<p>These are then shown in the table below where they can be selected. Clicking on a row selects them, and then on the right you should be able to select the type of anomaly and save that to a database. This also includes ‘overwriting’ previously labelled anomalies, since new categories might be added or changed. A new record is then stored and only the most recent label is viewable for clarity.</p>
+<p>The following information should then be stored:</p>
+<ul class="simple">
+<li>Trainingset</li>
+<li>Pipeline version</li>
+<li>Hyperparameters</li>
+<li>Anomaly duration</li>
+<li>Label</li>
+<li>Start time anomaly</li>
+<li>End time anomaly</li>
+<li>Location</li>
+<li>Goal variable</li>
+<li>Time that the anomaly was stored</li>
+</ul>
+<div class="section" id="comments">
+<span id="comments"></span><h2>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="by-tim">
+<span id="by-tim"></span><h3>By Tim<a class="headerlink" href="#by-tim" title="Permalink to this headline">¶</a></h3>
+<p>A number of remarks:</p>
+<ul class="simple">
+<li>What happens when something is not an anomaly anymore, because we use a new model?</li>
+<li>Related: If the anomaly is linked to a pipeline version, do you have to label everything again upon deploying a new pipeline?</li>
+<li>Will there be a discrete set of anomaly options, or will that be free text? If we later on want to use these labels for classification + prioritising, free text will not help?</li>
+<li>Will we store the user that has labelled the anomaly? For traceability?</li>
+<li>We store the changes of labelling, how can anyone see this history?</li>
+</ul>
+<p>Technical:</p>
+<ul class="simple">
+<li>How do we store that data, in MongoDB? Or in SQL? Or …?</li>
+<li>Is the training set stored with every anomaly? Why is that stored anyways?</li>
+<li>What happens if a sensor/location is removed?</li>
+</ul>
+<p>General:</p>
+<ul class="simple">
+<li>Can we also label stuff that is an anomaly, but not detected by the model?</li>
+<li>Can we also label significant changes that affect the data: e.g. new method of measuring?</li>
+</ul>
+<p>We could also make some user stories for this to clarify what functionality should be build…</p>
+</div>
+<div class="section" id="by-rutger">
+<span id="by-rutger"></span><h3>By Rutger<a class="headerlink" href="#by-rutger" title="Permalink to this headline">¶</a></h3>
+<p>I would separate the labeling (conceptually) completely from the used models. You should just be able to label data, from a start time to an end time.</p>
+<p>In a UI you could use a model to pre-set interesting start/end times, and you could even save the fact that a model has detected an anomaly for a label, but I think these things should also be able to exists separately. It should be just another time series, but in this case labels (with possible metadata).</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="production_platform.html" class="btn btn-neutral float-right" title="Production platform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../general_documents.html" class="btn btn-neutral" title="General documents" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sebastiaan, Tim, Fenno, Rutger
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

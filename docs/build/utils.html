@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Utils &mdash; sam 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Feature Engineering" href="feature_engineering.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> sam
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="project.html">Project specific information</a></li>
+<li class="toctree-l1"><a class="reference internal" href="general_documents.html">General documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature_engineering.html">Feature Engineering</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-sam.utils.frequencies">frequencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-sam.utils.time">time</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">sam</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="utils">
+<span id="id1"></span><h1>Utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h1>
+<p>This is the documentation for util functions.</p>
+<div class="section" id="module-sam.utils.frequencies">
+<span id="frequencies"></span><h2>frequencies<a class="headerlink" href="#module-sam.utils.frequencies" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sam.utils.frequencies.frequencies_to_val">
+<code class="descclassname">sam.utils.frequencies.</code><code class="descname">frequencies_to_val</code><span class="sig-paren">(</span><em>freq='hour'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/frequencies.html#frequencies_to_val"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.frequencies.frequencies_to_val" title="Permalink to this definition">¶</a></dt>
+<dd><p>freq : string, default ‘hour’</p>
+<p>frequencies[freq] : string
+The mapping for a pandas function when working with intervals</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-sam.utils.time">
+<span id="time"></span><h2>time<a class="headerlink" href="#module-sam.utils.time" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sam.utils.time.average_winter_time">
+<code class="descclassname">sam.utils.time.</code><code class="descname">average_winter_time</code><span class="sig-paren">(</span><em>data</em>, <em>tmpcol='tmp_UNID'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/time.html#average_winter_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.time.average_winter_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve duplicate timestamps in wintertime, by averaging them
+Because the to_wintertime hour happens twice, there can be duplpicate timestamps
+This function removes those duplicates by averaging the VALUE column
+All other columns are used as group-by columns</p>
+<dl class="docutils">
+<dt>data: pandas Dataframe</dt>
+<dd>must have columns TIME, VALUE, and optionally others like ID and TYPE.</dd>
+<dt>tmpcol: string, optional (default=’tmp_UNID’)</dt>
+<dd>temporary columnname that is created in dataframe. This columnname cannot
+exist in the dataframe already</dd>
+</dl>
+<dl class="docutils">
+<dt>data: pandas Dataframe</dt>
+<dd>The same dataframe as was given in input, but with duplicate timestamps
+removed, if they happened during the wintertime duplicate hour</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sam.utils.time.label_dst">
+<code class="descclassname">sam.utils.time.</code><code class="descname">label_dst</code><span class="sig-paren">(</span><em>timestamps</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/time.html#label_dst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.time.label_dst" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find possible conflicts due to daylight savings time, by
+labeling timestamps. This converts a series of timestamps to
+a series of strings. The strings are either ‘normal’,
+‘to_summertime’, or ‘to_wintertime’.
+to_summertime happens the last sunday morning of march,
+from 2:00 to 2:59.
+to_wintertime happens the last sunday morninig of october,
+from 2:00 to 2:59.
+These can be possible problems because they either happen 2
+or 0 times. to_summertime should therefore be impossible.</p>
+<dl class="docutils">
+<dt>timestamps: Series, shape = (n_inputs,)</dt>
+<dd>a series of pandas timestamps</dd>
+</dl>
+<dl class="docutils">
+<dt>labels: string, array-like, shape = (n_inputs,)</dt>
+<dd>a numpy array of strings, that are all either
+‘normal’, ‘to_summertime’, or ‘to_wintertime’</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="sam.utils.time.unit_to_seconds">
+<code class="descclassname">sam.utils.time.</code><code class="descname">unit_to_seconds</code><span class="sig-paren">(</span><em>unit</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/time.html#unit_to_seconds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.time.unit_to_seconds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a lookup to convert a string to a number of seconds
+the unit can be something like ‘hours’, or ‘day’. Several options
+are supported</p>
+<p>Year is not supported (for now), because of leap years. They cannot
+always be uniquely converted to a number of seconds.</p>
+<dl class="docutils">
+<dt>unit: string</dt>
+<dd>a lowercase string describing a time unit. Must start with
+sec, min, hour, day, or week</dd>
+</dl>
+<dl class="docutils">
+<dt>seconds: number</dt>
+<dd>A number describing the number of seconds that the unit takes
+For example, if unit = ‘hour’, then the result will be 3600.</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="feature_engineering.html" class="btn btn-neutral" title="Feature Engineering" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sebastiaan, Tim, Fenno, Rutger
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

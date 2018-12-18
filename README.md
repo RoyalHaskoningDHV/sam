@@ -36,3 +36,21 @@ lines at the top of every notebook:
 ```
 This will reload sam everytime you run a new cell. The third line is optional: if you 
 leave it out, you will reload every import every cell, instead of only those from sam.
+
+
+# Before committing
+When committing, first rebuild the documentation. This can be done through the following command within the /docs folder:
+
+
+```
+sphinx-build -b html source/ build/
+```
+
+You will need to have the following packages:
+```
+ pip install sphinx
+ pip install sphinx_rtd_theme
+ pip install recommonmark
+```
+
+
