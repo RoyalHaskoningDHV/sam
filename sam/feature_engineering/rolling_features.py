@@ -9,16 +9,25 @@ from sam.utils.time import unit_to_seconds
 def fourier(arr, n):
     class FFTHelper:
         # https://stackoverflow.com/a/39064656
-        def __init__(self, nrow, ncol):
+        def __init__(self, nrow, n):
+            # we are only interested in these cofficients, since the rest is redundant
+            # See https://en.wikipedia.org/wiki/Discrete_Fourier_transform
+            # It follows from the definition that when k = 0, the result is simply the sum
+            # It also follows that the definition for n-k is the same as k, except inverted
+            # Since we take the absolute value, this inversion is removed, so the result is
+            # identical. Therefore, we only want the values from k = 1 to k = n//2
+            self.useful_coeffs = range(1, n // 2 + 1)
+            ncol = len(self.useful_coeffs)
             self.series = np.empty((nrow, ncol))
             self.series[:] = np.NaN
-            self.calls = ncol - 1
+            self.calls = n - 1
 
         def calc_fft(self, vector):
-            values = np.absolute(np.fft.fft(vector))
+            values = np.absolute(np.fft.fft(vector))[self.useful_coeffs]
             self.series[self.calls, :] = values
             self.calls = self.calls + 1
             return np.NaN  # return something to make Rolling apply not error
+
     helper = FFTHelper(len(arr), n)
     arr.rolling(n).apply(helper.calc_fft, raw=True)
     return pd.DataFrame(helper.series)
@@ -28,11 +37,12 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     """Applies some rolling function to a pandas dataframe
 
     This class provides a stateless transformer that applies to each column in a dataframe.
-    It works by applying a certain rolling function to each column individually, with a window size.
-    The rolling function is given by rolling_type, for example 'mean', 'median', 'sum', etcetera
-    The window size can be given directly by shift, or indirectly by values_roll, which is then
-    converted by unit_roll and freq. values_roll and shift can be array-like, in which case each
-    window size will be used alongside each other.
+    It works by applying a certain rolling function to each column individually, with a
+    window size. The rolling function is given by rolling_type, for example 'mean',
+    'median', 'sum', etcetera. The window size can be given directly by window_size, or
+    indirectly by values_roll, which is then converted by unit_roll and freq. values_roll
+    and window_size can be array-like, in which case each window size will be used alongside
+    each other.
 
     An important note is that this transformer assumes that the data is sorted by time already!
     So if the input dataframe is not sorted by time (in ascending order), the results will be
@@ -42,14 +52,15 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     ----------
     rolling_type : string, optional (default="mean")
     lookback : number type, optional (default=1)
-        the features that are built will be shifted by this value. If more than 0, this prevents leakage
+        the features that are built will be shifted by this value.
+        If more than 0, this prevents leakage
     values_roll : array-like, shape = (n_outputs, ), optional (default=None)
         vector of lag or rolling values in specified unit
     unit_roll : string, optional (default=None)
         unit of values_roll, must be parseable by utils.time.unit_to_seconds
     freq : string, optional (default=None)
         freq of measurements in values_roll, shoud match ^(\d+) (\w+)$
-    shift : array-like, shape = (n_outputs, ), optional (defaut=None)
+    window_size : array-like, shape = (n_outputs, ), optional (defaut=None)
         vector of values to shift
     keep_original : boolean, optional (default=True)
         if the original columns should be kept or discarded
@@ -61,10 +72,12 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         throw value error or type error based on the result
         """
 
-        if self.shift is None and (self.values_roll is None or self.unit_roll is None or self.freq is None):
-            raise ValueError("Either shift must not be None, or values_roll, unit_roll, freq must all be not None")
+        if self.window_size is None and (self.values_roll is None or
+                                         self.unit_roll is None or self.freq is None):
+            raise ValueError(("Either window_size must not be None, or values_roll,"
+                              "unit_roll, freq must all be not None"))
 
-        # we allow scalar inputs, but _calc_shift expects an interable
+        # we allow scalar inputs, but _calc_window_size expects an interable
         if isinstance(self.values_roll, (int, float)):
             self._values_roll = [self.values_roll]
         else:
@@ -91,13 +104,13 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                 raise ValueError("The frequency '%s' must be of the form 'num unit', \
                                   where num is an integer and unit is a string" % self.freq)
 
-        if not (isinstance(self.shift, (list, tuple)) or
-                (type(self.shift) is np.ndarray and self.shift.ndim == 1) or
-                self.shift is None or
-                isinstance(self.shift, (int, float))):
-            raise TypeError("shift must be None, numeric, list or 1d numpy array")
+        if not (isinstance(self.window_size, (list, tuple)) or
+                (type(self.window_size) is np.ndarray and self.window_size.ndim == 1) or
+                self.window_size is None or
+                isinstance(self.window_size, (int, float))):
+            raise TypeError("window_size must be None, numeric, list or 1d numpy array")
 
-    def _calc_shift(self, values_roll, unit_roll, freq):
+    def _calc_window_size(self, values_roll, unit_roll, freq):
         """Determine number of rows to use in rolling
         Based on a frequency of a dataframe and desired rolling horizon,
         determing how many rows this is, taking into account the correct units
@@ -114,8 +127,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        shifts : array-like, shape = (n_outputs, )
-            vector of values to shift
+        window_sizes : array-like, shape = (n_outputs, )
+            vector of values to use as window sizes
         """
 
         regex_result = re.search("^(\d+) ?(\w+)$", freq)
@@ -123,11 +136,13 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
         # The difference in units between unit_roll and freq.
         # for example, if unit_roll is "day" and freq = "30 min", then diff_unit will be 48
-        diff_unit = (unit_to_seconds(unit_roll) / unit_to_seconds(freq_unit)) / float(freq_timestep)
+        diff_unit = (unit_to_seconds(unit_roll) / unit_to_seconds(freq_unit)) / \
+            float(freq_timestep)
         shift = [val * diff_unit for val in values_roll]
 
         if not all([foo.is_integer() for foo in shift]):
-            raise ValueError("The frequency '%s', does not evenly divide into all the rollling units ('%s')"
+            raise ValueError(("The frequency '%s', does not evenly divide"
+                              " into all the rollling units ('%s')")
                              % (freq, unit_roll))
         return([int(foo) for foo in shift])
 
@@ -165,21 +180,22 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         }
 
         if rolling_type not in rolling_functions:
-            raise ValueError("The rolling_type is %s, which is not an available function" % rolling_type)
+            raise ValueError("The rolling_type is %s, which is not an available function"
+                             % rolling_type)
         return(rolling_functions[rolling_type])
 
     def __init__(self, rolling_type="mean", lookback=1, values_roll=None, unit_roll=None,
-                 freq=None, shift=None, keep_original=True):
+                 freq=None, window_size=None, keep_original=True):
         self.values_roll = values_roll
         self.unit_roll = unit_roll
         self.freq = freq
-        self.shift = shift
+        self.window_size = window_size
         self.lookback = lookback
         self.rolling_type = rolling_type
         self.keep_original = keep_original
 
     def fit(self, X=None, y=None):
-        """Calculates shift and feature function
+        """Calculates window_size and feature function
 
         Parameters
         ----------
@@ -189,15 +205,18 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
         self._validate_params()
 
-        if self.shift is None:
-            self.shift_ = self._calc_shift(self._values_roll, self.unit_roll, self.freq)
-            self.suffix_ = [self.rolling_type + "_" + str(i) + "_" + self.unit_roll for i in self._values_roll]
+        if self.window_size is None:
+            self.window_size_ = self._calc_window_size(
+                                    self._values_roll, self.unit_roll, self.freq)
+            self.suffix_ = [self.rolling_type + "_" + str(i) + "_" + self.unit_roll
+                            for i in self._values_roll]
         else:
-            self.shift_ = self.shift
-            # Singleton shift is also allowed
-            if isinstance(self.shift_, (int, float)):
-                self.shift_ = [self.shift_]
-            self.suffix_ = [self.rolling_type + "_" + str(shift) for shift in self.shift_]
+            self.window_size_ = self.window_size
+            # Singleton window_size is also allowed
+            if isinstance(self.window_size_, (int, float)):
+                self.window_size_ = [self.window_size_]
+            self.suffix_ = [self.rolling_type + "_" + str(window_size)
+                            for window_size in self.window_size_]
 
         self.rolling_fun_ = self._get_rolling_fun(self.rolling_type)
         return self
@@ -216,32 +235,33 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             the pandas dataframe, appended with the new columns
         """
         # X = check_array(X) # dont do this, we want to use pandas only
-        check_is_fitted(self, 'shift_')
+        check_is_fitted(self, 'window_size_')
         if self.keep_original:
             result = X.copy()
         else:
             result = pd.DataFrame(index=X.index)
 
         if self.rolling_type is "fourier":
-            for shift, suffix in zip(self.shift_, self.suffix_):
+            for window_size, suffix in zip(self.window_size_, self.suffix_):
+                useful_coeffs = range(1, window_size // 2 + 1)
                 for column in X.columns:
-                    foo = fourier(X[column], shift).shift(self.lookback)
-                    foo.columns = ["_".join([str(column), suffix, str(j)]) for j in range(shift)]
+                    foo = fourier(X[column], window_size).shift(self.lookback)
+                    foo.columns = ["_".join([str(column), suffix, str(j)]) for j in useful_coeffs]
                     foo = foo.set_index(X.index)
                     result = pd.concat([result, foo], axis=1)
         else:
-            for shift, suffix in zip(self.shift_, self.suffix_):
-                foo = X.apply(lambda arr: self.rolling_fun_(arr, shift).shift(self.lookback))
+            for window_size, suffix in zip(self.window_size_, self.suffix_):
+                foo = X.apply(lambda arr: self.rolling_fun_(arr, window_size).shift(self.lookback))
                 foo.columns = ["_".join([str(col), suffix]) for col in foo.columns]
                 result = pd.concat([result, foo], axis=1)
-        
+
         self._feature_names = list(result.columns.values)
 
         return(result)
 
     def get_feature_names(self):
         """
-        Returns feature names for last transform call
+        Returns feature names for the outcome of the last transform call.
         """
         check_is_fitted(self, '_feature_names')
         return self._feature_names
