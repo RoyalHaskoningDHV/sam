@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Feature Engineering" href="feature_engineering.html" /> 
+    <link rel="prev" title="Visualization" href="visualization.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -83,6 +83,8 @@
 <li class="toctree-l1"><a class="reference internal" href="general_documents.html">General documents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="feature_engineering.html">Feature Engineering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-sam.utils.frequencies">frequencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-sam.utils.time">time</a></li>
@@ -160,9 +162,26 @@
 <dl class="function">
 <dt id="sam.utils.frequencies.frequencies_to_val">
 <code class="descclassname">sam.utils.frequencies.</code><code class="descname">frequencies_to_val</code><span class="sig-paren">(</span><em>freq='hour'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/frequencies.html#frequencies_to_val"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.frequencies.frequencies_to_val" title="Permalink to this definition">¶</a></dt>
-<dd><p>freq : string, default ‘hour’</p>
-<p>frequencies[freq] : string
-The mapping for a pandas function when working with intervals</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>freq</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string, default ‘hour’</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>frequencies[freq]</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd></dd>
+<dt><strong>The mapping for a pandas function when working with intervals</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -175,18 +194,31 @@ The mapping for a pandas function when working with intervals</p>
 Because the to_wintertime hour happens twice, there can be duplpicate timestamps
 This function removes those duplicates by averaging the VALUE column
 All other columns are used as group-by columns</p>
-<dl class="docutils">
-<dt>data: pandas Dataframe</dt>
-<dd>must have columns TIME, VALUE, and optionally others like ID and TYPE.</dd>
-<dt>tmpcol: string, optional (default=’tmp_UNID’)</dt>
-<dd>temporary columnname that is created in dataframe. This columnname cannot
-exist in the dataframe already</dd>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>data: pandas Dataframe</strong></dt>
+<dd><p class="first last">must have columns TIME, VALUE, and optionally others like ID and TYPE.</p>
+</dd>
+<dt><strong>tmpcol: string, optional (default=’tmp_UNID’)</strong></dt>
+<dd><p class="first last">temporary columnname that is created in dataframe. This columnname cannot
+exist in the dataframe already</p>
+</dd>
 </dl>
-<dl class="docutils">
-<dt>data: pandas Dataframe</dt>
-<dd>The same dataframe as was given in input, but with duplicate timestamps
-removed, if they happened during the wintertime duplicate hour</dd>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>data: pandas Dataframe</strong></dt>
+<dd><p class="first last">The same dataframe as was given in input, but with duplicate timestamps
+removed, if they happened during the wintertime duplicate hour</p>
+</dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -202,15 +234,27 @@ to_wintertime happens the last sunday morninig of october,
 from 2:00 to 2:59.
 These can be possible problems because they either happen 2
 or 0 times. to_summertime should therefore be impossible.</p>
-<dl class="docutils">
-<dt>timestamps: Series, shape = (n_inputs,)</dt>
-<dd>a series of pandas timestamps</dd>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>timestamps: Series, shape = (n_inputs,)</strong></dt>
+<dd><p class="first last">a series of pandas timestamps</p>
+</dd>
 </dl>
-<dl class="docutils">
-<dt>labels: string, array-like, shape = (n_inputs,)</dt>
-<dd>a numpy array of strings, that are all either
-‘normal’, ‘to_summertime’, or ‘to_wintertime’</dd>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>labels: string, array-like, shape = (n_inputs,)</strong></dt>
+<dd><p class="first last">a numpy array of strings, that are all either
+‘normal’, ‘to_summertime’, or ‘to_wintertime’</p>
+</dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -221,16 +265,28 @@ the unit can be something like ‘hours’, or ‘day’. Several options
 are supported</p>
 <p>Year is not supported (for now), because of leap years. They cannot
 always be uniquely converted to a number of seconds.</p>
-<dl class="docutils">
-<dt>unit: string</dt>
-<dd>a lowercase string describing a time unit. Must start with
-sec, min, hour, day, or week</dd>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>unit: string</strong></dt>
+<dd><p class="first last">a lowercase string describing a time unit. Must start with
+sec, min, hour, day, or week</p>
+</dd>
 </dl>
-<dl class="docutils">
-<dt>seconds: number</dt>
-<dd>A number describing the number of seconds that the unit takes
-For example, if unit = ‘hour’, then the result will be 3600.</dd>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>seconds: number</strong></dt>
+<dd><p class="first last">A number describing the number of seconds that the unit takes
+For example, if unit = ‘hour’, then the result will be 3600.</p>
+</dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -245,7 +301,7 @@ For example, if unit = ‘hour’, then the result will be 3600.</dd>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="feature_engineering.html" class="btn btn-neutral" title="Feature Engineering" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="visualization.html" class="btn btn-neutral" title="Visualization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -279,7 +335,6 @@ For example, if unit = ‘hour’, then the result will be 3600.</dd>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

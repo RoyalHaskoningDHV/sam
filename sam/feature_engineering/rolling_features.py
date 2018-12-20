@@ -7,15 +7,17 @@ from sam.utils.time import unit_to_seconds
 
 
 def fourier(arr, n):
-    class FFTHelper:
+    class set_params:
         # https://stackoverflow.com/a/39064656
         def __init__(self, nrow, n):
-            # we are only interested in these cofficients, since the rest is redundant
-            # See https://en.wikipedia.org/wiki/Discrete_Fourier_transform
-            # It follows from the definition that when k = 0, the result is simply the sum
-            # It also follows that the definition for n-k is the same as k, except inverted
-            # Since we take the absolute value, this inversion is removed, so the result is
-            # identical. Therefore, we only want the values from k = 1 to k = n//2
+            """ we are only interested in these coefficients, since the rest is redundant
+            See https://en.wikipedia.org/wiki/Discrete_Fourier_transform
+            It follows from the definition that when k = 0, the result is simply the sum
+            It also follows that the definition for n-k is the same as k, except inverted
+            Since we take the absolute value, this inversion is removed, so the result is
+            identical. Therefore, we only want the values from k = 1 to k = n//2
+
+            """
             self.useful_coeffs = range(1, n // 2 + 1)
             ncol = len(self.useful_coeffs)
             self.series = np.empty((nrow, ncol))

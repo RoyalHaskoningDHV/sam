@@ -8,15 +8,17 @@ This is the documentation for feature engineering.
 
 Rolling Features
 ----------------
-.. automodule:: sam.feature_engineering.rolling_features
+.. autoclass:: sam.feature_engineering.rolling_features.BuildRollingFeatures
     :members:
+    :private-members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Build timefeatures
 -------------------
-.. automodule:: sam.feature_engineering.build_timefeatures
-    :members:
+.. autofunction:: sam.feature_engineering.build_timefeatures.build_timefeatures
 
 Decompose datetime
 ------------------
-.. automodule:: sam.feature_engineering.decompose_datetime
-    :members:
+.. autofunction:: sam.feature_engineering.decompose_datetime.decompose_datetime

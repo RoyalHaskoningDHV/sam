@@ -87,6 +87,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="feature_engineering.html">Feature Engineering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utils</a></li>
 </ul>
 
@@ -166,32 +168,49 @@ frequency of 15 min will return 9.45, 10.00 and 10.15</p>
 <p>Based on start, end and frequency, add rows for missing timestamps
 and fill NA values based on specified function
 NA’s can continued from previous etc.</p>
-<dl class="docutils">
-<dt>df <span class="classifier-delimiter">:</span> <span class="classifier">pandas dataframe with TIME, ID and VALUE columns, shape = (nrows, 3)</span></dt>
-<dd>Dataframe from which the values are created</dd>
-<dt>start_time <span class="classifier-delimiter">:</span> <span class="classifier">str or datetime-like, optional (default = ‘’)</span></dt>
-<dd>the start time of the period to create features over
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas dataframe with TIME, ID and VALUE columns, shape = (nrows, 3)</span></dt>
+<dd><p class="first last">Dataframe from which the values are created</p>
+</dd>
+<dt><strong>start_time</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or datetime-like, optional (default = ‘’)</span></dt>
+<dd><p class="first last">the start time of the period to create features over
 if string, the format ‘YYYY/MM/DD HH:mm:SS’ will always work
-Pandas also accepts other formats, or a datetime object</dd>
-<dt>end_time <span class="classifier-delimiter">:</span> <span class="classifier">str or datetime-like, optional (default = ‘’)</span></dt>
-<dd>the end time of the period to create features over
+Pandas also accepts other formats, or a datetime object</p>
+</dd>
+<dt><strong>end_time</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or datetime-like, optional (default = ‘’)</span></dt>
+<dd><p class="first last">the end time of the period to create features over
 if string, the format ‘YYYY/MM/DD HH:mm:SS’ will always work
-Pandas also accepts other formats, or a datetime object</dd>
-<dt>freq <span class="classifier-delimiter">:</span> <span class="classifier">str or DateOffset, optional (default = ‘hour’)</span></dt>
-<dd>the frequency with which the time features are made
-frequencies can have multiples, e.g. “15 min” for 15 minutes</dd>
-<dt>aggregate_method <span class="classifier-delimiter">:</span> <span class="classifier">string or list, optional (default = ‘’)</span></dt>
-<dd>method that is used to aggregate value.
-Can be strings such as mean, sum, min, max.</dd>
-<dt>fillna_method <span class="classifier-delimiter">:</span> <span class="classifier">string, optional (default = ‘’)</span></dt>
-<dd>method used to fill NA values, must follow pandas data frame fillna.
-Can be strings such as ffill, bfill, pad</dd>
+Pandas also accepts other formats, or a datetime object</p>
+</dd>
+<dt><strong>freq</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or DateOffset, optional (default = ‘hour’)</span></dt>
+<dd><p class="first last">the frequency with which the time features are made
+frequencies can have multiples, e.g. “15 min” for 15 minutes</p>
+</dd>
+<dt><strong>aggregate_method</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string or list, optional (default = ‘’)</span></dt>
+<dd><p class="first last">method that is used to aggregate value.
+Can be strings such as mean, sum, min, max.</p>
+</dd>
+<dt><strong>fillna_method</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string, optional (default = ‘’)</span></dt>
+<dd><p class="first last">method used to fill NA values, must follow pandas data frame fillna.
+Can be strings such as ffill, bfill, pad</p>
+</dd>
 </dl>
-<dl class="docutils">
-<dt>complete_df <span class="classifier-delimiter">:</span> <span class="classifier">pandas dataframe, shape (length(TIME) * length(unique IDs), 3)</span></dt>
-<dd>dataframe containing all possible combinations of timestamps and IDs
-with selected frequency, aggregate method and fillna method</dd>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>complete_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas dataframe, shape (length(TIME) * length(unique IDs), 3)</span></dt>
+<dd><p class="first last">dataframe containing all possible combinations of timestamps and IDs
+with selected frequency, aggregate method and fillna method</p>
+</dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -242,7 +261,6 @@ with selected frequency, aggregate method and fillna method</dd>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

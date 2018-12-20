@@ -14,6 +14,8 @@ Welcome to sam's documentation!
    general_documents
    preprocessing
    feature_engineering
+   metrics
+   visualization
    utils
 
 

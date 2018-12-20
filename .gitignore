@@ -16,7 +16,6 @@ data/
 *.tex
 
 # Image types
-*.png
 *.jpeg
 *.jpg
 *.yml
@@ -53,7 +52,7 @@ wheels/
 *.egg
 MANIFEST
 .idea
-_static/
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

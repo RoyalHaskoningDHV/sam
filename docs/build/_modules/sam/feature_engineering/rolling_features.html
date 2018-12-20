@@ -82,6 +82,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../general_documents.html">General documents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../preprocessing.html">Preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../feature_engineering.html">Feature Engineering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utils</a></li>
 </ul>
 
@@ -155,18 +157,29 @@
 
 
 <span class="k">def</span> <span class="nf">fourier</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-    <span class="k">class</span> <span class="nc">FFTHelper</span><span class="p">:</span>
+    <span class="k">class</span> <span class="nc">set_params</span><span class="p">:</span>
         <span class="c1"># https://stackoverflow.com/a/39064656</span>
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrow</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; we are only interested in these coefficients, since the rest is redundant</span>
+<span class="sd">            See https://en.wikipedia.org/wiki/Discrete_Fourier_transform</span>
+<span class="sd">            It follows from the definition that when k = 0, the result is simply the sum</span>
+<span class="sd">            It also follows that the definition for n-k is the same as k, except inverted</span>
+<span class="sd">            Since we take the absolute value, this inversion is removed, so the result is</span>
+<span class="sd">            identical. Therefore, we only want the values from k = 1 to k = n//2</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">useful_coeffs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">ncol</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">useful_coeffs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">series</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">=</span> <span class="n">ncol</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
 
         <span class="k">def</span> <span class="nf">calc_fft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector</span><span class="p">):</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">vector</span><span class="p">))</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">vector</span><span class="p">))[</span><span class="bp">self</span><span class="o">.</span><span class="n">useful_coeffs</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">calls</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">values</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>  <span class="c1"># return something to make Rolling apply not error</span>
+
     <span class="n">helper</span> <span class="o">=</span> <span class="n">FFTHelper</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">),</span> <span class="n">n</span><span class="p">)</span>
     <span class="n">arr</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">calc_fft</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
@@ -176,11 +189,12 @@
     <span class="sd">&quot;&quot;&quot;Applies some rolling function to a pandas dataframe</span>
 
 <span class="sd">    This class provides a stateless transformer that applies to each column in a dataframe.</span>
-<span class="sd">    It works by applying a certain rolling function to each column individually, with a window size.</span>
-<span class="sd">    The rolling function is given by rolling_type, for example &#39;mean&#39;, &#39;median&#39;, &#39;sum&#39;, etcetera</span>
-<span class="sd">    The window size can be given directly by shift, or indirectly by values_roll, which is then</span>
-<span class="sd">    converted by unit_roll and freq. values_roll and shift can be array-like, in which case each</span>
-<span class="sd">    window size will be used alongside each other.</span>
+<span class="sd">    It works by applying a certain rolling function to each column individually, with a</span>
+<span class="sd">    window size. The rolling function is given by rolling_type, for example &#39;mean&#39;,</span>
+<span class="sd">    &#39;median&#39;, &#39;sum&#39;, etcetera. The window size can be given directly by window_size, or</span>
+<span class="sd">    indirectly by values_roll, which is then converted by unit_roll and freq. values_roll</span>
+<span class="sd">    and window_size can be array-like, in which case each window size will be used alongside</span>
+<span class="sd">    each other.</span>
 
 <span class="sd">    An important note is that this transformer assumes that the data is sorted by time already!</span>
 <span class="sd">    So if the input dataframe is not sorted by time (in ascending order), the results will be</span>
@@ -190,29 +204,32 @@
 <span class="sd">    ----------</span>
 <span class="sd">    rolling_type : string, optional (default=&quot;mean&quot;)</span>
 <span class="sd">    lookback : number type, optional (default=1)</span>
-<span class="sd">        the features that are built will be shifted by this value. If more than 0, this prevents leakage</span>
+<span class="sd">        the features that are built will be shifted by this value.</span>
+<span class="sd">        If more than 0, this prevents leakage</span>
 <span class="sd">    values_roll : array-like, shape = (n_outputs, ), optional (default=None)</span>
 <span class="sd">        vector of lag or rolling values in specified unit</span>
 <span class="sd">    unit_roll : string, optional (default=None)</span>
 <span class="sd">        unit of values_roll, must be parseable by utils.time.unit_to_seconds</span>
 <span class="sd">    freq : string, optional (default=None)</span>
 <span class="sd">        freq of measurements in values_roll, shoud match ^(\d+) (\w+)$</span>
-<span class="sd">    shift : array-like, shape = (n_outputs, ), optional (defaut=None)</span>
+<span class="sd">    window_size : array-like, shape = (n_outputs, ), optional (defaut=None)</span>
 <span class="sd">        vector of values to shift</span>
 <span class="sd">    keep_original : boolean, optional (default=True)</span>
 <span class="sd">        if the original columns should be kept or discarded</span>
 <span class="sd">        True by default, which means the new columns are added to the old ones</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_validate_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BuildRollingFeatures._validate_params"><a class="viewcode-back" href="../../../feature_engineering.html#sam.feature_engineering.rolling_features.BuildRollingFeatures._validate_params">[docs]</a>    <span class="k">def</span> <span class="nf">_validate_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;apply various checks to the inputs of the __init__ function</span>
 <span class="sd">        throw value error or type error based on the result</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values_roll</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_roll</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either shift must not be None, or values_roll, unit_roll, freq must all be not None&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values_roll</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">unit_roll</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;Either window_size must not be None, or values_roll,&quot;</span>
+                              <span class="s2">&quot;unit_roll, freq must all be not None&quot;</span><span class="p">))</span>
 
-        <span class="c1"># we allow scalar inputs, but _calc_shift expects an interable</span>
+        <span class="c1"># we allow scalar inputs, but _calc_window_size expects an interable</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values_roll</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_values_roll</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">values_roll</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -239,13 +256,13 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The frequency &#39;</span><span class="si">%s</span><span class="s2">&#39; must be of the form &#39;num unit&#39;, </span><span class="se">\</span>
 <span class="s2">                                  where num is an integer and unit is a string&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">or</span>
-                <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
-                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;shift must be None, numeric, list or 1d numpy array&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;window_size must be None, numeric, list or 1d numpy array&quot;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_calc_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_roll</span><span class="p">,</span> <span class="n">unit_roll</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+<div class="viewcode-block" id="BuildRollingFeatures._calc_window_size"><a class="viewcode-back" href="../../../feature_engineering.html#sam.feature_engineering.rolling_features.BuildRollingFeatures._calc_window_size">[docs]</a>    <span class="k">def</span> <span class="nf">_calc_window_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_roll</span><span class="p">,</span> <span class="n">unit_roll</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Determine number of rows to use in rolling</span>
 <span class="sd">        Based on a frequency of a dataframe and desired rolling horizon,</span>
 <span class="sd">        determing how many rows this is, taking into account the correct units</span>
@@ -262,8 +279,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        shifts : array-like, shape = (n_outputs, )</span>
-<span class="sd">            vector of values to shift</span>
+<span class="sd">        window_sizes : array-like, shape = (n_outputs, )</span>
+<span class="sd">            vector of values to use as window sizes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">regex_result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;^(\d+) ?(\w+)$&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
@@ -271,15 +288,17 @@
 
         <span class="c1"># The difference in units between unit_roll and freq.</span>
         <span class="c1"># for example, if unit_roll is &quot;day&quot; and freq = &quot;30 min&quot;, then diff_unit will be 48</span>
-        <span class="n">diff_unit</span> <span class="o">=</span> <span class="p">(</span><span class="n">unit_to_seconds</span><span class="p">(</span><span class="n">unit_roll</span><span class="p">)</span> <span class="o">/</span> <span class="n">unit_to_seconds</span><span class="p">(</span><span class="n">freq_unit</span><span class="p">))</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">freq_timestep</span><span class="p">)</span>
+        <span class="n">diff_unit</span> <span class="o">=</span> <span class="p">(</span><span class="n">unit_to_seconds</span><span class="p">(</span><span class="n">unit_roll</span><span class="p">)</span> <span class="o">/</span> <span class="n">unit_to_seconds</span><span class="p">(</span><span class="n">freq_unit</span><span class="p">))</span> <span class="o">/</span> \
+            <span class="nb">float</span><span class="p">(</span><span class="n">freq_timestep</span><span class="p">)</span>
         <span class="n">shift</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="o">*</span> <span class="n">diff_unit</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">values_roll</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">foo</span><span class="o">.</span><span class="n">is_integer</span><span class="p">()</span> <span class="k">for</span> <span class="n">foo</span> <span class="ow">in</span> <span class="n">shift</span><span class="p">]):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The frequency &#39;</span><span class="si">%s</span><span class="s2">&#39;, does not evenly divide into all the rollling units (&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;The frequency &#39;</span><span class="si">%s</span><span class="s2">&#39;, does not evenly divide&quot;</span>
+                              <span class="s2">&quot; into all the rollling units (&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span><span class="p">)</span>
                              <span class="o">%</span> <span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">unit_roll</span><span class="p">))</span>
-        <span class="k">return</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="k">for</span> <span class="n">foo</span> <span class="ow">in</span> <span class="n">shift</span><span class="p">])</span>
+        <span class="k">return</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="k">for</span> <span class="n">foo</span> <span class="ow">in</span> <span class="n">shift</span><span class="p">])</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_rolling_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rolling_type</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="BuildRollingFeatures._get_rolling_fun"><a class="viewcode-back" href="../../../feature_engineering.html#sam.feature_engineering.rolling_features.BuildRollingFeatures._get_rolling_fun">[docs]</a>    <span class="k">def</span> <span class="nf">_get_rolling_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rolling_type</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Given a function name as a string, creates a function that</span>
 <span class="sd">        applies that rolling function</span>
 
@@ -313,21 +332,22 @@
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="n">rolling_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rolling_functions</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The rolling_type is </span><span class="si">%s</span><span class="s2">, which is not an available function&quot;</span> <span class="o">%</span> <span class="n">rolling_type</span><span class="p">)</span>
-        <span class="k">return</span><span class="p">(</span><span class="n">rolling_functions</span><span class="p">[</span><span class="n">rolling_type</span><span class="p">])</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The rolling_type is </span><span class="si">%s</span><span class="s2">, which is not an available function&quot;</span>
+                             <span class="o">%</span> <span class="n">rolling_type</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">rolling_functions</span><span class="p">[</span><span class="n">rolling_type</span><span class="p">])</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rolling_type</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">lookback</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">values_roll</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_roll</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keep_original</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                 <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keep_original</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">values_roll</span> <span class="o">=</span> <span class="n">values_roll</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unit_roll</span> <span class="o">=</span> <span class="n">unit_roll</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">freq</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">shift</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span> <span class="o">=</span> <span class="n">window_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lookback</span> <span class="o">=</span> <span class="n">lookback</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rolling_type</span> <span class="o">=</span> <span class="n">rolling_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep_original</span> <span class="o">=</span> <span class="n">keep_original</span>
 
 <div class="viewcode-block" id="BuildRollingFeatures.fit"><a class="viewcode-back" href="../../../feature_engineering.html#sam.feature_engineering.rolling_features.BuildRollingFeatures.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Calculates shift and feature function</span>
+        <span class="sd">&quot;&quot;&quot;Calculates window_size and feature function</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -337,15 +357,18 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate_params</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">shift_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_shift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values_roll</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_roll</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rolling_type</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_roll</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values_roll</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_window_size</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">_values_roll</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_roll</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rolling_type</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_roll</span>
+                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values_roll</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">shift_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span>
-            <span class="c1"># Singleton shift is also allowed</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift_</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">shift_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">shift_</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rolling_type</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">shift</span><span class="p">)</span> <span class="k">for</span> <span class="n">shift</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span>
+            <span class="c1"># Singleton window_size is also allowed</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rolling_type</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">window_size</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">window_size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">rolling_fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rolling_fun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rolling_type</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
@@ -364,32 +387,33 @@
 <span class="sd">            the pandas dataframe, appended with the new columns</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># X = check_array(X) # dont do this, we want to use pandas only</span>
-        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;shift_&#39;</span><span class="p">)</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;window_size_&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_original</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rolling_type</span> <span class="ow">is</span> <span class="s2">&quot;fourier&quot;</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">shift</span><span class="p">,</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">window_size</span><span class="p">,</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span><span class="p">):</span>
+                <span class="n">useful_coeffs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                    <span class="n">foo</span> <span class="o">=</span> <span class="n">fourier</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">shift</span><span class="p">)</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lookback</span><span class="p">)</span>
-                    <span class="n">foo</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="n">suffix</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shift</span><span class="p">)]</span>
+                    <span class="n">foo</span> <span class="o">=</span> <span class="n">fourier</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">window_size</span><span class="p">)</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lookback</span><span class="p">)</span>
+                    <span class="n">foo</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="n">suffix</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">useful_coeffs</span><span class="p">]</span>
                     <span class="n">foo</span> <span class="o">=</span> <span class="n">foo</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
                     <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">result</span><span class="p">,</span> <span class="n">foo</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">shift</span><span class="p">,</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span><span class="p">):</span>
-                <span class="n">foo</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rolling_fun_</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shift</span><span class="p">)</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lookback</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">window_size</span><span class="p">,</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix_</span><span class="p">):</span>
+                <span class="n">foo</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rolling_fun_</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">window_size</span><span class="p">)</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lookback</span><span class="p">))</span>
                 <span class="n">foo</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">col</span><span class="p">),</span> <span class="n">suffix</span><span class="p">])</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">foo</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">result</span><span class="p">,</span> <span class="n">foo</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_feature_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
         <span class="k">return</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BuildRollingFeatures.get_feature_names"><a class="viewcode-back" href="../../../feature_engineering.html#sam.feature_engineering.rolling_features.BuildRollingFeatures.get_feature_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns feature names for last transform call</span>
+<span class="sd">        Returns feature names for the outcome of the last transform call.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_feature_names&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_names</span></div></div>
@@ -430,7 +454,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   
