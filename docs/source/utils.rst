@@ -11,6 +11,13 @@ frequencies
 .. automodule:: sam.utils.frequencies
     :members:
 
+Mongo wrapper
+----------------
+.. autoclass:: sam.utils.mongo_wrapper.MongoWrapper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 time
 ----
 .. automodule:: sam.utils.time

@@ -87,6 +87,9 @@
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-sam.utils.frequencies">frequencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mongo-wrapper">Mongo wrapper</a><ul class="simple">
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-sam.utils.time">time</a></li>
 </ul>
 </li>
@@ -182,6 +185,138 @@
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+</div>
+<div class="section" id="mongo-wrapper">
+<h2>Mongo wrapper<a class="headerlink" href="#mongo-wrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sam.utils.mongo_wrapper.MongoWrapper">
+<em class="property">class </em><code class="descclassname">sam.utils.mongo_wrapper.</code><code class="descname">MongoWrapper</code><span class="sig-paren">(</span><em>db</em>, <em>collection</em>, <em>location='localhost'</em>, <em>port=27017</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/mongo_wrapper.html#MongoWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.mongo_wrapper.MongoWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Provides a simple wrapper to the MongoDB layers</p>
+<p>This class provides a wrapper for basic functionality in MongoDB. We aim
+to use MongoDB as storage layer between analyses and e.g. dashboarding.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>db</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Name of the database</p>
+</dd>
+<dt><strong>collection</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">the name of the collection to fetch</p>
+</dd>
+<dt><strong>location</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string, optional (default=”localhost”)</span></dt>
+<dd><p class="first last">Location of the database</p>
+</dd>
+<dt><strong>port</strong> <span class="classifier-delimiter">:</span> <span class="classifier">integer, optional (default=27017)</span></dt>
+<dd><p class="first last">Port that the database is reachable on</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>&gt;&gt; from sam.utils.mongo_wrapper import MongoWrapper
+&gt;&gt; mon = MongoWrapper(‘test_magweg’,’test_magookweg’)
+&gt;&gt; mon.empty().add([{‘test’: 7}]).get()</p>
+<blockquote>
+<div>test</div></blockquote>
+<p>0   7</p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#sam.utils.mongo_wrapper.MongoWrapper.add" title="sam.utils.mongo_wrapper.MongoWrapper.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a>(content)</td>
+<td>Get as specific collection from the database</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#sam.utils.mongo_wrapper.MongoWrapper.empty" title="sam.utils.mongo_wrapper.MongoWrapper.empty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">empty</span></code></a>()</td>
+<td>Empty the collection</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#sam.utils.mongo_wrapper.MongoWrapper.get" title="sam.utils.mongo_wrapper.MongoWrapper.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>([query,&nbsp;as_df])</td>
+<td>Get as specific collection from the database</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sam.utils.mongo_wrapper.MongoWrapper.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/mongo_wrapper.html#MongoWrapper.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.mongo_wrapper.MongoWrapper.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get as specific collection from the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>content</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of dictionaries, or pandas dataframe</span></dt>
+<dd><p class="first last">list of items to add to the collection</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>result</strong> <span class="classifier-delimiter">:</span> <span class="classifier">self</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sam.utils.mongo_wrapper.MongoWrapper.empty">
+<code class="descname">empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/mongo_wrapper.html#MongoWrapper.empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.mongo_wrapper.MongoWrapper.empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empty the collection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>result</strong> <span class="classifier-delimiter">:</span> <span class="classifier">self</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sam.utils.mongo_wrapper.MongoWrapper.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>query={}</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sam/utils/mongo_wrapper.html#MongoWrapper.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sam.utils.mongo_wrapper.MongoWrapper.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get as specific collection from the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>query</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dictionary-like, optional (default={})</span></dt>
+<dd><p class="first last">dictionary of parameters to use in the query.
+e.g. { “address”: “Park Lane 38” }</p>
+</dd>
+<dt><strong>as_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=True)</span></dt>
+<dd><p class="first last">return the query results as a Pandas Dataframe</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>result</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas dataframe, or list of dictionaries</span></dt>
+<dd><p class="first last">the results of the query</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -335,6 +470,7 @@ For example, if unit = ‘hour’, then the result will be 3600.</p>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   
