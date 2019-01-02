@@ -34,7 +34,10 @@ def incident_recall(y_true, y_pred, y_incidents, range_pred=(0, 0)):
     incident_indices = np.reshape(np.nonzero(y_incidents), -1)
 
     # Get the ranges that a positive prediction should have been made
-    incident_ranges = [(np.maximum(i-range_pred[1], 0), np.maximum(i-range_pred[0], 0))
+    # Note: we expect 3 rows to be checked when range_pred = (1,3)
+    # namely 1,2,3. Top achieve this indexing, we should subtract 1 more from
+    # the i-range_pred[i]
+    incident_ranges = [(np.maximum(i-range_pred[1]-1, 0), np.maximum(i-range_pred[0], 0))
                        for i in incident_indices]
 
     # Find out if there's any positive prediction in this range
@@ -46,7 +49,7 @@ def incident_recall(y_true, y_pred, y_incidents, range_pred=(0, 0)):
     return score
 
 
-def make_incident_recall_scorer(range_pred=(0, 0), colname = 'incident'):
+def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
     """
     Wrapper around incident_recall_score, to make it an actual sklearn scorer.
     This works by obtaining the 'incident' column from the data itself. This
