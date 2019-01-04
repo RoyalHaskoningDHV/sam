@@ -220,12 +220,13 @@ to use MongoDB as storage layer between analyses and e.g. dashboarding.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<p>&gt;&gt; from sam.utils.mongo_wrapper import MongoWrapper
-&gt;&gt; mon = MongoWrapper(‘test_magweg’,’test_magookweg’)
-&gt;&gt; mon.empty().add([{‘test’: 7}]).get()</p>
-<blockquote>
-<div>test</div></blockquote>
-<p>0   7</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sam.utils.mongo_wrapper</span> <span class="k">import</span> <span class="n">MongoWrapper</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mon</span> <span class="o">=</span> <span class="n">MongoWrapper</span><span class="p">(</span><span class="s1">&#39;test_magweg&#39;</span><span class="p">,</span><span class="s1">&#39;test_magookweg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mon</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">([{</span><span class="s1">&#39;test&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">}])</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<span class="go">    test</span>
+<span class="go">0   7</span>
+</pre></div>
+</div>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -445,7 +446,7 @@ For example, if unit = ‘hour’, then the result will be 3600.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Sebastiaan, Tim, Fenno, Rutger
+        &copy; Copyright 2018-2019, Sebastiaan, Tim, Fenno, Rutger
 
     </p>
   </div>
@@ -470,7 +471,6 @@ For example, if unit = ‘hour’, then the result will be 3600.</p>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

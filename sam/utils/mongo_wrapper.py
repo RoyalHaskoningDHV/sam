@@ -21,9 +21,9 @@ class MongoWrapper():
 
     Examples
     --------
-    >> from sam.utils.mongo_wrapper import MongoWrapper
-    >> mon = MongoWrapper('test_magweg','test_magookweg')
-    >> mon.empty().add([{'test': 7}]).get()
+    >>> from sam.utils.mongo_wrapper import MongoWrapper
+    >>> mon = MongoWrapper('test_magweg','test_magookweg')
+    >>> mon.empty().add([{'test': 7}]).get()
         test
     0	7
     """
