@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def unit_to_seconds(unit):
     """Performs a lookup to convert a string to a number of seconds
     the unit can be something like 'hours', or 'day'. Several options
@@ -36,7 +37,8 @@ def unit_to_seconds(unit):
     elif unit.startswith('week'):
         return 60 * 60 * 24 * 7
     else:
-        raise ValueError("The unit is '%s', but it must start with sec, min, hour, day or week" % unit)
+        raise ValueError(("The unit is '%s', but it must start with ",
+                          "sec, min, hour, day or week") % unit)
 
 
 def label_dst(timestamps):
@@ -77,7 +79,7 @@ def average_winter_time(data, tmpcol='tmp_UNID'):
     Because the to_wintertime hour happens twice, there can be duplpicate timestamps
     This function removes those duplicates by averaging the VALUE column
     All other columns are used as group-by columns
-    
+
     Parameters
     ----------
     data: pandas Dataframe
@@ -85,7 +87,7 @@ def average_winter_time(data, tmpcol='tmp_UNID'):
     tmpcol: string, optional (default='tmp_UNID')
         temporary columnname that is created in dataframe. This columnname cannot
         exist in the dataframe already
-    
+
     Returns
     -------
     data: pandas Dataframe
@@ -93,6 +95,8 @@ def average_winter_time(data, tmpcol='tmp_UNID'):
         removed, if they happened during the wintertime duplicate hour
     """
     assert tmpcol not in data.columns
+    # Prevent side effects because this function makes inplace changes
+    data = data.copy()
     dst_labels = label_dst(data.TIME)
     # We make a column that is unique for all except wintertime
     # This means that in the groupby line, non-to_wintertime

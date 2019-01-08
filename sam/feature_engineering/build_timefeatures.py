@@ -1,7 +1,8 @@
 import pandas as pd
 
 
-def build_timefeatures(start_time, end_time, freq, year=True, seasonal=True, weekly=True, daily=True):
+def build_timefeatures(start_time, end_time, freq=None, year=True, seasonal=True, weekly=True,
+                       daily=True):
     """
     Given a start time, end time, and frequency, in pandas format,
     create several time features, such as month, year, weekday, etcetera
@@ -16,11 +17,12 @@ def build_timefeatures(start_time, end_time, freq, year=True, seasonal=True, wee
         the end time of the period to create features over
         if string, the format 'YYYY/MM/DD HH:mm:SS' will always work
         Pandas also accepts other formats, or a datetime object
-    freq : str or DateOffset
+    freq : str or DateOffset (default=None)
         the frequency with which the time features are made
         See a list of frequency aliases here:
         https://pandas.pydata.org/pandas-docs/stable/timeseries.html#timeseries-offset-aliases
         frequencies can have multiples, e.g. "15 min" for 15 minutes
+        The default defaults to "D", which is one day
     year : boolean, optional (default=True)
         if this is true, then the "YEAR" feature will be created
     seasonal : boolean, optional (default=True)
@@ -28,7 +30,8 @@ def build_timefeatures(start_time, end_time, freq, year=True, seasonal=True, wee
     weekly : boolean, optional (default=True)
         if this is true, then the "WEEKDAY" and "WEEKEND" (boolean) features will be created
     daily : boolean, optional (default=True)
-        if this is true, then the "HOUR", "MINUTE" and "DAY_PERIOD" (string) features will be created
+        if this is true, then the "HOUR", "MINUTE" and "DAY_PERIOD" (string) features will
+        be created
 
     Returns
     -------

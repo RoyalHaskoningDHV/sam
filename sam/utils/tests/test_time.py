@@ -4,7 +4,7 @@ from pandas.testing import assert_frame_equal
 
 import pandas as pd
 import numpy as np
-from sam.utils import unit_to_seconds, label_dst
+from sam.utils import unit_to_seconds, label_dst, average_winter_time
 
 
 class TestUnitToSeconds(unittest.TestCase):

@@ -64,19 +64,16 @@ class TestBuildTimeFeatures(unittest.TestCase):
         self.assertRaises(ValueError, build_timefeatures, time1, time2, freq)
 
     def test_end_before_start(self):
-        # This should be valueerror as well
         time1 = '2019/08/12 15:08:11'
         time2 = '2018/03/11 15:08:12'
         freq = '7D'
-        self.assertRaises(ValueError, build_timefeatures, time1, time2, freq)
+        self.assertRaises(Exception, build_timefeatures, time1, time2, freq)
 
     def test_invalid_freq(self):
         time1 = '2018/03/11 15:08:12'
         time2 = '2019/08/12 15:08:11'
         self.assertRaises(ValueError, build_timefeatures, time1, time2, '7 days')
         self.assertRaises(ValueError, build_timefeatures, time1, time2, 7)
-        # None is interpreted by pandas as 'D'. Either document, or make it throw an error.
-        self.assertRaises(ValueError, build_timefeatures, time1, time2, None)
         self.assertRaises(ValueError, build_timefeatures, time1, time2, ['7D'])
 
 if __name__ == '__main__':
