@@ -8,6 +8,9 @@
 
 data/
 
+# Documentation is on internal server, not in repo
+docs/build/
+
 # Doc types
 *.txt
 *.pdf
