@@ -35,9 +35,9 @@ def incident_recall(y_true, y_pred, y_incidents, range_pred=(0, 0)):
 
     # Get the ranges that a positive prediction should have been made
     # Note: we expect 3 rows to be checked when range_pred = (1,3)
-    # namely 1,2,3. Top achieve this indexing, we should subtract 1 more from
-    # the i-range_pred[i]
-    incident_ranges = [(np.maximum(i-range_pred[1]-1, 0), np.maximum(i-range_pred[0], 0))
+    # namely 1,2,3. Top achieve this indexing, we should add 1 to
+    # the i-range_pred[0] to make the range inclusive of the last record
+    incident_ranges = [(np.maximum(i-range_pred[1], 0), np.maximum(i-range_pred[0]+1, 0))
                        for i in incident_indices]
 
     # Find out if there's any positive prediction in this range
