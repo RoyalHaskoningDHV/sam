@@ -1,4 +1,4 @@
-## Version: 0.1.0
+## Version: 0.2.0
 
 # sam description
 
@@ -14,10 +14,44 @@ Reviewers: Fenno, Rutger, Tim
 ``` 
 ```
 
-# Testing
+# Linting
+
+Linting is done automatically by arcanist before a diff. To do this, first install
+the dependencies
 
 ```
+pip install pep8
 ```
+
+Then, to run the linter manually, go to the root folder of the project, and run `pep8`.
+
+# Testing
+
+Unit tests are ran automatically by arcanist before a diff. To do this, first install
+the dependencies
+
+```
+pip install pytest
+pip install pytest-cov
+```
+
+Then, to run the tests manually, go the the root folder of the project, and run `pytest`.
+
+# Documentation
+
+Documentation is available on 10.2.0.20/sam . This is on the ynformed internal server.
+This server is only reachable from the ynformed office wifi, or via vpn.
+This documentation is built automatically after every commit, with no interaction required.
+If you want to build it yourself locally, first install the dependencies:
+
+```
+ pip install sphinx
+ pip install sphinx_rtd_theme
+ pip install numpydoc
+ pip install recommonmark
+```
+
+Then, go to the /docs folder, and run the command: `sphinx-build -b html source/ build/`
 
 # Developing
 
@@ -36,22 +70,4 @@ lines at the top of every notebook:
 ```
 This will reload sam everytime you run a new cell. The third line is optional: if you 
 leave it out, you will reload every import every cell, instead of only those from sam.
-
-
-# Before committing
-When committing, first rebuild the documentation. This can be done through the following command within the /docs folder:
-
-
-```
-sphinx-build -b html source/ build/
-```
-
-You will need to have the following packages:
-```
- pip install sphinx
- pip install sphinx_rtd_theme
- pip install numpydoc
- pip install recommonmark
-```
-
 
