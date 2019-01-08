@@ -50,6 +50,7 @@ You will need to have the following packages:
 ```
  pip install sphinx
  pip install sphinx_rtd_theme
+ pip install numpydoc
  pip install recommonmark
 ```
 

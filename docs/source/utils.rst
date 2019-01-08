@@ -13,7 +13,7 @@ frequencies
 
 Mongo wrapper
 ----------------
-.. autoclass:: sam.utils.mongo_wrapper.MongoWrapper
+.. autoclass:: sam.utils.MongoWrapper
     :members:
     :undoc-members:
     :show-inheritance:

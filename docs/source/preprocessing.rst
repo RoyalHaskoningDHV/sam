@@ -8,5 +8,4 @@ This is the documentation for preprocessing functions.
 
 Complete timestamps
 -------------------
-.. automodule:: sam.preprocessing.complete_timestamps
-    :members:
+.. autofunction:: sam.preprocessing.complete_timestamps

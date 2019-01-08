@@ -8,5 +8,8 @@ This is the documentation for Metrics functions.
 
 Incident recall
 -------------------
-.. automodule:: sam.metrics.incident_recall
-    :members:
+.. autofunction:: sam.metrics.incident_recall
+
+Make Incident recall scorer
+-------------------
+.. autofunction:: sam.metrics.make_incident_recall_scorer

@@ -8,5 +8,4 @@ This is the documentation for visualization functions.
 
 Precision Recall curve plot
 ---------------------------
-.. automodule:: sam.visualization.precision_recall
-    :members:
+.. autofunction:: sam.visualization.make_precision_recall_curve
