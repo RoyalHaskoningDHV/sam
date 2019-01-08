@@ -1,8 +1,7 @@
 import pandas as pd
-from sam.utils.frequencies import frequencies_to_val
 
 
-def complete_timestamps(df, freq='hour', start_time='', end_time='',
+def complete_timestamps(df, freq='H', start_time='', end_time='',
                         aggregate_method='', fillna_method=''):
     """
     Create a dataframe with all timestamps according to a given frequency
@@ -25,9 +24,10 @@ def complete_timestamps(df, freq='hour', start_time='', end_time='',
         the end time of the period to create features over
         if string, the format 'YYYY/MM/DD HH:mm:SS' will always work
         Pandas also accepts other formats, or a datetime object
-    freq : str or DateOffset, optional (default = 'hour')
+    freq : str or DateOffset, optional (default = 'H')
         the frequency with which the time features are made
         frequencies can have multiples, e.g. "15 min" for 15 minutes
+        https://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases
     aggregate_method : string or list, optional (default = '')
         method that is used to aggregate value.
         Can be strings such as mean, sum, min, max.
@@ -41,7 +41,6 @@ def complete_timestamps(df, freq='hour', start_time='', end_time='',
         dataframe containing all possible combinations of timestamps and IDs
         with selected frequency, aggregate method and fillna method
     """
-    freq = frequencies_to_val(freq)
     if df.empty:
         raise ValueError('No dataframe found')
 

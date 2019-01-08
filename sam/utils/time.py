@@ -37,7 +37,7 @@ def unit_to_seconds(unit):
     elif unit.startswith('week'):
         return 60 * 60 * 24 * 7
     else:
-        raise ValueError(("The unit is '%s', but it must start with ",
+        raise ValueError(("The unit is '%s', but it must start with "
                           "sec, min, hour, day or week") % unit)
 
 

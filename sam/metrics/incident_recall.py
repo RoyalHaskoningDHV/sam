@@ -28,6 +28,7 @@ def incident_recall(y_true, y_pred, y_incidents, range_pred=(0, 0)):
         The percentage of incidents that was positively predicted
 
     """
+    assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
     y_true, y_pred, y_incidents = np.array(y_true), np.array(y_pred), np.array(y_incidents)
 
     # Get the incides of the actual incidents
