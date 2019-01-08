@@ -9,3 +9,7 @@ This is the documentation for visualization functions.
 Precision Recall curve plot
 ---------------------------
 .. autofunction:: sam.visualization.make_precision_recall_curve
+
+Threshold curve plot
+---------------------------
+.. autofunction:: sam.visualization.make_threshold_plot
