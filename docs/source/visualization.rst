@@ -18,3 +18,7 @@ Autocorrelation plot
 Threshold curve plot
 ---------------------------
 .. autofunction:: sam.visualization.make_threshold_plot
+
+Incident heatmap plot
+---------------------------
+.. autofunction:: sam.visualization.make_incident_heatmap
