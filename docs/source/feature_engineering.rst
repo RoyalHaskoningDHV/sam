@@ -10,6 +10,7 @@ Rolling Features
 ----------------
 .. autoclass:: sam.feature_engineering.BuildRollingFeatures
     :members:
+    :undoc-members:
     :show-inheritance:
 
 Build timefeatures

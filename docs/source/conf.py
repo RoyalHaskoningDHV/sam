@@ -29,9 +29,9 @@ copyright = '2018-2019, Sebastiaan, Tim, Fenno, Rutger'
 author = 'Sebastiaan, Tim, Fenno, Rutger'
 
 # The short X.Y version
-version = ''
+version = '0.2'
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = '0.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -63,8 +63,6 @@ source_parsers = {
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
-#
-# source_suffix = ['.rst', '.md']
 source_suffix = ['.rst', '.md']
 
 # The master toctree document.
@@ -102,7 +100,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['nstatic']
+# html_static_path = ['nstatic']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -191,10 +189,6 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
-
-#Prevent warnings
-# https://stackoverflow.com/a/15210813
-numpydoc_show_class_members = False
 
 # -- Options for todo extension ----------------------------------------------
 
