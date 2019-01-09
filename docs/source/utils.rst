@@ -6,11 +6,6 @@ Utils
 
 This is the documentation for util functions.
 
-frequencies
------------
-.. automodule:: sam.utils.frequencies
-    :members:
-
 Mongo wrapper
 ----------------
 .. autoclass:: sam.utils.MongoWrapper
