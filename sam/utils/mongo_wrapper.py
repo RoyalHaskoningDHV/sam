@@ -2,7 +2,7 @@ import pymongo
 import pandas as pd
 
 
-class MongoWrapper():
+class MongoWrapper:
     """Provides a simple wrapper to the MongoDB layers
 
     This class provides a wrapper for basic functionality in MongoDB. We aim

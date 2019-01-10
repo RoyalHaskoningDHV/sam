@@ -13,6 +13,7 @@ Welcome to sam's documentation!
    project
    general_documents
    preprocessing
+   feature_selection
    feature_engineering
    metrics
    visualization
