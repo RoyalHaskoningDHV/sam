@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def incident_recall(y_true, y_pred, y_incidents, range_pred=(0, 0)):
+def incident_recall(y_pred, y_incidents, range_pred=(0, 0)):
     """
-    Given y_true, y_pred, y_incidents and a prediction range,
+    Given y_pred, y_incidents and a prediction range,
     see what percentage of incidents in y_incidents was positively
     predicted in y_pred, within window range_pred.
 
@@ -12,8 +12,6 @@ def incident_recall(y_true, y_pred, y_incidents, range_pred=(0, 0)):
 
     Parameters
     ----------
-    y_true : 1d array-like, or label indicator array / sparse matrix
-        Ground truth (correct) labels.
     y_pred : 1d array-like, or label indicator array / sparse matrix
         Predicted labels, as returned by a classifier.
     y_incidents : 1d array-like, or label indicator array / sparse matrix
@@ -27,9 +25,17 @@ def incident_recall(y_true, y_pred, y_incidents, range_pred=(0, 0)):
     result : float
         The percentage of incidents that was positively predicted
 
+    Examples
+    --------
+    >>> from sam.metrics import incident_recall
+    >>> y_pred = [1,0,0,1,0,0,0]
+    >>> y_incidents = [0,1,0,0,0,0,1]
+    >>> range_pred = (0,2)
+    >>> incident_recall(y_pred, y_incidents, range_pred)
+    0.5
     """
     assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
-    y_true, y_pred, y_incidents = np.array(y_true), np.array(y_pred), np.array(y_incidents)
+    y_pred, y_incidents = np.array(y_pred), np.array(y_incidents)
 
     # Get the incides of the actual incidents
     incident_indices = np.reshape(np.nonzero(y_incidents), -1)
@@ -71,11 +77,25 @@ def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
     Returns
     -------
     scorer : a function that acts as a sklearn scorer object.
-        signature is scorer(clf, X, y), where clf is a fit model,
-        X is test data, and y is the ground truth for the test data
+        signature is scorer(clf, X), where clf is a fit model,
+        X is test data
     
+    Examples
+    --------
+    >>> from sam.metrics import make_incident_recall_scorer
+    >>> from sklearn.base import BaseEstimator
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>>
+    >>> op = type("MyClassifier", (BaseEstimator, object),
+    >>>          {"predict": lambda self, X: np.array([0, 1, 0, 0, 0, 0, 0, 0])})
+    >>> data = pd.DataFrame({"incident": [0, 0, 0, 1, 1, 0, 1, 0], "other": 1})
+    >>>
+    >>> scorer = make_incident_recall_scorer((1, 3), "incident")
+    >>> scorer(op(), data)
+    0.66666
     """
-    def incident_recall_scorer(clf, X, y):
+    def incident_recall_scorer(clf, X):
         y_pred = clf.predict(X)
-        return incident_recall(y, y_pred, X[colname], range_pred)
+        return incident_recall(y_pred, X[colname], range_pred)
     return incident_recall_scorer
