@@ -40,6 +40,25 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
     complete_df : pandas dataframe, shape (length(TIME) * length(unique IDs), 3)
         dataframe containing all possible combinations of timestamps and IDs
         with selected frequency, aggregate method and fillna method
+
+    Examples
+    --------
+    >>> from sam.preprocessing import complete_timestamps
+    >>> from datetime import datetime
+    >>> import pandas as pd
+    >>> df = pd.DataFrame({'TIME': [datetime(2018, 6, 9, 11, 13), datetime(2018, 6, 9, 11, 34),
+    >>>                             datetime(2018, 6, 9, 11, 44), datetime(2018, 6, 9, 11, 46)],
+    >>>                    'ID': "SENSOR",
+    >>>                    'VALUE': [1, 20, 3, 20]})
+    >>>
+    >>> complete_timestamps(df, freq = "15 min", end_time="2018-06-09 12:15:00",
+    >>>                     aggregate_method = "median", fillna_method="ffill")
+        TIME                ID      VALUE
+    0   2018-06-09 11:00:00 SENSOR  1.0
+    1   2018-06-09 11:15:00 SENSOR  1.0
+    2   2018-06-09 11:30:00 SENSOR  11.5
+    3   2018-06-09 11:45:00 SENSOR  20.0
+    4   2018-06-09 12:00:00 SENSOR  20.0
     """
     if df.empty:
         raise ValueError('No dataframe found')

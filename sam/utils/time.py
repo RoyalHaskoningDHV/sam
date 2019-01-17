@@ -22,6 +22,11 @@ def unit_to_seconds(unit):
         A number describing the number of seconds that the unit takes
         For example, if unit = 'hour', then the result will be 3600.
 
+    Examples
+    --------
+    >>> from sam.utils import unit_to_seconds
+    >>> unit_to_seconds("week")
+    604800
     """
     # fix easy issues like upper case and whitespace
     unit = unit.lower().strip()
@@ -63,6 +68,27 @@ def label_dst(timestamps):
     labels: string, array-like, shape = (n_inputs,)
         a numpy array of strings, that are all either
         'normal', 'to_summertime', or 'to_wintertime'
+
+    Examples
+    --------
+    >>> from sam.utils import label_dst
+    >>> import pandas as pd
+    >>>
+    >>> daterange = pd.date_range('2019-10-27 01:00:00', '2019-10-27 03:00:00', freq='15min')
+    >>> date_labels = label_dst(pd.Series(daterange))
+    >>>
+    >>> pd.DataFrame({'TIME' : daterange,
+    >>>               'LABEL': date_labels})
+        TIME                LABEL
+    0   2019-10-27 01:00:00 normal
+    1   2019-10-27 01:15:00 normal
+    2   2019-10-27 01:30:00 normal
+    3   2019-10-27 01:45:00 normal
+    4   2019-10-27 02:00:00 to_wintertime
+    5   2019-10-27 02:15:00 to_wintertime
+    6   2019-10-27 02:30:00 to_wintertime
+    7   2019-10-27 02:45:00 to_wintertime
+    8   2019-10-27 03:00:00 normal
     """
     last_sunday_morning = (timestamps.dt.day >= 25) & \
                           (timestamps.dt.weekday == 6) & \
@@ -93,6 +119,23 @@ def average_winter_time(data, tmpcol='tmp_UNID'):
     data: pandas Dataframe
         The same dataframe as was given in input, but with duplicate timestamps
         removed, if they happened during the wintertime duplicate hour
+
+    Examples
+    --------
+    >>> from sam.utils import average_winter_time
+    >>> import numpy as np
+    >>>
+    >>> daterange = pd.date_range('2019-10-27 01:45:00', '2019-10-27 03:00:00', freq='15min')
+    >>> test_df = pd.DataFrame({"TIME": daterange.values[[0, 1, 1, 2, 2, 3, 3, 4, 4, 5]],
+    >>>                         "VALUE": np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])})
+    >>> average_winter_time(test_df)
+        TIME                VALUE
+    0   2019-10-27 01:45:00 0.0
+    1   2019-10-27 02:00:00 1.5
+    2   2019-10-27 02:15:00 3.5
+    3   2019-10-27 02:30:00 5.5
+    4   2019-10-27 02:45:00 7.5
+    5   2019-10-27 03:00:00 9.0
     """
     assert tmpcol not in data.columns
     # Prevent side effects because this function makes inplace changes

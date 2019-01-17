@@ -42,6 +42,20 @@ def build_timefeatures(start_time, end_time, freq=None, year=True, seasonal=True
         chosen inputs.
         All features are numeric other than TIME (which is datetime), and WEEKEND and DAY_PERIOD
 
+    Examples
+    --------
+    >>> from sam.feature_engineering import build_timefeatures
+    >>> build_timefeatures("28-12-2018", "01-01-2019", freq="11 H").reset_index(drop=True)
+        TIME                YEAR    MONTH   QUARTER WEEK    WEEKDAY WEEKEND HOUR MINUTE  DAY_PERIOD
+    0   2018-12-28 00:00:00 2018    12      4       52      4       False   0    0       night
+    1   2018-12-28 11:00:00 2018    12      4       52      4       False   11   0       afternoon
+    2   2018-12-28 22:00:00 2018    12      4       52      4       False   22   0       night
+    3   2018-12-29 09:00:00 2018    12      4       52      5       True    9    0       morning
+    4   2018-12-29 20:00:00 2018    12      4       52      5       True    20   0       evening
+    5   2018-12-30 07:00:00 2018    12      4       52      6       True    7    0       morning
+    6   2018-12-30 18:00:00 2018    12      4       52      6       True    18   0       evening
+    7   2018-12-31 05:00:00 2018    12      4       1       0       False   5    0       night
+    8   2018-12-31 16:00:00 2018    12      4       1       0       False   16   0       afternoon
     """
     times = pd.date_range(start_time, end_time, freq=freq)
     assert times.size > 0

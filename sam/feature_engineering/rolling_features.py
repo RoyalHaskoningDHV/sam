@@ -67,6 +67,30 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     keep_original : boolean, optional (default=True)
         if the original columns should be kept or discarded
         True by default, which means the new columns are added to the old ones
+
+    Examples
+    --------
+    >>> from sam.feature_engineering import BuildRollingFeatures
+    >>> import pandas as pd
+    >>> df = pd.DataFrame({'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    >>>                    'DEBIET': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3]})
+    >>>
+    >>> BuildRollingFeatures(rolling_type='lag', window_size = [0,1,4], \\
+    >>>                      lookback=0, keep_original=False).fit_transform(df)
+                RAIN_lag_0  DEBIET_lag_0    RAIN_lag_1  DEBIET_lag_1    RAIN_lag_4  DEBIET_lag_4
+    0           0.1         1               NaN         NaN             NaN         NaN
+    1           0.2         2               0.1         1.0             NaN         NaN
+    2           0.0         3               0.2         2.0             NaN         NaN
+    3           0.6         4               0.0         3.0             NaN         NaN
+    4           0.1         5               0.6         4.0             0.1         1.0
+    5           0.0         5               0.1         5.0             0.2         2.0
+    6           0.0         4               0.0         5.0             0.0         3.0
+    7           0.0         3               0.0         4.0             0.6         4.0
+    8           0.0         2               0.0         3.0             0.1         5.0
+    9           0.0         4               0.0         2.0             0.0         5.0
+    10          0.0         2               0.0         4.0             0.0         4.0
+    11          0.0         3               0.0         2.0             0.0         3.0
+
     """
 
     def _validate_params(self):

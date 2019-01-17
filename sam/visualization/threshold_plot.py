@@ -26,7 +26,6 @@ def make_threshold_plot(y_true, y_score):
     --------
     >>> from sam.visualization import make_threshold_plot
     >>> make_threshold_plot([0, 1, 0, 1, 1, 0],[.2, .3, .4, .5, .9, .1])
-    <matplotlib.axes._subplots.AxesSubplot at 0x7f67d1ea4630>
     """
 
     # Retrieve the curve data

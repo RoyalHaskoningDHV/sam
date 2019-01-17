@@ -27,6 +27,14 @@ def make_precision_recall_curve(y_true, y_score, color='b', alpha=0.2):
     plot:  matplotlib.axes._subplots.AxesSubplot object
         a plot containing the resulting precision recall_curve.
         can be edited further, or printed to the output.
+
+    Examples
+    --------
+    >>> from sam.visualization import make_precision_recall_curve
+    >>> y_true = np.array([0, 0, 1, 1, 1, 0])
+    >>> y_scores = np.array([0.1, 0.4, 0.35, 0.8, 0.2, 0.3])
+    >>>
+    >>> make_precision_recall_curve(y_true, y_scores)
     """
 
     # shamelessly stolen from

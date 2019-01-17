@@ -40,18 +40,21 @@ def make_incident_heatmap(df, resolution='row', row_column='id', value_column='i
 
     Examples
     --------
+    >>> from sam.visualization import make_incident_heatmap
+    >>> import pandas as pd
+    >>> import numpy as np
     >>> # Initialize a random dataframe
     >>> rng = pd.date_range('1/1/2011', periods=150, freq='D')
     >>> ts = pd.DataFrame({'values': np.random.randn(len(rng)),
-                           'id': np.random.choice(['A','B','C'], len(rng))},
-                           index=rng, columns=['values','id'])
+    >>>                    'id': np.random.choice(['A','B','C'], len(rng))},
+    >>>                     index=rng, columns=['values','id'])
     >>>
     >>> # Create some incidents
     >>> ts['incident'] = 0
     >>> ts.loc[ts['values'] > .5, 'incident'] = 1
     >>>
     >>> # Create the heatmap
-    >>> ax = incident_heatmap(ts, resolution='W', annot=True, cmap='Reds')
+    >>> make_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds')
     """
     df = df.copy()
 

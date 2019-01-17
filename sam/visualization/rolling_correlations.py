@@ -27,16 +27,15 @@ def plot_lag_correlation(df, ylim=None):
         >>> import numpy as np
         >>> goal_feature = 'DEBIET#TOTAAL_lag_0'
         >>> df = pd.DataFrame({
-                           'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                           'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
-                           'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
+        >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        >>>                'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
+        >>>                'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
         >>> df['DEBIET#TOTAAL'] = df['DEBIET#A'] + df['DEBIET#B']
-        >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \
-                window_size = np.arange(12), lookback=0, keep_original=False)
+        >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \\
+        >>>     window_size = np.arange(12), lookback=0, keep_original=False)
         >>> res = RollingFeatures.fit_transform(df)
         >>> test = create_lag_correlation(res, goal_feature)
         >>> plot_lag_correlation(test)
-
     '''
     fig, ax = plt.subplots()
     for col in df.columns:
