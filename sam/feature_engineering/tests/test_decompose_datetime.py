@@ -18,7 +18,8 @@ class TestBuildTimeFeatures(unittest.TestCase):
         # starts at minute 8m ends at 10, 1 hour later, step of 15 min
         minuterange = list(range(8, 10+60, 15))
 
-        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+        test_dataframe = pd.DataFrame({'TIME': daterange, 'OTHER': 1},
+                                      columns=['TIME', 'OTHER'])
         components = ['year', 'month', 'quarter', 'week', 'weekday', 'hour', 'minute']
 
         result = decompose_datetime(test_dataframe, "TIME", components)
@@ -36,7 +37,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_array_equal(result.TIME_minute.values, np.array([x % 60 for x in minuterange]))
 
         assert_array_equal(result.columns.values,
-                           np.array(['OTHER', 'TIME', 'TIME_year', 'TIME_month', 'TIME_quarter',
+                           np.array(['TIME', 'OTHER', 'TIME_year', 'TIME_month', 'TIME_quarter',
                                      'TIME_week', 'TIME_weekday', 'TIME_hour', 'TIME_minute']))
 
     def test_no_components(self):

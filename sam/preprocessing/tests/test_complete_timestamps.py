@@ -17,7 +17,7 @@ class TestCompleteTimestamps(unittest.TestCase):
                                     '2018/01/01 16:10:09', '2018/01/01 16:22:09']),
             "ID": 1,
             "VALUE": [1, 2, 3, 4]
-        })
+        }, columns=['TIME', 'ID', 'VALUE'])
         start_time = pd.to_datetime("2018/01/01 15:45:00")
         end_time = pd.to_datetime("2018/01/01 16:30:00")
 
@@ -30,7 +30,7 @@ class TestCompleteTimestamps(unittest.TestCase):
                                     '2018/01/01 16:15:00', '2018/01/01 16:30:00']),
             "ID": 1,
             "VALUE": [np.nan, 1, 3, 4]
-        })
+        }, columns=['TIME', 'ID', 'VALUE'])
         assert_frame_equal(result, output)
 
         # after bfill, the nan is filled in
@@ -57,7 +57,7 @@ class TestCompleteTimestamps(unittest.TestCase):
                                     '2018/01/01 16:10:09', '2018/01/01 16:22:09']),
             "ID": 1,
             "VALUE": [1, 2, 3, 4]
-        })
+        }, columns=['TIME', 'ID', 'VALUE'])
         start_time = pd.to_datetime("2018/01/01 15:45:00")
         end_time = pd.to_datetime("2018/01/01 16:30:00")
 
@@ -69,7 +69,11 @@ class TestCompleteTimestamps(unittest.TestCase):
 
         data.columns = ["TIME", "ID", "SOMETHINGELSE"]
         # column names incorrect
-        self.assertRaises(ValueError, complete_timestamps, data, '15min', start_time, end_time)
+        # VALUE is only required when aggregate_method is filled. Otherwise it is never evaluated
+        # Therefore, first line should not throw error, the second line should
+        _ = complete_timestamps(data, '15min', start_time, end_time, '')
+        self.assertRaises(Exception, complete_timestamps,
+                          data, '15min', start_time, end_time, 'sum')
 
         # unknown because I have no idea what happens if you call an unknown function
         self.assertRaises(Exception, complete_timestamps, data, '15min',

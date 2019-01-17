@@ -91,12 +91,12 @@ class TestAverageWintertime(unittest.TestCase):
 
         test_df = pd.DataFrame({"TIME": daterange.values[[0, 1, 1, 2, 2, 3, 3, 4, 4, 5]],
                                 "VALUE": np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-                                "ID": np.ones(10)})
+                                "ID": np.ones(10)}, columns=['TIME', 'ID', 'VALUE'])
         test_df_copy = test_df.copy()
 
         output_df = pd.DataFrame({"TIME": daterange.values[[0, 1, 2, 3, 4, 5]],
                                   "VALUE": np.array([0, 1.5, 3.5, 5.5, 7.5, 9]),
-                                  "ID": np.ones(6)})
+                                  "ID": np.ones(6)}, columns=['TIME', 'ID', 'VALUE'])
 
         assert_frame_equal(average_winter_time(test_df), output_df)
         # The original frame cannot have changed because of the call
