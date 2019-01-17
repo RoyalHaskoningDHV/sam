@@ -48,10 +48,14 @@ class TestCreateOutlierInformation(unittest.TestCase):
     def setUp(self):
         self.data = pd.DataFrame({'TIME': range(1547477436, 1547477436+3),  # unix timestamps
                                   'ACTUAL': [0.3, 0.5, 0.7], 'PREDICT_HIGH': 0.6,
-                                  'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
+                                  'PREDICT_LOW': 0.4, 'PREDICT': 0.5},
+                                 columns=['ACTUAL', 'PREDICT', 'PREDICT_HIGH', 'PREDICT_LOW',
+                                          'TIME'])
         self.no_outliers = pd.DataFrame({'TIME': range(1547477436, 1547477436+3),
                                          'ACTUAL': [0.5, 0.5, 0.5], 'PREDICT_HIGH': 0.6,
-                                         'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
+                                         'PREDICT_LOW': 0.4, 'PREDICT': 0.5},
+                                        columns=['ACTUAL', 'PREDICT', 'PREDICT_HIGH',
+                                                 'PREDICT_LOW', 'TIME'])
 
     def test_aggregated(self):
         result = create_outlier_information(self.data)
