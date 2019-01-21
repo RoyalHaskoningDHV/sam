@@ -1,3 +1,5 @@
+# Jupyter notebook
+*.ipynb
 
 # Data types
 *.csv
