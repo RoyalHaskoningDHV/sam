@@ -88,7 +88,13 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
     new_val[0] = True  # because this is not an outlier, it's treated seperately
     new_val.name = 'OUTLIER_FILLED'  # Attribute needed for join
     data = data.join(new_val, on='GAP')  # Add OUTLIER_FILLED column
-    data.OUTLIER_FILLED[0] = data.OUTLIER[0]  # Bug fix that comes from the shift.
+
+    # If there is an outlier AND a gap at the beginning/end. That is wrong.
+    firstgap_id, lastgap_id = data.GAP.iloc[0], data.GAP.iloc[-1]
+    if firstgap_id != 0:  # entire gap at the beginning that shouldn't be there
+        data.loc[data.GAP == firstgap_id, 'OUTLIER_FILLED'] = False
+    if lastgap_id != 0:  # entire gap at the end that shouldn't be there
+        data.loc[data.GAP == lastgap_id, 'OUTLIER_FILLED'] = False
 
     # Calculate OUTLIER_DIST which is needed to interpret min_dist_total parameter
     data['OUTLIER_DIST'] = np.where(data.OUTLIER, np.where(data.ACTUAL > data.PREDICT_HIGH,
