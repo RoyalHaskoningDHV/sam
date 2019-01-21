@@ -2,7 +2,8 @@ import unittest
 from pandas.testing import assert_series_equal, assert_frame_equal
 from numpy.testing import assert_array_equal
 # Below are needed for setting up tests
-from sam.metrics import incident_recall, make_incident_recall_scorer
+from sam.metrics import incident_recall, make_incident_recall_scorer,\
+    precision_incident_recall_curve
 from sklearn.base import BaseEstimator
 import pandas as pd
 import numpy as np
@@ -61,6 +62,24 @@ class TestMakeIncidentRecallScorer(unittest.TestCase):
 
         wrongdata = pd.DataFrame({"other": [1, 1, 1], "misc": [2, 2, 2]})
         self.assertRaises(KeyError, scorer, op(), wrongdata)
+
+
+class TestIncidentPrecisionRecallCurve(unittest.TestCase):
+
+    def testCurve(self):
+        range_pred = (0, 1)
+        y_incidents = [0, 0, 0, 1]
+        y_pred = [0.1, 0.2, 0.3, 0.4]
+        p, r, t = precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 1))
+        assert_array_equal(p, np.array([1, 1, 1]))
+        assert_array_equal(r, np.array([1, 1, 0]))
+        assert_array_equal(t, np.array([0.3, 0.4]))
+
+    def testIncorrectInput(self):
+        self.assertRaises(Exception, precision_incident_recall_curve, "test", "test2", (0, 0))
+        # negative range not possible
+        self.assertRaises(Exception, precision_incident_recall_curve,
+                          [0, 0, 1], [1, 1, 1], (-2, -1))
 
 
 if __name__ == '__main__':

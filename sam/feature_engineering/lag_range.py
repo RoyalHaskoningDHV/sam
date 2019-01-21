@@ -38,6 +38,7 @@ def range_lag_column(original_column, range_shift=(0, 1)):
     5   0       1
     6   1       0
     """
+    original_column = pd.Series(original_column)
     # For loop will fail if not in order
     range_shift = sorted(range_shift)
 
