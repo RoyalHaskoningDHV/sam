@@ -17,15 +17,15 @@ class TestIncidentRecall(unittest.TestCase):
 
         y_pred = [0, 1, 0, 0, 0, 0, 0, 0]
         # 2 out of 3 incidents were predicted, recall 2/3
-        self.assertAlmostEqual(incident_recall(y_pred, incidents, range_pred), 2/3)
+        self.assertAlmostEqual(incident_recall(incidents, y_pred, range_pred), 2/3)
 
         y_pred = [1, 0, 0, 0, 0, 0, 1, 1]
         # 1 out of 3 incidents were predicted, recall 1/3
-        self.assertAlmostEqual(incident_recall(y_pred, incidents, range_pred), 1/3)
+        self.assertAlmostEqual(incident_recall(incidents, y_pred, range_pred), 1/3)
 
         y_pred = [1, 1, 1, 1, 1, 1, 1, 1]
         # 3 out of 3 incidents were predicted, recall 1
-        self.assertAlmostEqual(incident_recall(y_pred, incidents, range_pred), 1)
+        self.assertAlmostEqual(incident_recall(incidents, y_pred, range_pred), 1)
 
         # also with different range_pred
 
@@ -33,11 +33,11 @@ class TestIncidentRecall(unittest.TestCase):
 
         y_pred = [0, 0, 0, 0, 1, 0, 1, 0]
         # 2 out of 3, recall of 2/3
-        self.assertAlmostEqual(incident_recall(y_pred, incidents, range_pred), 2/3)
+        self.assertAlmostEqual(incident_recall(incidents, y_pred, range_pred), 2/3)
 
         y_pred = [0, 0, 0, 0, 0, 0, 0, 0]
         # 0 out of 3, recall of 0
-        self.assertAlmostEqual(incident_recall(y_pred, incidents, range_pred), 0)
+        self.assertAlmostEqual(incident_recall(incidents, y_pred, range_pred), 0)
 
     def testIncorrectInputs(self):
 

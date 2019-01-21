@@ -3,7 +3,7 @@ from sam.feature_engineering import range_lag_column
 from sklearn.metrics import precision_recall_curve
 
 
-def incident_recall(y_pred, y_incidents, range_pred=(0, 0)):
+def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
     """
     Given y_pred, y_incidents and a prediction range,
     see what percentage of incidents in y_incidents was positively
@@ -33,7 +33,7 @@ def incident_recall(y_pred, y_incidents, range_pred=(0, 0)):
     >>> y_pred = [1,0,0,1,0,0,0]
     >>> y_incidents = [0,1,0,0,0,0,1]
     >>> range_pred = (0,2)
-    >>> incident_recall(y_pred, y_incidents, range_pred)
+    >>> incident_recall(y_incidents, y_pred, range_pred)
     0.5
     """
     assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
@@ -99,7 +99,7 @@ def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
     """
     def incident_recall_scorer(clf, X):
         y_pred = clf.predict(X)
-        return incident_recall(y_pred, X[colname], range_pred)
+        return incident_recall(X[colname], y_pred, range_pred)
     return incident_recall_scorer
 
 
@@ -148,7 +148,7 @@ def precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 0)):
     """
     y_lagged = range_lag_column(y_incidents, range_pred)
     precision, _, thresholds = precision_recall_curve(y_lagged, y_pred)
-    recall = [incident_recall(y_pred > t, y_incidents, range_pred) for t in thresholds]
+    recall = [incident_recall(y_incidents, y_pred > t, range_pred) for t in thresholds]
     # The first element is missing due to the way thresholds is always 1 shorter than recall.
     # However, we are missing the first value, which is by definition always 1, so it's easy to add
     recall = np.array([1] + recall)

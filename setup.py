@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='sam',
-      version='0.1.0',
+      version='0.1.1',
       description='Ynformed package for smart asset management',
       url='https://dev.ynformed.nl/diffusion/78/',
       author='Ynformed',
