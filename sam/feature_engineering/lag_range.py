@@ -1,4 +1,7 @@
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def range_lag_column(original_column, range_shift=(0, 1)):
@@ -41,6 +44,9 @@ def range_lag_column(original_column, range_shift=(0, 1)):
     original_column = pd.Series(original_column)
     # For loop will fail if not in order
     range_shift = sorted(range_shift)
+
+    logger.info("range shift: %s", range_shift)
+    logger.info("length of column: %s", original_column.size)
 
     df = pd.DataFrame()
     cols = []
