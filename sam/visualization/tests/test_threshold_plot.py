@@ -1,0 +1,25 @@
+import unittest
+import pytest
+from sam.visualization import make_threshold_plot
+import numpy as np
+import matplotlib
+
+
+class TestThresholdlot(unittest.TestCase):
+
+    @pytest.mark.mpl_image_compare
+    def test_regular_threshold_plot(self):
+        y_true = np.array([0, 1, 0, 1, 0, 1])
+        y_scores = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        ax = make_threshold_plot(y_true, y_scores)
+        return ax.get_figure()
+
+    @pytest.mark.mpl_image_compare
+    def test_incident_threshold_plot(self):
+        y_scores = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        y_incidents = np.array([0, 0, 1, 0, 0, 1])
+        ax = make_threshold_plot(y_incidents, y_scores, (0, 1))
+        return ax.get_figure()
+
+if __name__ == '__main__':
+    unittest.main()

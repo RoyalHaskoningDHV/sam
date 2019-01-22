@@ -33,9 +33,15 @@ the dependencies
 ```
 pip install pytest
 pip install pytest-cov
+pip install pytest-mpl
 ```
 
-Then, to run the tests manually, go the the root folder of the project, and run `pytest`.
+Additionally, you will have to install the PytestMPLTestEngine extension. Download the file from
+`https://dev.ynformed.nl/P8`, and copy it to `%ARCANIST_DIR%/src/extensions/PytestMPLTestEngine.php`.
+
+Then, to run the tests manually, go the the root folder of the project, and run `arc unit`.
+If any of the visualizations were changed, the baseline images have to be rebuilt. This can be
+done with: `pytest --mpl-generate-path=sam/visualization/tests/baseline`. 
 
 # Documentation
 
