@@ -26,6 +26,7 @@ def create_lag_correlation(df, goal_variable):
         --------
         >>> import pandas as pd
         >>> from sam.feature_engineering.rolling_features import BuildRollingFeatures
+        >>> from sam.feature_selection.lag_correlation import create_lag_correlation
         >>> import numpy as np
         >>> goal_feature = 'DEBIET#TOTAAL_lag_0'
         >>> df = pd.DataFrame({
@@ -52,6 +53,8 @@ def create_lag_correlation(df, goal_variable):
         10   10  1.000000 -1.000000      -1.000000  1.000000
 
     """
+    assert (goal_variable in df.columns), "Goal feature not found in columns!"
+
     corr_table = df.corr()[goal_variable].reset_index()
     corr_table['LAG'] = corr_table['index'].apply(lambda x: x.split('_')[-1])
     corr_table['GROUP'] = corr_table['index'].apply(lambda x: x.split('_')[0])
@@ -60,6 +63,6 @@ def create_lag_correlation(df, goal_variable):
     tab = tab.reset_index()
     tab['LAG'] = pd.to_numeric(tab['LAG'])
     tab = tab.sort_values('LAG')
-    tab.columns.name = ""
+    tab.columns.name = None
     tab = tab.reset_index(drop=True)
     return tab

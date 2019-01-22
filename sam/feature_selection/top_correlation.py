@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True):
-    """ Given a dataset, retrieve the top n correlating features per group or in general
+    """ Given a dataset, retrieve the top n absolute correlating features per group or in general
 
         Parameters
         ----------
@@ -132,9 +132,14 @@ def retrieve_top_correlations(df, goal_feature, score=0.5):
 
     assert (goal_feature in df.columns), "Goal feature not found in columns!"
 
-    corrs = df.corr().abs()  # get all positive correlations
+    pos_corrs = df.corr().abs()  # get all positive correlations
+    pos_corrs = pos_corrs.loc[goal_feature].reset_index()
+    rel_cols = pos_corrs.loc[
+        (pos_corrs['index'] != goal_feature) &
+        (pos_corrs[goal_feature] >= score)][
+        'index'].values
+    corrs = df.corr()
     corrs = corrs.loc[goal_feature].reset_index()
-    corrs = corrs.loc[
-        (corrs['index'] != goal_feature) & (corrs[goal_feature] >= score)]
+    corrs = corrs[corrs['index'].isin(rel_cols.values)]
     corrs = corrs.sort_values(goal_feature, ascending=False)
     return corrs
