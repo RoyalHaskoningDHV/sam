@@ -18,6 +18,8 @@ class MongoWrapper:
         Location of the database
     port : integer, optional (default=27017)
         Port that the database is reachable on
+    **kwargs : arbitrary keyword arguments
+        Passed through to pymongo.MongoClient
 
     Examples
     --------
@@ -28,8 +30,8 @@ class MongoWrapper:
     0	7
     """
 
-    def __init__(self, db, collection, location='localhost', port=27017):
-        self.client = pymongo.MongoClient(location, port)
+    def __init__(self, db, collection, location='localhost', port=27017, **kwargs):
+        self.client = pymongo.MongoClient(location, port, **kwargs)
         self.db = self.client[db]
         self.collection = self.db[collection]
 
