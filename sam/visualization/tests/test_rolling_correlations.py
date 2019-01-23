@@ -10,7 +10,7 @@ import numpy as np
 
 class TestRollingCorrelations(unittest.TestCase):
 
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(tolerance=20)
     def test_rolling_correlations(self):
 
         goal_feature = 'TOTAAL_lag_0'

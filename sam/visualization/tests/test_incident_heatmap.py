@@ -8,7 +8,7 @@ import matplotlib
 
 class TestIncidentHeatmap(unittest.TestCase):
 
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(tolerance=20)
     def test_incident_heatmap(self):
         range = pd.date_range('1/1/2011', periods=45, freq='D')
         ts = pd.DataFrame({'incident': np.tile([0.1, 0.2, 0.3], 15),

@@ -3,18 +3,22 @@ from pandas.testing import assert_frame_equal
 
 import numpy as np
 import pandas as pd
-from sam.feature_selection.top_correlation import retrieve_top_n_correlations
+from sam.feature_selection import retrieve_top_n_correlations
 
 
 class TestRetrieveTopNCorrelation(unittest.TestCase):
 
+    # We do not test what happens if multiple columns tie for first place
+    # This is because this sorting can differ between platforms, and does not
+    # matter in practice. As long as either one of the top is chosen, it's fine.
+
     def test_dataframe_group_false_output(self):
         testserie = pd.DataFrame({'TEST_lag_0': [0, 1, 2, 3],
                                   'TEST_lag_1': [np.NaN, 0, 1, 2],
-                                  'TEST_lag_2': [np.NaN, np.NaN, 0, 1],
-                                  'OTHER_lag_0': [3, 2, 1, 0],
-                                  'OTHER_lag_1': [np.NaN, 3, 2, 1],
-                                  'OTHER_lag_2': [np.NaN, np.NaN, 3, 2]
+                                  'TEST_lag_2': [np.NaN, np.NaN, 0, 0],
+                                  'OTHER_lag_0': [3, 2, 1, 2],
+                                  'OTHER_lag_1': [np.NaN, 4, 2, 1],
+                                  'OTHER_lag_2': [np.NaN, np.NaN, 1, 1]
                                   })
         lagserie = pd.DataFrame({
             'index': ['TEST_lag_1'],
