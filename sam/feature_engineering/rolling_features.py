@@ -7,7 +7,7 @@ from sam.utils.time import unit_to_seconds
 
 
 def fourier(arr, n):
-    class set_params:
+    class FFTHelper:
         # https://stackoverflow.com/a/39064656
         def __init__(self, nrow, n):
             """ we are only interested in these coefficients, since the rest is redundant
@@ -50,9 +50,17 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     So if the input dataframe is not sorted by time (in ascending order), the results will be
     completely wrong.
 
+    A note about the way the output is rolled: in case of 'lag' and 'diff', the output will
+    always be lagged, even if lookback is 0. This is because these functions inherently look
+    at a previous cell, regardless of what the lookback is. All other functions will start
+    by looking at the current cell if lookback is 0. (and will also look at previous cells
+    if window_size is greater than 1)
+
     Parameters
     ----------
     rolling_type : string, optional (default="mean")
+        The rolling function. Must be one of: 'median', 'skew', 'kurt', 'max', 'std', 'lag',
+        'mean', 'diff', 'sum', 'var', 'min', 'numpos', 'fourier'
     lookback : number type, optional (default=1)
         the features that are built will be shifted by this value.
         If more than 0, this prevents leakage
@@ -115,6 +123,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             raise TypeError("freq must be a string")
         if not isinstance(self.lookback, (int, float)):
             raise TypeError("lookback must be a scalar")
+        if self.lookback < 0:
+            raise ValueError("lookback cannot be negative!")
         if not (isinstance(self._values_roll, (list, tuple)) or
                 (type(self._values_roll) is np.ndarray and self._values_roll.ndim == 1) or
                 self._values_roll is None):
