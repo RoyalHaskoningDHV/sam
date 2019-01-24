@@ -10,11 +10,12 @@ import numpy as np
 
 class TestCompleteTimestamps(unittest.TestCase):
 
-    @pytest.mark.xfail(reason="Todo, see T336")
-    def testCompleteTimestamps(self):
+    def test_complete_timestamps(self):
         data = pd.DataFrame({
-            "TIME": pd.to_datetime(['2018/01/01 15:45:09', '2018/01/01 16:03:09',
-                                    '2018/01/01 16:10:09', '2018/01/01 16:22:09']),
+            "TIME": pd.to_datetime(['2018/01/01 15:45:09',
+                                    '2018/01/01 16:03:09',
+                                    '2018/01/01 16:10:09',
+                                    '2018/01/01 16:22:09']),
             "ID": 1,
             "VALUE": [1, 2, 3, 4]
         }, columns=['TIME', 'ID', 'VALUE'])
@@ -23,35 +24,142 @@ class TestCompleteTimestamps(unittest.TestCase):
 
         result = complete_timestamps(data, '15min', start_time, end_time)
 
-        # this assumes it takes the most recent previous value.
-        # Since there is no previous value to 15:45:00, it is nan
+        # Values are matched to their first left side matching time,
+        # so the last value is np.NaN
         output = pd.DataFrame({
-            "TIME": pd.to_datetime(['2018/01/01 15:45:00', '2018/01/01 16:00:00',
-                                    '2018/01/01 16:15:00', '2018/01/01 16:30:00']),
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:00', '2018/01/01 16:00:00',
+                 '2018/01/01 16:15:00', '2018/01/01 16:30:00']),
             "ID": 1,
-            "VALUE": [np.nan, 1, 3, 4]
+            "VALUE": [1, 2.5, 4, np.NaN]
         }, columns=['TIME', 'ID', 'VALUE'])
         assert_frame_equal(result, output)
 
-        # after bfill, the nan is filled in
-        output.VALUE = [1, 1, 3, 4]
-        result = complete_timestamps(data, '15min', start_time, end_time, fillna_method='bfill')
+    def test_fillna_method(self):
+        data = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:09', '2018/01/01 16:03:09',
+                 '2018/01/01 16:10:09', '2018/01/01 16:22:09']),
+            "ID": 1,
+            "VALUE": [1, 2, 3, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        start_time = pd.to_datetime("2018/01/01 15:45:00")
+        end_time = pd.to_datetime("2018/01/01 16:30:00")
+
+        # after ffill, the nan is filled in
+        output = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:00', '2018/01/01 16:00:00',
+                 '2018/01/01 16:15:00', '2018/01/01 16:30:00']),
+            "ID": 1,
+            "VALUE": [1, 2.5, 4, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+
+        result = complete_timestamps(data,
+                                     '15min',
+                                     start_time,
+                                     end_time,
+                                     fillna_method='ffill')
         assert_frame_equal(result, output)
 
-        # result = complete_timestamps(data, '15min', start_time, end_time, aggregate_method='sum')
-        # This is a bit stupid, but i just want to make this unit test fail for now
-        # This is supposed to be a test for aggregate_method
-        # as it is, I have no earthly clue what that argument does.
-        # So it should be slightly better documented
-        # And preferably, a unit test for it should be written
-        assertTrue(False)
+    def test_agg_method(self):
+        # When using the sum, the sum of values 2 and 3 are taken within
+        # the block 16:00 - 16:15 are taken
 
-        # result = complete_timestamps(data, '15min', start_time='', end_time='')
-        # Again, I have no idea what this is supposed to have as a result...
-        # unit test for this needs to be written
-        assertTrue(False)
+        data = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:09', '2018/01/01 16:03:09',
+                 '2018/01/01 16:10:09', '2018/01/01 16:22:09']),
+            "ID": 1,
+            "VALUE": [1, 2, 3, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        start_time = pd.to_datetime("2018/01/01 15:45:00")
+        end_time = pd.to_datetime("2018/01/01 16:30:00")
 
-    def testIncorrectInput(self):
+        # after ffill, the nan is filled in
+        output = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:00', '2018/01/01 16:00:00',
+                 '2018/01/01 16:15:00', '2018/01/01 16:30:00']),
+            "ID": 1,
+            "VALUE": [1, 5, 4, np.NaN]
+        }, columns=['TIME', 'ID', 'VALUE'])
+
+        result = complete_timestamps(data, '15min', start_time, end_time,
+                                     aggregate_method='sum')
+        output.equals(result)
+
+    def test_empty_start_end_time(self):
+        data = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:09', '2018/01/01 16:03:09',
+                 '2018/01/01 16:10:09', '2018/01/01 16:22:09']),
+            "ID": 1,
+            "VALUE": [1, 2, 3, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+
+        result = complete_timestamps(data, '15min', start_time='', end_time='')
+        output = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:00', '2018/01/01 16:00:00',
+                 '2018/01/01 16:15:00']),
+            "ID": 1,
+            "VALUE": [1, 2.5, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        assert_frame_equal(result, output)
+
+    def test_multiple_ids(self):
+        data = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:09', '2018/01/01 16:03:09',
+                 '2018/01/01 15:45:09', '2018/01/01 16:22:09']),
+            "ID": [1, 1, 2, 2],
+            "VALUE": [1, 2, 3, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        start_time = pd.to_datetime("2018/01/01 15:45:00")
+        end_time = pd.to_datetime("2018/01/01 16:15:00")
+
+        result = complete_timestamps(data, '15min', start_time, end_time)
+
+        output = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:00', '2018/01/01 15:45:00',
+                 '2018/01/01 16:00:00', '2018/01/01 16:00:00',
+                 '2018/01/01 16:15:00', '2018/01/01 16:15:00']),
+            "ID": [1, 2, 1, 2, 1, 2],
+            "VALUE": [1.0, 3.0, 2.0, np.NaN, np.NaN, 4.0]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        assert_frame_equal(result, output)
+
+    def test_multiple_ids_fillna_method(self):
+        data = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:09', '2018/01/01 16:03:09',
+                 '2018/01/01 15:45:09', '2018/01/01 16:22:09']),
+            "ID": [1, 1, 2, 2],
+            "VALUE": [1, 2, 3, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        start_time = pd.to_datetime("2018/01/01 15:45:00")
+        end_time = pd.to_datetime("2018/01/01 16:15:00")
+
+        result = complete_timestamps(data,
+                                     '15min',
+                                     start_time,
+                                     end_time,
+                                     fillna_method='ffill'
+                                     )
+
+        output = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:00', '2018/01/01 15:45:00',
+                 '2018/01/01 16:00:00', '2018/01/01 16:00:00',
+                 '2018/01/01 16:15:00', '2018/01/01 16:15:00']),
+            "ID": [1, 2, 1, 2, 1, 2],
+            "VALUE": [1.0, 3.0, 2.0, 3.0, 2.0, 4.0]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        assert_frame_equal(result, output)
+
+    def test_incorrect_input(self):
         data = pd.DataFrame({
             "TIME": pd.to_datetime(['2018/01/01 15:45:09', '2018/01/01 16:03:09',
                                     '2018/01/01 16:10:09', '2018/01/01 16:22:09']),
@@ -62,24 +170,30 @@ class TestCompleteTimestamps(unittest.TestCase):
         end_time = pd.to_datetime("2018/01/01 16:30:00")
 
         # half uur is invalid timeunit
-        self.assertRaises(ValueError, complete_timestamps, data, 'half uur', start_time, end_time)
+        self.assertRaises(ValueError,
+                          complete_timestamps,
+                          data,
+                          'half uur',
+                          start_time,
+                          end_time)
         # wrong is not a time
         # integers are actually allowed, they are interpreted as UNIX time
-        self.assertRaises(ValueError, complete_timestamps, data, '15min', 'wrong', end_time)
+        self.assertRaises(ValueError,
+                          complete_timestamps,
+                          data,
+                          '15min',
+                          'wrong',
+                          end_time)
 
         data.columns = ["TIME", "ID", "SOMETHINGELSE"]
-        # column names incorrect
-        # VALUE is only required when aggregate_method is filled. Otherwise it is never evaluated
-        # Therefore, first line should not throw error, the second line should
-        _ = complete_timestamps(data, '15min', start_time, end_time, '')
         self.assertRaises(Exception, complete_timestamps,
                           data, '15min', start_time, end_time, 'sum')
 
-        # unknown because I have no idea what happens if you call an unknown function
         self.assertRaises(Exception, complete_timestamps, data, '15min',
                           start_time, end_time, 'unknown_fun', '')
         self.assertRaises(Exception, complete_timestamps, data, '15min',
                           start_time, end_time, '', 'unknown_fun')
+
 
 if __name__ == '__main__':
     unittest.main()
