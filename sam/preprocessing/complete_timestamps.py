@@ -109,7 +109,7 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
          df['ID'].unique()
          ])
 
-    complete_df = pd.DataFrame(dict(TIME=time, ID=ids))
+    complete_df = pd.DataFrame(dict(TIME=time, ID=ids), columns=['TIME', 'ID'])
     complete_df['TIME'] = pd.to_datetime(complete_df['TIME'], dayfirst=True)\
         .dt.floor(freq)
 
