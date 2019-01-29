@@ -128,14 +128,20 @@ def create_synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=
     timeseries: numpy array, shape=(n_inputs,)
         A numpy array containing numbers, generated according to the provided parameters.
 
-    Examples:
+    Examples
+    --------
     >>> # Create data that slightly resembles the temperature in a Nereda reactor:
     >>> dates= pd.date_range('2015-01-01', '2016-01-01', freq='6H').to_series()
-    >>> create_synthetic_timeseries(dates,
-    >>>                             monthly=5, daily=1, hourly=0.0,
-    >>>                             monthnoise = ('normal', 0.01), daynoise=('normal', 0.01),
-    >>>                             noise={'normal': 0.1},
-    >>>                             minmax_values=(5, 25), cutoff_values=None, random_missing=0.12)
+    >>> rnd = create_synthetic_timeseries(dates,
+    >>>                                   monthly=5, daily=1, hourly=0.0,
+    >>>                                   monthnoise = ('normal', 0.01), daynoise=('normal', 0.01),
+    >>>                                   noise={'normal': 0.1}, minmax_values=(5, 25),
+    >>>                                   cutoff_values=None, random_missing=0.12)
+    >>> # visualize the result to see if it looks random or not
+    >>> import matplotlib.pyplot as plt
+    >>> fig, ax = plt.subplots()
+    >>> ax.plot(dates[600:700], rnd[600:700])
+    >>> fig.autofmt_xdate()
     """
 
     assert dates.size > 1, "There must be at least 2 datetimes to generate a timeseries"

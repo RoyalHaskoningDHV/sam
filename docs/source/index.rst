@@ -14,10 +14,12 @@ Welcome to SAM's documentation!
 
    project
    general_documents
+   data_sources
    preprocessing
    feature_selection
    feature_engineering
    metrics
+   train_models
    visualization
    utils
 

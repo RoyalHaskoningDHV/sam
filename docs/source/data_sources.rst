@@ -12,4 +12,6 @@ Create Synthetic Date Range
 
 Create Synthetic Timeseries
 ---------------------------
-..autofunction:: sam.data_sources.create_synthetic_timeseries
+.. autofunction:: sam.data_sources.create_synthetic_timeseries
+
+.. image:: general_documents/images/synthetic_temperature.png

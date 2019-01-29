@@ -186,35 +186,22 @@ def create_outlier_information(data, under_conf_interval=True, return_aggregated
 
     Examples
     --------
-    >>>data = pd.DataFrame({'TIME': range(1547477436, 1547477436+8),  # unix timestamps
-    >>>                    'ACTUAL': [0.3, 0.5, 0.7],
-    >>>                    'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
-    >>>create_outlier_information(data)
-                       OUTLIER_DURATION  OUTLIER_START_TIME  OUTLIER_END_TIME  \
+    >>> data = pd.DataFrame({'TIME': range(1547477436, 1547477436+3),  # unix timestamps
+    >>>                     'ACTUAL': [0.3, 0.5, 0.7],
+    >>>                     'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
+    >>> create_outlier_information(data)
+    OUTLIER_DURATION	OUTLIER_TYPE	OUTLIER_SCORE_MAX	OUTLIER_START_TIME	OUTLIER_END_TIME \
+    OUTLIER_DIST_SUM	OUTLIER_DIST_MAX
     OUTLIER_CURVE
-    1                             1          1547477436        1547477436
-    2                             1          1547477438        1547477438
+    1	1	negative	0.090909	1547477436	1547477436	0.1	0.1
+    2	1	positive	0.090909	1547477438	1547477438	0.1	0.1
 
-                   OUTLIER_SCORE_MAX  OUTLIER_DIST_SUM  OUTLIER_DIST_MAX  \
-    OUTLIER_CURVE
-    1                       0.090909               0.1               0.1
-    2                       0.090909               0.1               0.1
-
-                  OUTLIER_TYPE
-    OUTLIER_CURVE
-    1                 negative
-    2                 positive
-
-    >>>create_outlier_information(data, return_aggregated=False)
-           ACTUAL  PREDICT  PREDICT_HIGH  PREDICT_LOW        TIME  OUTLIER_CURVE  \
-    0     0.3      0.5           0.6          0.4  1547477436              1
-    1     0.5      0.5           0.6          0.4  1547477437              0
-    2     0.7      0.5           0.6          0.4  1547477438              2
-
-       OUTLIER  OUTLIER_DIST  OUTLIER_SCORE OUTLIER_TYPE
-    0     True           0.1       0.090909     negative
-    1    False           0.0       0.000000     negative
-    2     True           0.1       0.090909     positive
+    >>> create_outlier_information(data, return_aggregated=False)
+    ACTUAL	PREDICT	PREDICT_HIGH	PREDICT_LOW	TIME	OUTLIER_CURVE	OUTLIER	OUTLIER_DIST \
+    OUTLIER_SCORE	OUTLIER_TYPE
+    0	0.3	0.5	0.6	0.4	1547477436	1	True	0.1	0.090909	negative
+    1	0.5	0.5	0.6	0.4	1547477437	0	False	0.0	0.000000	none
+    2	0.7	0.5	0.6	0.4	1547477438	2	True	0.1	0.090909	positive
     """
     data = data.copy()
     data = data.rename(columns={normal: 'PREDICT', time: 'TIME'})
