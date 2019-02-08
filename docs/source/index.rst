@@ -29,3 +29,7 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
+
+Example Notebook
+================
+:ref:`minimumviableproject`
