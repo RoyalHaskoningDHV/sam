@@ -6,22 +6,29 @@ import pytest
 from pymongo.errors import ServerSelectionTimeoutError
 
 
-def skip_pymongo_tests():
-    mongo = MongoWrapper('test', 'unittest', 'localhost', 27017,
-                         serverSelectionTimeoutMS=100)
-    try:
-        mongo.client.server_info()  # forces a call
-    except ServerSelectionTimeoutError:  # no mongodb found
-        return True
-    return False
+def find_mongo_host(possible_hostnames, port=27017):
+    for hostname in possible_hostnames:
+        mongo = MongoWrapper('test', 'unittest', hostname, port,
+                             serverSelectionTimeoutMS=100)
+        try:
+            mongo.client.server_info()  # forces a call
+        except ServerSelectionTimeoutError:  # no mongodb found
+            continue  # try the next hostname
+        return hostname  # Found a working hostname
+    return None  # None of the hostnames worked
 
-skipmongo = pytest.mark.skipif(skip_pymongo_tests(), reason="No valid mongodb on localhost")
+# These are the hostnames to try. Potentially add more in the future
+possible_hostnames = ['localhost', 'mongo', 'mongodb']
+hostname = find_mongo_host(possible_hostnames, port=27017)
+
+skipmongo = pytest.mark.skipif(hostname is None,
+                               reason="No valid mongodb on localhost/mongo/mongodb, port 27017")
 
 
 class TestMongoWrapper(unittest.TestCase):
 
     def setUp(self):
-        self.mongo = MongoWrapper('test', 'unittest', 'localhost', 27017)
+        self.mongo = MongoWrapper('test', 'unittest', hostname, 27017)
 
         self.dict_data = [{'some': 0, 'thing': 'bar'},
                           {'some': 1, 'thing': 'foo'}]
