@@ -1,4 +1,7 @@
 import pandas as pd
+from sam.logging import log_dataframe_characteristics
+import logging
+logger = logging.getLogger(__name__)
 
 
 def build_timefeatures(start_time, end_time, freq=None, year=True, seasonal=True, weekly=True,
@@ -57,6 +60,11 @@ def build_timefeatures(start_time, end_time, freq=None, year=True, seasonal=True
     7   2018-12-31 05:00:00 2018    12      4       1       0       False   5    0       night
     8   2018-12-31 16:00:00 2018    12      4       1       0       False   16   0       afternoon
     """
+    logger.debug("Creating timefeatures from {} to {} with freq {}".
+                 format(start_time, end_time, freq))
+    logger.debug("Timefeatures will be year: {}, seasonal: {}, weekly: {}, daily: {}".
+                 format(year, seasonal, weekly, daily))
+
     times = pd.date_range(start_time, end_time, freq=freq)
     assert times.size > 0
 
@@ -86,5 +94,8 @@ def build_timefeatures(start_time, end_time, freq=None, year=True, seasonal=True
         result = result.assign(HOUR=result['TIME'].dt.hour)
         result = result.assign(MINUTE=result['TIME'].dt.minute)
         result = result.assign(DAY_PERIOD=result['HOUR'].map(day_period))
+
+    logger.info("Created timefeatures:")
+    log_dataframe_characteristics(result)
 
     return(result)

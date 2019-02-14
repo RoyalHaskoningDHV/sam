@@ -1,4 +1,7 @@
 import pandas as pd
+from sam.logging import log_dataframe_characteristics
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_lag_correlation(df, goal_variable):
@@ -55,6 +58,8 @@ def create_lag_correlation(df, goal_variable):
     """
     assert (goal_variable in df.columns), "Goal feature not found in columns!"
 
+    logging.debug("Now creating lag correlation with goal variable {}".format(goal_variable))
+
     corr_table = df.corr()[goal_variable].reset_index()
     corr_table['LAG'] = corr_table['index'].apply(lambda x: x.split('_')[-1])
     corr_table['GROUP'] = corr_table['index'].apply(lambda x: x.split('_')[0])
@@ -65,4 +70,7 @@ def create_lag_correlation(df, goal_variable):
     tab = tab.sort_values('LAG')
     tab.columns.name = None
     tab = tab.reset_index(drop=True)
+
+    logging.info("create_lag_correlation output:")
+    log_dataframe_characteristics(tab, logging.INFO)
     return tab

@@ -4,6 +4,9 @@ import re
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sam.utils.time import unit_to_seconds
+from sam.logging import log_dataframe_characteristics, log_new_columns
+import logging
+logger = logging.getLogger(__name__)
 
 
 def fourier(arr, n):
@@ -229,6 +232,10 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         self.lookback = lookback
         self.rolling_type = rolling_type
         self.keep_original = keep_original
+        logger.debug("Initialized rolling generator. rolling_type={}, lookback={}, "
+                     "values_roll={}, unit_roll={}, freq={}, window_size={}, keep_original={}".
+                     format(rolling_type, lookback, values_roll, unit_roll, freq, window_size,
+                            keep_original))
 
     def fit(self, X=None, y=None):
         """Calculates window_size and feature function
@@ -255,6 +262,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                             for window_size in self.window_size_]
 
         self.rolling_fun_ = self._get_rolling_fun(self.rolling_type)
+        logger.debug("Done fitting transformer. window size: {}, suffix: {}".
+                     format(self.window_size_, self.suffix_))
         return self
 
     def transform(self, X):
@@ -292,7 +301,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                 result = pd.concat([result, foo], axis=1)
 
         self._feature_names = list(result.columns.values)
-
+        log_new_columns(result, X)
+        log_dataframe_characteristics(result, logging.DEBUG)  # Log types as well
         return(result)
 
     def get_feature_names(self):

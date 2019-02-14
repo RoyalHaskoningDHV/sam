@@ -1,4 +1,7 @@
 import pandas as pd
+from sam.logging import log_dataframe_characteristics, log_new_columns
+import logging
+logger = logging.getLogger(__name__)
 
 
 def decompose_datetime(df, column='TIME', components=[]):
@@ -37,6 +40,9 @@ def decompose_datetime(df, column='TIME', components=[]):
     """
     result = df.copy()
     
+    logging.debug("Decomposing datetime, number of dates: {}. Components: ".
+                  format(len(result[column]), components))
+
     # We should check first if the column has a compatible type
     pandas_functions = [f for f in dir(df[column].dt) if not f.startswith('_')]
     
@@ -52,5 +58,8 @@ def decompose_datetime(df, column='TIME', components=[]):
             pass
         else:
             raise NotImplementedError("Component %s not implemented" % component)
+
+    log_new_columns(result, df)
+    log_dataframe_characteristics(result, logging.DEBUG)
 
     return(result)

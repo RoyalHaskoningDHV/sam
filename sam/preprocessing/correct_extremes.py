@@ -1,4 +1,5 @@
 import logging
+from sam.logging import log_dataframe_characteristics
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -85,6 +86,11 @@ def _fix_values(df, target_column, threshold, method, value):
     Helper function, read the other docs
     """
     assert method in ['na', 'clip', 'previous', 'average', 'value', 'remove']
+    original_nas = df[target_column].isna().sum()
+
+    logging.debug("Now correcting threshold, target_column={}, "
+                  "threshold={}, method={}, value={}".
+                  format(target_column, threshold, method, value))
 
     # Only for range cutoffs we need the original value
     if (method != 'clip'):
@@ -107,8 +113,10 @@ def _fix_values(df, target_column, threshold, method, value):
     elif (method == 'remove'):
         df = df.dropna(subset=[target_column])
 
-    logger.info("target: %s, threshold: %s, occurrences: %s, method: %s, value: %s",
-                target_column, threshold, sum(df[target_column + '_INCORRECT']), method, value)
+    logger.info("Correct_outside_range changed {} values using method {}".
+                format(sum(df[target_column + '_INCORRECT']), method))
+    logger.info("The column {} previously had {} missing values, now it has {}".
+                format(target_column, original_nas, df[target_column].isna().sum()))
 
     return df.drop(target_column + '_INCORRECT', axis=1)
 

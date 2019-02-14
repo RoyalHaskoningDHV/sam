@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
 
 
 def unit_to_seconds(unit):
@@ -90,14 +92,19 @@ def label_dst(timestamps):
     7   2019-10-27 02:45:00 to_wintertime
     8   2019-10-27 03:00:00 normal
     """
+    logger.debug("Labeling dst on {} timestamps".format(timestamps.size))
     last_sunday_morning = (timestamps.dt.day >= 25) & \
                           (timestamps.dt.weekday == 6) & \
                           (timestamps.dt.hour == 2)
-    return np.where((last_sunday_morning) & (timestamps.dt.month == 3),
-                    "to_summertime",
-                    np.where((last_sunday_morning) & (timestamps.dt.month == 10),
-                             "to_wintertime",
-                             "normal"))
+    result = np.where((last_sunday_morning) & (timestamps.dt.month == 3),
+                      "to_summertime",
+                      np.where((last_sunday_morning) & (timestamps.dt.month == 10),
+                               "to_wintertime",
+                               "normal"))
+
+    valuecounts = str(pd.Series(result).value_counts()).replace("\n", ", ")
+    logger.debug("labeldst output values: {}".format(valuecounts))
+    return result
 
 
 def average_winter_time(data, tmpcol='tmp_UNID'):
@@ -138,15 +145,22 @@ def average_winter_time(data, tmpcol='tmp_UNID'):
     5   2019-10-27 03:00:00 9.0
     """
     assert tmpcol not in data.columns
+    logging.debug("Now averaging wintertime")
+
     # Prevent side effects because this function makes inplace changes
-    data = data.copy()
-    dst_labels = label_dst(data.TIME)
+    data_copy = data.copy()
+    dst_labels = label_dst(data_copy.TIME)
     # We make a column that is unique for all except wintertime
     # This means that in the groupby line, non-to_wintertime
     # lines will never be grouped
-    data[tmpcol] = np.where(dst_labels == 'to_wintertime',
-                            -1, np.arange(len(data.index)))
-    groupcols = data.columns.tolist()
+    data_copy[tmpcol] = np.where(dst_labels == 'to_wintertime',
+                                 -1, np.arange(len(data_copy.index)))
+    groupcols = data_copy.columns.tolist()
     groupcols.remove('VALUE')  # in place only
-    data = data.groupby(groupcols).mean().reset_index().drop(tmpcol, axis=1)
-    return data
+    data_copy = data_copy.groupby(groupcols).mean().reset_index().drop(tmpcol, axis=1)
+
+    logging.info("TIME colum changed because of Average_winter_time. "
+                 "Before it had {} rows, now it has {}".
+                 format(data.shape[0], data_copy.shape[0]))
+
+    return data_copy

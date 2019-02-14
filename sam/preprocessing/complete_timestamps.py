@@ -1,4 +1,6 @@
 import pandas as pd
+import logging
+logger = logging.getLogger(__name__)
 
 
 def complete_timestamps(df, freq='H', start_time='', end_time='',
@@ -92,6 +94,9 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
     if df.empty:
         raise ValueError('No dataframe found')
 
+    original_rows = df.shape[0]
+    original_nas = df['VALUE'].isna().sum()
+
     fillna_options = ['backfill', 'bfill', 'pad', 'ffill', None]
     if fillna_method not in fillna_options:
         raise ValueError('fillna_method not in {}'.format(str(fillna_options)))
@@ -100,7 +105,11 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
         start_time = df['TIME'].min()
     if not end_time:
         end_time = df['TIME'].max()
-    
+
+    logger.debug("Completing timestamps: freq={}, start_time={}, end_time={}, "
+                 "aggregate_method={}, fillna_method={}".format(
+                     freq, start_time, end_time, aggregate_method, fillna_method))
+
     time, ids = pd.core.reshape.util.cartesian_product(
         [pd.date_range(start=start_time,
                        end=end_time,
@@ -125,8 +134,16 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
 
     complete_df = complete_df.merge(df, how='left', on=['TIME', 'ID'])
 
+    logger.debug("Number of missings before fillna: {}".format(complete_df['VALUE'].isna().sum()))
+
     if fillna_method:
         complete_df['VALUE'] = complete_df.groupby('ID')['VALUE']\
             .apply(lambda x: x.fillna(method=fillna_method))
-        
+
+    logger.info("Dataframe changed because of complete_timestamps: "
+                "Previously it had {} rows, now it has {}".
+                format(original_rows, complete_df.shape[0]))
+    logger.info("Also, the VALUE column previously had {} missing values, now it has {}".
+                format(original_nas, complete_df["VALUE"].isna().sum()))
+
     return complete_df

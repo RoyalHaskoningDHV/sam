@@ -1,4 +1,7 @@
 import pandas as pd
+from sam.logging import log_dataframe_characteristics
+import logging
+logger = logging.getLogger(__name__)
 
 
 def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True):
@@ -67,6 +70,9 @@ def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True):
 
     assert (goal_feature in df.columns), "Goal feature not found in columns!"
 
+    logging.debug("Retrieving top n variables with goal variable {}, n={}, grouped={}".
+                  format(goal_feature, n, grouped))
+
     pos_corr = df.corr().abs()  # get all positive correlations
     pos_corr = pos_corr.loc[goal_feature].reset_index()
     pos_corr = pos_corr.loc[pos_corr['index'] != goal_feature]
@@ -86,6 +92,8 @@ def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True):
     corrs = corrs.loc[goal_feature].reset_index()
     corrs = pos_corr.drop(goal_feature, axis=1).merge(corrs, on='index',
                                                       how='left')
+    logging.info("Output from retrieve_top_n_correlations:")
+    log_dataframe_characteristics(corrs, logging.INFO)
     return corrs
 
 
@@ -137,6 +145,8 @@ def retrieve_top_score_correlations(df, goal_feature, score=0.5):
     """
 
     assert (goal_feature in df.columns), "Goal feature not found in columns!"
+    logging.debug("Retrieving top n variables with goal variable {}, score={}".
+                  format(goal_feature, score))
 
     pos_corr = df.corr().abs()  # get all positive correlations
     pos_corr = pos_corr.loc[goal_feature].reset_index()
@@ -149,4 +159,6 @@ def retrieve_top_score_correlations(df, goal_feature, score=0.5):
     corrs = corrs.loc[goal_feature].reset_index()
     corrs = pos_corr.drop(goal_feature, axis=1).merge(corrs, on='index',
                                                       how='left')
+    logging.info("Output from retrieve_top_score_correlations:")
+    log_dataframe_characteristics(corrs, logging.INFO)
     return corrs

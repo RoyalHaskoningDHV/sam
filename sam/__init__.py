@@ -11,7 +11,7 @@ if isdir("logs"):
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
 __all__ = ['data_sources', 'feature_engineering', 'feature_extraction', 'feature_selection',
            'metrics', 'preprocessing', 'train_models', 'utils', 'visualization']

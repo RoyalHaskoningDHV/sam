@@ -45,8 +45,8 @@ def range_lag_column(original_column, range_shift=(0, 1)):
     # For loop will fail if not in order
     range_shift = sorted(range_shift)
 
-    logger.info("range shift: %s", range_shift)
-    logger.info("length of column: %s", original_column.size)
+    logger.debug("Now lagging range column with length: {}. Range shift: {}".
+                 format(original_column.size, range_shift))
 
     df = pd.DataFrame()
     cols = []

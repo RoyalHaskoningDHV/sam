@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+from sam.logging import log_dataframe_characteristics
+import logging
+logger = logging.getLogger(__name__)
 
 
 def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, max_gap_perc=1,
@@ -74,6 +77,11 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
         series[0] = False
         return series
 
+    logger.debug("Finding outlier curves: under_conf_interval={}, max_gap={}, min_duration={}, "
+                 "max_gap_perc={}, min_dist_total={}, actual={}, low={}, high={}".
+                 format(under_conf_interval, max_gap, min_duration, max_gap_perc, min_dist_total,
+                        actual, low, high))
+
     data = data.copy()  # copy because we are going to mess with this df in various ways
     data = data.rename(columns={actual: 'ACTUAL', low: 'PREDICT_LOW', high: 'PREDICT_HIGH'})
     # Three columns needed: ACTUAL, PREDICT_HIGH, PREDICT_LOW
@@ -107,6 +115,8 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
         data.OUTLIER_FILLED,
         (data.OUTLIER_FILLED - _firstfalse(data.OUTLIER_FILLED.shift()) == 1).cumsum(), 0)
 
+    logging.debug("Curves found after fixing gaps: {}".format(data['OUTLIER_CURVE'].max()))
+
     # Lastly, filter the outlier streaks that don't match one of the three criteria from params.
     real_outlier = data.groupby('OUTLIER_CURVE').apply(
         lambda x: (x.shape[0] >= min_duration) and
@@ -114,6 +124,8 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
                   (1 - (x.OUTLIER.sum() / x.shape[0]) <= max_gap_perc))
     real_outlier.name = 'REAL_OUTLIER'
     data = data.join(real_outlier, on='OUTLIER_CURVE')
+
+    logging.info("Curves found in final result: {}".format(data['OUTLIER_CURVE'].max()))
     return np.where(data.REAL_OUTLIER, data.OUTLIER_CURVE, 0)
 
 
@@ -205,7 +217,8 @@ def create_outlier_information(data, under_conf_interval=True, return_aggregated
     """
     data = data.copy()
     data = data.rename(columns={normal: 'PREDICT', time: 'TIME'})
-    data['OUTLIER_CURVE'] = find_outlier_curves(data, **kwargs)
+    logging.debug("Creating outlier information: return_aggregated={}".format(return_aggregated))
+    data['OUTLIER_CURVE'] = find_outlier_curves(data, under_conf_interval, **kwargs)
 
     data['OUTLIER'] = (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW) \
         if under_conf_interval else (data.ACTUAL > data.PREDICT_HIGH)
@@ -246,4 +259,6 @@ def create_outlier_information(data, under_conf_interval=True, return_aggregated
                        'OUTLIER_TYPE', 'OUTLIER_SCORE_MAX',
                        'OUTLIER_START_TIME', 'OUTLIER_END_TIME',
                        'OUTLIER_DIST_SUM', 'OUTLIER_DIST_MAX']]
+    logger.info("Created data from create_outlier_information:")
+    log_dataframe_characteristics(streaks, logging.INFO)
     return streaks[streaks.index != 0]
