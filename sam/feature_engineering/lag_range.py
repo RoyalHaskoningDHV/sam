@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,4 +56,4 @@ def range_lag_column(original_column, range_shift=(0, 1)):
         df['lag_' + str(i)] = original_column.shift(-i)
 
     # Merge into one outcome column
-    return df[cols].any(axis='columns').astype(int)
+    return df[cols].any(axis='columns').astype(np.int64)

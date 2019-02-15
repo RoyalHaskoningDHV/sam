@@ -218,7 +218,11 @@ def create_outlier_information(data, under_conf_interval=True, return_aggregated
     data = data.copy()
     data = data.rename(columns={normal: 'PREDICT', time: 'TIME'})
     logging.debug("Creating outlier information: return_aggregated={}".format(return_aggregated))
-    data['OUTLIER_CURVE'] = find_outlier_curves(data, under_conf_interval, **kwargs)
+    data['OUTLIER_CURVE'] = find_outlier_curves(data, under_conf_interval, **kwargs). \
+        astype(np.int64)
+    # On unix, 64 is already the default, but on windows, the
+    # find_outlier_curves function returns 32 bit integers. This function returns pandas
+    # which is consistent across platforms, so we convert to 64-bit to ensure consistency.
 
     data['OUTLIER'] = (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW) \
         if under_conf_interval else (data.ACTUAL > data.PREDICT_HIGH)
