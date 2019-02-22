@@ -16,8 +16,8 @@ Welcome to SAM's documentation!
    general_documents
    data_sources
    preprocessing
-   feature_selection
    feature_engineering
+   feature_selection
    metrics
    train_models
    visualization

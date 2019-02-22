@@ -4,7 +4,7 @@
 Feature Selection
 =================
 
-This is the documentation for Feature selection functions.
+This is the documentation for Feature selection functions. Please see [Features](general_documents/feature_extraction.md) for further details on which features to use.
 
 Retrieve top correlation features
 ---------------------------------

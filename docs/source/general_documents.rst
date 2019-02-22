@@ -10,3 +10,4 @@ General documents
   general_documents/anomaly_detection
   general_documents/data_exploration
   general_documents/production_platform
+  general_documents/feature_extraction
