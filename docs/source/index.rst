@@ -14,6 +14,7 @@ Welcome to SAM's documentation!
 
    project
    general_documents
+   examples
    data_sources
    preprocessing
    feature_engineering
@@ -29,7 +30,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-
-Example Notebook
-================
-:ref:`minimumviableproject`
