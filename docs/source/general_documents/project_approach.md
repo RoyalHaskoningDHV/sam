@@ -31,6 +31,11 @@ The choice of target variable is of course crucial to the success of the model. 
 * Predict the time (continuous) to a next event by adding a column containing time to a specific future event (like failure).
 * Predict the absence of data in a specific variable (binary) due to down time. Can also be shifted backwards for early warning.
 
+### Labelling data
+We've joined RHDHV to make use of their domain expertise, which can be implemented by having domain experts label data for us. Could also be anyone outside of RHDHV with domain knowledge of course ;-) We have good experience with using Grafana for labelling of time series data. Typically you would create a Grafana dashboard from the data that's in Influx or MongoDB, create IPA-accounts for the colleagues doing the labelling and have them use the annotation tool in Grafana to do the actual labelling in one of the graphs. Ask Ruben, Rutger or Fenno to get you up to speed on this. 
+
+Grafana is part of the SAM platform and be found [here](https://grafana-sam.ynformed.nl).
+
 ## Sampling
 Data from sensors is usually timestamped. When sampling data into train/test/validation sets it is often important to **keep the time order intact**. After all, training on a set that is chronologically after the test set can lead to information leakage: you are predicting the past. This is especially the case when predicting processes that evolve over time, and thus have interdependent events, e.g. the biological Nereda process.
 
