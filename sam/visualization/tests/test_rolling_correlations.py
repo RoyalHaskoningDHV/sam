@@ -13,7 +13,7 @@ class TestRollingCorrelations(unittest.TestCase):
     @pytest.mark.mpl_image_compare(tolerance=20)
     def test_rolling_correlations(self):
 
-        goal_feature = 'TOTAAL_lag_0'
+        goal_feature = 'TOTAAL#lag_0'
         df = pd.DataFrame({
                        'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                        'A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],

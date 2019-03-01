@@ -88,7 +88,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     >>>
     >>> BuildRollingFeatures(rolling_type='lag', window_size = [0,1,4], \\
     >>>                      lookback=0, keep_original=False).fit_transform(df)
-                RAIN_lag_0  DEBIET_lag_0    RAIN_lag_1  DEBIET_lag_1    RAIN_lag_4  DEBIET_lag_4
+                RAIN#lag_0  DEBIET#lag_0    RAIN#lag_1  DEBIET#lag_1    RAIN#lag_4  DEBIET#lag_4
     0           0.1         1               NaN         NaN             NaN         NaN
     1           0.2         2               0.1         1.0             NaN         NaN
     2           0.0         3               0.2         2.0             NaN         NaN
@@ -290,14 +290,15 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             for window_size, suffix in zip(self.window_size_, self.suffix_):
                 useful_coeffs = range(1, window_size // 2 + 1)
                 for column in X.columns:
+                    col_prefix = "#".join([str(column), suffix])
                     foo = fourier(X[column], window_size).shift(self.lookback)
-                    foo.columns = ["_".join([str(column), suffix, str(j)]) for j in useful_coeffs]
+                    foo.columns = ["_".join([col_prefix, str(j)]) for j in useful_coeffs]
                     foo = foo.set_index(X.index)
                     result = pd.concat([result, foo], axis=1)
         else:
             for window_size, suffix in zip(self.window_size_, self.suffix_):
                 foo = X.apply(lambda arr: self.rolling_fun_(arr, window_size).shift(self.lookback))
-                foo.columns = ["_".join([str(col), suffix]) for col in foo.columns]
+                foo.columns = ["#".join([str(col), suffix]) for col in foo.columns]
                 result = pd.concat([result, foo], axis=1)
 
         self._feature_names = list(result.columns.values)
