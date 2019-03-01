@@ -17,3 +17,8 @@ time
 ----
 .. automodule:: sam.utils.time
     :members:
+
+dataframe_functions
+-------------------
+.. automodule:: sam.utils.dataframe_functions
+    :members:
