@@ -11,3 +11,4 @@ General documents
   general_documents/data_exploration
   general_documents/production_platform
   general_documents/feature_extraction
+  general_documents/tsfresh
