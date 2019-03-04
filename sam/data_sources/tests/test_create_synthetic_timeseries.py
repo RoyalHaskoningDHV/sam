@@ -83,5 +83,6 @@ class TestCreateSyntheticTimeseries(unittest.TestCase):
                                           {"normal": 2, "poisson": 3}, seed=42)
         assert_array_equal(foo, bar)
 
+
 if __name__ == '__main__':
     unittest.main()

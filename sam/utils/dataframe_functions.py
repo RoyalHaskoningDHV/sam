@@ -1,4 +1,3 @@
-import pandas as pd
 from sam.logging import log_new_columns
 import logging
 logger = logging.getLogger(__name__)

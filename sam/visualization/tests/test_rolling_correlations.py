@@ -1,6 +1,5 @@
 import unittest
 import pytest
-from sam.visualization import plot_lag_correlation
 import pandas as pd
 from sam.feature_engineering import BuildRollingFeatures
 from sam.feature_selection import create_lag_correlation
@@ -26,6 +25,7 @@ class TestRollingCorrelations(unittest.TestCase):
         test = create_lag_correlation(res, goal_feature)
         ax = plot_lag_correlation(test)
         return ax.get_figure()
+
 
 if __name__ == '__main__':
     unittest.main()

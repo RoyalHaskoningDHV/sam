@@ -17,6 +17,7 @@ def find_mongo_host(possible_hostnames, port=27017):
         return hostname  # Found a working hostname
     return None  # None of the hostnames worked
 
+
 # These are the hostnames to try. Potentially add more in the future
 possible_hostnames = ['localhost', 'mongo', 'mongodb']
 hostname = find_mongo_host(possible_hostnames, port=27017)
@@ -74,3 +75,7 @@ class TestMongoWrapper(unittest.TestCase):
         # dict is not allowed, only list of dicts
         wrong = {"test": 3, "data": 4}
         self.assertRaises(TypeError, self.mongo.add, wrong)
+
+
+if __name__ == '__main__':
+    unittest.main()

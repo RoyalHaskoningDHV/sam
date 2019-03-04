@@ -111,5 +111,6 @@ class TestAverageWintertime(unittest.TestCase):
         self.assertRaises(Exception, average_winter_time, [1, 2, 3])
         self.assertRaises(Exception, average_winter_time, incomplete_df)
 
+
 if __name__ == '__main__':
     unittest.main()

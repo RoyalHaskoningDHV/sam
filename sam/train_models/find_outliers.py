@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from sam.logging import log_dataframe_characteristics
 import logging

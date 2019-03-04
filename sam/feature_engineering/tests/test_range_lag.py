@@ -22,5 +22,6 @@ class TestRangeLagColumn(unittest.TestCase):
         lagserie = pd.Series([0, 1, 1, 1, 0, 1, 1])
         assert_series_equal(range_lag_column(testserie, (1, -1)), lagserie)
 
+
 if __name__ == '__main__':
     unittest.main()

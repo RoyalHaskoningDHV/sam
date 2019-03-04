@@ -1,4 +1,3 @@
-import pandas as pd
 from sam.logging import log_dataframe_characteristics
 import logging
 logger = logging.getLogger(__name__)

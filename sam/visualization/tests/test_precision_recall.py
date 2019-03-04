@@ -2,7 +2,6 @@ import unittest
 import pytest
 from sam.visualization import make_precision_recall_curve
 import numpy as np
-import matplotlib
 
 
 class TestPrecisionRecall(unittest.TestCase):
@@ -20,6 +19,7 @@ class TestPrecisionRecall(unittest.TestCase):
         y_incidents = np.array([0, 0, 1, 0, 0, 1])
         ax = make_precision_recall_curve(y_incidents, y_scores, (0, 1))
         return ax.get_figure()
+
 
 if __name__ == '__main__':
     unittest.main()

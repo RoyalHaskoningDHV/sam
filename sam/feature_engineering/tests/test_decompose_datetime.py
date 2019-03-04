@@ -45,9 +45,6 @@ class TestBuildTimeFeatures(unittest.TestCase):
         time2 = '2018/03/11 16:10:11'
         freq = '15min'
         daterange = pd.date_range(time1, time2, freq=freq)
-        rangelength = daterange.size
-        # starts at minute 8m ends at 10, 1 hour later, step of 15 min
-        minuterange = list(range(8, 10+60, 15))
 
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
 

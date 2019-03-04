@@ -1,11 +1,9 @@
 import unittest
-from pandas.testing import assert_series_equal, assert_frame_equal
 from numpy.testing import assert_array_equal
 # Below are needed for setting up tests
 from sam.feature_engineering import build_timefeatures
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
 
 class TestBuildTimeFeatures(unittest.TestCase):
@@ -75,6 +73,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         self.assertRaises(ValueError, build_timefeatures, time1, time2, '7 days')
         self.assertRaises(ValueError, build_timefeatures, time1, time2, 7)
         self.assertRaises(ValueError, build_timefeatures, time1, time2, ['7D'])
+
 
 if __name__ == '__main__':
     unittest.main()

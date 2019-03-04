@@ -1,7 +1,5 @@
 import unittest
-import pytest
-from pandas.testing import assert_series_equal, assert_frame_equal
-from numpy.testing import assert_array_equal
+from pandas.testing import assert_frame_equal
 
 from sam.preprocessing import correct_below_threshold
 from sam.preprocessing import correct_above_threshold

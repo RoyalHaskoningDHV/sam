@@ -3,7 +3,6 @@ import pytest
 from sam.visualization import make_incident_heatmap
 import pandas as pd
 import numpy as np
-import matplotlib
 
 
 class TestIncidentHeatmap(unittest.TestCase):
@@ -29,6 +28,7 @@ class TestIncidentHeatmap(unittest.TestCase):
         # Create the heatmap
         ax = make_incident_heatmap(ts, resolution='row', normalize=True, datefmt='%Y-%m-%d')
         return ax.get_figure()
+
 
 if __name__ == '__main__':
     unittest.main()

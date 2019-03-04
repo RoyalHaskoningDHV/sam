@@ -41,7 +41,6 @@ class TestCreateSyntheticTimes(unittest.TestCase):
     def test_delays(self):
         result = synthetic_date_range(start='2016-01-01 00:00:00', end='2017-01-01 00:30:00',
                                       freq='H', max_delay=600)
-        deltas = (result - result.to_series().shift())[1:]
         # Delays should be between 1 hour and 1H10M (1 hour normal, 0-10 min delay)
         self.assertGreater((result - result.to_series().shift())[1:].min(), pd.Timedelta('60min'))
         self.assertLess((result - result.to_series().shift())[1:].max(), pd.Timedelta('70min'))
@@ -80,6 +79,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
                                    freq='H', max_delay=100, random_stop_freq=0.1,
                                    random_stop_max_length=3, seed=42)
         assert_array_equal(foo, bar)
+
 
 if __name__ == '__main__':
     unittest.main()

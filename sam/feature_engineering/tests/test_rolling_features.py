@@ -1,7 +1,6 @@
 import unittest
-from pandas.testing import assert_series_equal, assert_frame_equal
-from numpy.testing import assert_array_equal
-from sam.feature_engineering import BuildRollingFeatures, fourier
+from pandas.testing import assert_frame_equal
+from sam.feature_engineering import BuildRollingFeatures
 import pandas as pd
 import numpy as np
 
@@ -185,6 +184,7 @@ class TestRollingFeatures(unittest.TestCase):
         self.assertRaises(TypeError, validate, window_size=1, keep_original="yes please")
         self.assertRaises(TypeError, validate, window_size=1, rolling_type=np.mean)
         self.assertRaises(TypeError, validate, window_size=1, lookback="2")
+
 
 if __name__ == '__main__':
     unittest.main()

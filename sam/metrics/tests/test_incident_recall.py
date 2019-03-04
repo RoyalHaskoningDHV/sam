@@ -1,5 +1,4 @@
 import unittest
-from pandas.testing import assert_series_equal, assert_frame_equal
 from numpy.testing import assert_array_equal
 # Below are needed for setting up tests
 from sam.metrics import incident_recall, make_incident_recall_scorer,\
@@ -67,7 +66,6 @@ class TestMakeIncidentRecallScorer(unittest.TestCase):
 class TestIncidentPrecisionRecallCurve(unittest.TestCase):
 
     def testCurve(self):
-        range_pred = (0, 1)
         y_incidents = [0, 0, 0, 1]
         y_pred = [0.1, 0.2, 0.3, 0.4]
         p, r, t = precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 1))

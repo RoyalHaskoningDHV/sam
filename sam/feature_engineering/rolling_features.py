@@ -138,7 +138,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             raise TypeError("keep_original must be a boolean")
 
         if self.freq is not None:
-            regex_result = re.search("^(\d+) ?(\w+)$", self.freq)
+            regex_result = re.search(r"^(\d+) ?(\w+)$", self.freq)
             if regex_result is None:
                 raise ValueError("The frequency '%s' must be of the form 'num unit', \
                                   where num is an integer and unit is a string" % self.freq)
@@ -170,7 +170,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             vector of values to use as window sizes
         """
 
-        regex_result = re.search("^(\d+) ?(\w+)$", freq)
+        regex_result = re.search(r"^(\d+) ?(\w+)$", freq)
         freq_timestep, freq_unit = regex_result.groups()
 
         # The difference in units between unit_roll and freq.
@@ -286,7 +286,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         else:
             result = pd.DataFrame(index=X.index)
 
-        if self.rolling_type is "fourier":
+        if self.rolling_type == "fourier":
             for window_size, suffix in zip(self.window_size_, self.suffix_):
                 useful_coeffs = range(1, window_size // 2 + 1)
                 for column in X.columns:

@@ -1,5 +1,4 @@
 import logging
-from sam.logging import log_dataframe_characteristics
 import numpy as np
 
 logger = logging.getLogger(__name__)

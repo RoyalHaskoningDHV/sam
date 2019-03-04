@@ -1,7 +1,5 @@
 import unittest
-import pytest
-from pandas.testing import assert_series_equal, assert_frame_equal
-from numpy.testing import assert_array_equal
+from pandas.testing import assert_frame_equal
 # Below are needed for setting up tests
 from sam.preprocessing import complete_timestamps
 import pandas as pd

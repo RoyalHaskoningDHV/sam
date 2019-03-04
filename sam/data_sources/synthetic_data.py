@@ -23,7 +23,8 @@ def _interpolate_pattern(bigtime, smalltime=None, pattern=0, length=1):
             spline[(bigtime == ix) & (smalltime == 0)] = value
     try:
         return pd.Series(spline).interpolate('cubic').values
-    except:  # numeric nonsense, probably happens only if the length of bigtime is too small
+    except ValueError:
+        # numeric nonsense, probably happens only if the length of bigtime is too small
         return np.zeros(bigtime.size)
 
 

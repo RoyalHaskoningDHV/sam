@@ -110,5 +110,6 @@ class TestCreateOutlierInformation(unittest.TestCase):
                     'OUTLIER_SCORE', 'OUTLIER_TYPE'])
         assert_frame_equal(result, expected)
 
+
 if __name__ == '__main__':
     unittest.main()

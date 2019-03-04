@@ -1,4 +1,3 @@
-import pandas as pd
 from sam.logging import log_dataframe_characteristics, log_new_columns
 import logging
 logger = logging.getLogger(__name__)
@@ -39,15 +38,15 @@ def decompose_datetime(df, column='TIME', components=[]):
     3   2018-12-30  2           2018        Sunday
     """
     result = df.copy()
-    
+
     logging.debug("Decomposing datetime, number of dates: {}. Components: ".
                   format(len(result[column]), components))
 
     # We should check first if the column has a compatible type
     pandas_functions = [f for f in dir(df[column].dt) if not f.startswith('_')]
-    
+
     custom_functions = []
-    
+
     # Iterate the requested components
     for component in components:
         # Check if this is a default pandas functionality
