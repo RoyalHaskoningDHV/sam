@@ -99,16 +99,6 @@ When working with pumps (or other discrete processes that take some time), some 
 
 For all these categories, using the deviations as well as the values itself, also captures the physical properties of the pumps and is highly recommended.
 
-### Weather
-Precipitation in the Netherlands can be obtained through the *Nationale Regenradar (via Lizard)*  and the *KNMI*. In the future, the historic data will also be in Galileo. The midterm and longterm prediction are KNMI predictions
-
-| Type | Source |Frequency | Horizon | Resolution
-|---|---|---|---|---|
-| Historic | Lizard | 5 min | | 1x1 km
-| Nowcast | Lizard | 5 min | 3 hours | 1x1 km
-| Midterm prediction | KNMI | 6 hour | 48 hours | 10x10 km
-| Longterm prediction| KNMI | 12 hours | 10 days | 50x50 km
-
 ### Water level
 Since the water level is fairly constant or changing gradually, there is often high autocorrelation present. Using this in our features in most cases means getting a better performance, but might also lead to missing sensor defects/degradation. Also see the section on autocorrelation. 
 

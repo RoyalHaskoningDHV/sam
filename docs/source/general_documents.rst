@@ -12,4 +12,5 @@ General documents
   general_documents/data_storage
   general_documents/production_platform
   general_documents/feature_extraction
+  general_documents/weather_features
   general_documents/tsfresh
