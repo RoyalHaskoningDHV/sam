@@ -27,7 +27,7 @@ def sum_grouped_columns(df, sep='#', skipna=True):
     sep: str, optional (default='#')
        The seperator character. The group of a column is defined as everything before the first
        occurence of this character
-    skipna: boolean, optional (default=False)
+    skipna: boolean, optional (default=True)
        Whether or not to ignore missing values in columns. If true, missing values are treated as
        0. If false, missing values are not ignored and the sum for that particular group/row
        combination will be missing as well.
