@@ -1,6 +1,6 @@
 # Data exploration
 
-There are many ways to do a first data exploration, this document is to help with getting started and give a few guidelines for explorering time series.
+There are many ways to do a first data exploration, this document is to help with getting started and give a few guidelines for explorering time series. A nice start is probably the [the SAM exploration tool](#sam-exploration-tool)
 
 In addition to normal exploration, missing values, high cardinality, etc. time series have a few unique characteristics.
 
@@ -42,4 +42,15 @@ Generates a rapport like pandas profiling.
 An interactive tool, more like BI so probably not that useful. Can also do some machine learning.
 
 ## SAM exploration tool
-We will develop a tool using some of these packages, see [T224](https://dev.ynformed.nl/T224) on phabricator.
+To speed up inital analysis and help during conversations with domain exports at the client we created a simple (shiny) tool. It takes data from the database in the development enivorenment (see [Production platform][production_platform.html] for more components) in the long format as described in [the data storage section](data_storage.html). Right now it only takes data from a mongodb database. You would use the tool as follows:
+
+1. Load the data into the development environment
+2. Process the data to long-format and store it in the mongodb
+3. Load op the SAM-exploration tool (find the link on [the landing page](https://main-sam.ynformed.nl))
+4. Use the side menu to select the database and collection (your browser will remember this as default next time)
+5. Use the various views for insights into correlations, summary statistics etc.
+
+### Tips
+
+- After loading the datamaid rapport the app crashes, simply refresh the page to make it work again
+- Filters and selections only affect plots next to them, except for the global date filter in the side menu, this affects all
