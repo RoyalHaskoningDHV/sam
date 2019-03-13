@@ -54,6 +54,13 @@ class TestFindOutlierCurves(unittest.TestCase):
         with self.assertRaises(Exception):
             find_outlier_curves(self.data, max_gap_perc=None)
 
+    def test_higher_index(self):
+        # Test issue T354
+        new_index = self.data.copy()
+        new_index.index = range(9500, 9508)
+        result = find_outlier_curves(new_index)
+        assert_array_equal(result, np.array([1, 0, 2, 0, 3, 0, 0, 4]))
+
 
 class TestCreateOutlierInformation(unittest.TestCase):
 

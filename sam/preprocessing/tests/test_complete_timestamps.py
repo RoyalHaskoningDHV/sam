@@ -17,6 +17,8 @@ class TestCompleteTimestamps(unittest.TestCase):
             "ID": 1,
             "VALUE": [1, 2, 3, 4]
         }, columns=['TIME', 'ID', 'VALUE'])
+        data_backup = data.copy()
+
         start_time = pd.to_datetime("2018/01/01 15:45:00")
         end_time = pd.to_datetime("2018/01/01 16:30:00")
 
@@ -32,6 +34,8 @@ class TestCompleteTimestamps(unittest.TestCase):
             "VALUE": [1, 2.5, 4, np.NaN]
         }, columns=['TIME', 'ID', 'VALUE'])
         assert_frame_equal(result, output)
+        # Make sure function has no side effects
+        assert_frame_equal(data, data_backup)
 
     def test_fillna_method(self):
         data = pd.DataFrame({

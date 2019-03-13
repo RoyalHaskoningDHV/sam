@@ -5,7 +5,7 @@ import seaborn as sns
 
 def make_incident_heatmap(df, resolution='row', row_column='id', value_column='incident',
                           time_column=None, normalize=False, figsize=(24, 4),
-                          datefmt=None, **kwargs):
+                          xlabel_rotation=30, datefmt=None, **kwargs):
     """
     Create and return a heatmap for incident occurence. This can be used to visualize e.g.
     the count of outliers/threshold surpassings/warnings given over time.
@@ -30,6 +30,9 @@ def make_incident_heatmap(df, resolution='row', row_column='id', value_column='i
         Normalize the aggregated values
     figsize : tuple of floats (default=(24,4))
         Size of the output figure, must be set before initialization.
+    xlabel_rotation : numeric, optional (default=30)
+        The rotation of the x-axis date labels. Rotation is counterclockwise, beginning
+        with the text lying horizontally. By default, rotate 30 degrees.
     datefmt : string, optional (default=None)
         Optionally, the format of the x-axis date labels. By default, use
         %Y-%m-%dT%H:%M:%S%f
@@ -81,6 +84,7 @@ def make_incident_heatmap(df, resolution='row', row_column='id', value_column='i
 
     # Initialize heatmap
     ax = sns.heatmap(df_grouped, **kwargs)
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=xlabel_rotation)
 
     # If desired, add custom date format to the x-axis
     if datefmt:

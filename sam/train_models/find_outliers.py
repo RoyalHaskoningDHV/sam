@@ -71,10 +71,15 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
     >>> find_outlier_curve(data, max_gap=1, max_gap_perc=0.2)
     array([0, 0, 0, 0, 0, 0, 0, 2])
     """
-    def _firstfalse(series):
-        # Helper function
-        series[0] = False
-        return series
+    def _number_true_streaks(series):
+        """ Given a boolean series, numbers series of True and set False to 0. For example,
+        [T, T, F, T, F, T, T] will be numbered as [1, 1, 0, 2, 0, 3, 3]. Each streak of T gets
+        the same number. The result will be converted to numpy array.
+        """
+        begin_streak = series.ne(series.shift())
+        # We only want beginning of True streaks, not False
+        begin_true_streak = series & begin_streak
+        return np.where(series, begin_true_streak.cumsum(), 0)
 
     logger.debug("Finding outlier curves: under_conf_interval={}, max_gap={}, min_duration={}, "
                  "max_gap_perc={}, min_dist_total={}, actual={}, low={}, high={}".
@@ -86,10 +91,8 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
     # Three columns needed: ACTUAL, PREDICT_HIGH, PREDICT_LOW
     data['OUTLIER'] = (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW) \
         if under_conf_interval else (data.ACTUAL > data.PREDICT_HIGH)
-    # First of all, find all the streaks of gaps, and number then. Gaps are opposite of outliers
-    # shift sets the first value to NaN, so we have to set it to False manually.
-    data['GAP'] = np.where(data.OUTLIER, 0,
-                           (~data.OUTLIER - _firstfalse((~data.OUTLIER).shift()) == 1).cumsum())
+    # Find the streaks of gaps. Gaps are defined as anything that's not an outlier
+    data['GAP'] = _number_true_streaks(~data['OUTLIER'])
     # Then, all gaps with length of max_gap or lower are merged with neighbouring outliers
     new_val = data.groupby('GAP').apply(lambda x: True if (x.shape[0] <= max_gap) else False)
     new_val[0] = True  # because this is not an outlier, it's treated seperately
@@ -110,9 +113,7 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
                                                            if under_conf_interval else 0), 0)
 
     # Now calculate the streaks of outliers, and number them
-    data['OUTLIER_CURVE'] = np.where(
-        data.OUTLIER_FILLED,
-        (data.OUTLIER_FILLED - _firstfalse(data.OUTLIER_FILLED.shift()) == 1).cumsum(), 0)
+    data['OUTLIER_CURVE'] = _number_true_streaks(data['OUTLIER_FILLED'])
 
     logging.debug("Curves found after fixing gaps: {}".format(data['OUTLIER_CURVE'].max()))
 
