@@ -12,15 +12,18 @@ Contributors: Fenno, Loes, Rutger, Sebastiaan, Tim
 
 # Getting started
 
-Documentation is [available here.](10.2.0.20/sam) This is on the ynformed internal server. This server is only reachable from the ynformed office wifi, or via vpn. Many other resources related to sam can [be found on the landing page here.](https://main-sam.ynformed.nl/)
+Documentation is [available here.](http://10.2.0.20/sam) This is on the ynformed internal server. This server is only reachable from the ynformed office wifi, or via vpn.
 
 To install the package, you need to have access to phabricator via git. Then, you can install it with the following command:
 
 ```
+lang=python
 pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git
+# To install all optional dependencies: (such as pymongo, sklearn, seaborn)
+pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git#egg=sam[all]
 ```
 
-Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the command again to install the latest version.
+Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the command again to install the latest version. Many other resources related to sam can [be found on the landing page here.](https://main-sam.ynformed.nl/)
 
 # Developing
 
@@ -62,7 +65,7 @@ Additionally, you will have to install the PytestMPLTestEngine extension. Downlo
 
 ## Documentation
 
-This documentation is built automatically after every commit [by jenkins here](10.2.0.20/sam), with no interaction required. If you want to build it yourself locally, first install the dependencies:
+This documentation is built automatically after every commit [by jenkins here](http://10.2.0.20/sam), with no interaction required. If you want to build it yourself locally, first install the dependencies:
 
 ```
 lang=bash

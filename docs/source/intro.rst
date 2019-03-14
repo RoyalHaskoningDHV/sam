@@ -1,5 +1,18 @@
 The SAM Python package is a collection of tools and functions mainly for **sensor data or time series analysis**, and by extension for **smart asset management** analysis. All functionality has been tested and documented. Using this ensures a company wide generic approach, and will greatly speed up analysis.
 
+Getting started
+---------------
+
+To install the package, you need to have access to phabricator via git. Then, you can install it with the following command:
+
+```python
+pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git
+# To install all optional dependencies: (such as pymongo, sklearn, seaborn)
+pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git#egg=sam[all]
+```
+
+Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the command again to install the latest version. Many other resources related to sam can [be found on the landing page here.](https://main-sam.ynformed.nl/)
+
 Main components
 ---------------
 SAM aims to support the whole analysis from ingesting data to measuring and visualising model performance. The package is build up accordingly as can be seen in the Contents below. If possible, we follow the `Scikit-learn <https://scikit-learn.org>`_ API making components compatible with, for example, Pipelines.

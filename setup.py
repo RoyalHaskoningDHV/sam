@@ -12,6 +12,7 @@ setup(name='sam',
       zip_safe=True,
       install_requires=['pandas', 'numpy'],
       extras_require={
+          'all': ['matplotlib', 'pymongo', 'scipy', 'seaborn', 'sklearn']
           'feature_engineering': ['scipy'],
           'metrics': ['sklearn'],
           'utils': ['pymongo'],
