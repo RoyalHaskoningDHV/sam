@@ -3,33 +3,32 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True):
+def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True, sep='#'):
     """ Given a dataset, retrieve the top n absolute correlating features per group or in general
 
         Parameters
         ----------
         df: pandas dataframe
             Dataframe containing the features that have to be correlated.
-
         goal_feature: string
             Feature that is used to compare the correlation with other features
-
         n: int (default: 5)
             Number of correlating features that are returned
-
-        grouped: boolean (default: true)
-            Whether to group the features and take the top n of a group,
-            or just the top n correlating features in general.
-            Groups are created based on column name and the first item when
-            column name is split by '_'.
-            DEBIET#TOTAAL_lag_0 is in group DEBIET#TOTAAL
+        grouped: boolean (default: True)
+            Whether to group the features and take the top n of a group, or just the top n
+            correlating features in general. Groups are created based on column name, and
+            are all characters before the first occurence of the sep.
+            For example, if the sep is '#', then DEBIET_TOTAAL#lag_0 is in group DEBIET_TOTAAL
+        sep: str (default: '#')
+           The seperator character. The group of a column is defined as everything before the first
+           occurence of this character. Only relevant if grouped is True
 
         Returns
         -------
         df: pandas dataframe
-            A dataframe containing 3 columns(GROUP, index, goal_variable).
-            Index contains the correlating features and
-            goal_variable the correlation value.
+            A dataframe containing 2 or 3 columns(GROUP, index, goal_variable).
+            index contains the correlating features and goal_variable the correlation value.
+            GROUP contains the group, but is only created when grouped=True
 
 
         Examples
@@ -38,31 +37,31 @@ def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True):
         >>> from sam.feature_engineering.rolling_features import BuildRollingFeatures
         >>> from sam.feature_selection.top_correlation import retrieve_top_n_correlations
         >>> import numpy as np
-        >>> goal_feature = 'DEBIET#TOTAAL_lag_0'
+        >>> goal_feature = 'DEBIET_TOTAAL#lag_0'
         >>> df = pd.DataFrame({
         >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        >>>                'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
-        >>>                'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
-        >>> df['DEBIET#TOTAAL'] = df['DEBIET#A'] + df['DEBIET#B']
-        >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \\
+        >>>                'DEBIET_A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
+        >>>                'DEBIET_B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
+        >>> df['DEBIET_TOTAAL'] = df['DEBIET_A'] + df['DEBIET_B']
+        >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \
         >>>     window_size = np.arange(12), lookback=0, keep_original=False)
         >>> res = RollingFeatures.fit_transform(df)
-        >>> retrieve_top_n_correlations(res, goal_feature, n=2, grouped=True)
-                   GROUP                index  DEBIET#TOTAAL_lag_0
-        0       DEBIET#A       DEBIET#A_lag_0             0.838591
-        1       DEBIET#A       DEBIET#A_lag_5             0.667537
-        2       DEBIET#B       DEBIET#B_lag_0             0.897340
-        3       DEBIET#B       DEBIET#B_lag_9             0.755929
-        4  DEBIET#TOTAAL  DEBIET#TOTAAL_lag_9             0.944911
-        5  DEBIET#TOTAAL  DEBIET#TOTAAL_lag_4             0.636884
-        6           RAIN           RAIN_lag_9             0.944911
-        7           RAIN           RAIN_lag_8             0.871695
+        >>> retrieve_top_n_correlations(res, goal_feature, n=2, grouped=True, sep='#')
+                   GROUP                index  DEBIET_TOTAAL#lag_0
+        0       DEBIET_A       DEBIET_A#lag_0             0.838591
+        1       DEBIET_A       DEBIET_A#lag_5             0.667537
+        2       DEBIET_B       DEBIET_B#lag_0             0.897340
+        3       DEBIET_B       DEBIET_B#lag_9             0.755929
+        4  DEBIET_TOTAAL  DEBIET_TOTAAL#lag_9             0.944911
+        5  DEBIET_TOTAAL  DEBIET_TOTAAL#lag_4             0.636884
+        6           RAIN           RAIN#lag_9             0.944911
+        7           RAIN           RAIN#lag_8             0.871695
 
 
         >>> retrieve_top_n_correlations(res, goal_feature, n=2, grouped=False)
-                          index  DEBIET#TOTAAL_lag_0          GROUP
-        39  DEBIET#TOTAAL_lag_9             0.944911  DEBIET#TOTAAL
-        36           RAIN_lag_9             0.944911           RAIN
+                          index  DEBIET_TOTAAL#lag_0          GROUP
+        39  DEBIET_TOTAAL#lag_9             0.944911  DEBIET_TOTAAL
+        36           RAIN#lag_9             0.944911           RAIN
 
 
     """
@@ -75,9 +74,9 @@ def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True):
     pos_corr = df.corr().abs()  # get all positive correlations
     pos_corr = pos_corr.loc[goal_feature].reset_index()
     pos_corr = pos_corr.loc[pos_corr['index'] != goal_feature]
-    pos_corr['GROUP'] = pos_corr['index'].apply(lambda x: x.split('_')[0])
 
     if grouped:
+        pos_corr['GROUP'] = pos_corr['index'].apply(lambda x: x.split(sep)[0])
         pos_corr = \
             pos_corr.groupby('GROUP') \
             .apply(lambda x: x.nlargest(n, goal_feature))[
@@ -124,22 +123,22 @@ def retrieve_top_score_correlations(df, goal_feature, score=0.5):
         >>> from sam.feature_engineering.rolling_features import BuildRollingFeatures
         >>> from sam.feature_selection.top_correlation import retrieve_top_score_correlations
         >>> import numpy as np
-        >>> goal_feature = 'DEBIET#TOTAAL_lag_0'
+        >>> goal_feature = 'DEBIET_TOTAAL#lag_0'
         >>> df = pd.DataFrame({
         >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        >>>                'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
-        >>>                'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
-        >>> df['DEBIET#TOTAAL'] = df['DEBIET#A'] + df['DEBIET#B']
+        >>>                'DEBIET_A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
+        >>>                'DEBIET_B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
+        >>> df['DEBIET_TOTAAL'] = df['DEBIET_A'] + df['DEBIET_B']
         >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \\
         >>>     window_size = np.arange(10), lookback=0, keep_original=False)
         >>> res = RollingFeatures.fit_transform(df)
         >>> retrieve_top_score_correlations(res, goal_feature, score=0.8)
-                    index 	                DEBIET#TOTAAL_lag_0
-                0 	DEBIET#TOTAAL_lag_9 	0.944911
-                1 	RAIN_lag_9 	            -0.944911
-                2 	DEBIET#B_lag_0 	        0.897340
-                3 	RAIN_lag_8 	            0.871695
-                4 	DEBIET#A_lag_0 	        0.838591
+                    index 	                DEBIET_TOTAAL#lag_0
+                0 	DEBIET_TOTAAL#lag_9 	0.944911
+                1 	RAIN#lag_9 	            -0.944911
+                2 	DEBIET_B#lag_0 	        0.897340
+                3 	RAIN#lag_8 	            0.871695
+                4 	DEBIET_A#lag_0 	        0.838591
 
     """
 
