@@ -1,0 +1,6 @@
+[regenradar]
+user=loes.knoben
+password=secret
+
+[openweathermap]
+apikey=secret

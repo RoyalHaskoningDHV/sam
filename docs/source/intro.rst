@@ -5,11 +5,11 @@ Getting started
 
 To install the package, you need to have access to phabricator via git. Then, you can install it with the following command:
 
-```python
-pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git
-# To install all optional dependencies: (such as pymongo, sklearn, seaborn)
-pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git#egg=sam[all]
-```
+.. code-block:: python
+
+	pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git
+	# To install all optional dependencies: (such as pymongo, sklearn, seaborn)
+	pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git#egg=sam[all]
 
 Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the command again to install the latest version. Many other resources related to sam can [be found on the landing page here.](https://main-sam.ynformed.nl/)
 

@@ -25,13 +25,13 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'sam'
-copyright = '2018-2019, Sebastiaan, Tim, Fenno, Rutger'
-author = 'Sebastiaan, Tim, Fenno, Rutger'
+copyright = '2018-2019, Ynformed'
+author = 'Fenno, Loes, Rutger, Sebastiaan, Tim'
 
 # The short X.Y version
-version = '0.2'
+version = '0.3'
 # The full version, including alpha/beta/rc tags
-release = '0.2.0'
+release = '0.3.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -49,6 +49,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'sphinx_markdown_tables',
     'numpydoc'
 ]
 
@@ -144,7 +145,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'sam.tex', 'sam Documentation',
-     'Sebastiaan, Tim, Fenno, Rutger', 'manual'),
+     'Ynformed', 'manual'),
 ]
 
 

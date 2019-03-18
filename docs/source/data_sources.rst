@@ -15,3 +15,9 @@ Create Synthetic Timeseries
 .. autofunction:: sam.data_sources.create_synthetic_timeseries
 
 .. image:: general_documents/images/synthetic_temperature.png
+
+Weather
+-------
+.. autofunction:: sam.data_sources.read_knmi
+.. autofunction:: sam.data_sources.read_openweathermap
+.. autofunction:: sam.data_sources.read_regenradar

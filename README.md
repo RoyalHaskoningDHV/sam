@@ -73,6 +73,7 @@ pip install sphinx
 pip install sphinx_rtd_theme
 pip install numpydoc
 pip install recommonmark
+pip install sphinx-markdown-tables
 ```
 
 Then, go to the /docs folder, and run the command: `sphinx-build -b html source/ build/`

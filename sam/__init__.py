@@ -1,6 +1,7 @@
 import logging
 import datetime
 from os.path import isdir
+import configparser
 
 # Only log if the directory exists, stops erros on unit tests
 if isdir("logs"):
@@ -12,6 +13,10 @@ if isdir("logs"):
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     logger.setLevel(logging.INFO)
+
+config = configparser.ConfigParser()
+config.read('.config')
+
 
 __all__ = ['data_sources', 'feature_engineering', 'feature_extraction', 'feature_selection',
            'metrics', 'preprocessing', 'train_models', 'utils', 'visualization']

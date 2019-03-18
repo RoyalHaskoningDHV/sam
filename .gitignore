@@ -1,3 +1,6 @@
+# Config file (containing api keys and such)
+.config
+
 # Jupyter notebook
 *.ipynb
 
