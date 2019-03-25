@@ -10,7 +10,7 @@ setup(name='sam',
       license='',
       packages=find_packages(exclude=['*tests']),
       zip_safe=True,
-      install_requires=['pandas', 'numpy'],
+      install_requires=['pandas>=0.23', 'numpy>=1.13'],
       extras_require={
           'all': ['knmy', 'matplotlib', 'pymongo', 'scipy', 'seaborn', 'sklearn'],
           'data_sources': ['knmy'],

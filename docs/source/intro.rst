@@ -5,13 +5,27 @@ Getting started
 
 To install the package, you need to have access to phabricator via git. Then, you can install it with the following command:
 
-.. code-block:: python
+.. code-block:: bash
 
 	pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git
 	# To install all optional dependencies: (such as pymongo, sklearn, seaborn)
 	pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git#egg=sam[all]
 
-Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the command again to install the latest version. Many other resources related to sam can [be found on the landing page here.](https://main-sam.ynformed.nl/)
+Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the command again to install the latest version. Many other resources related to sam can be found on the `landing page here. <https://main-sam.ynformed.nl/>`_
+
+Configuration
+-------------
+
+A configuration file can be created as ``.config``. This configuration file only stores api credentials for now, but more options may be added in the future. The configuration file is parsed using the `Python3 configparser <https://docs.python.org/3/library/configparser.html>`_, and an example configuration is shown below:
+
+.. code-block:: none
+
+    [regenradar]
+    user=loes.knoben
+    password=secret123
+
+    [openweathermap]
+    apikey=secret456
 
 Main components
 ---------------
