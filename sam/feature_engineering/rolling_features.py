@@ -37,15 +37,19 @@ def multicol_output(arr, n, func, fourier=False):
             ncol = len(self.useful_coeffs)
             self.series = np.full((nrow, ncol), np.nan)
             self.calls = n - 1
+            self.n = n
 
         def calc_func(self, vector):
+            if len(vector) < self.n:
+                # We are still at the beginning of the dataframe, nothing to do
+                return np.nan
             values = func(vector)[self.useful_coeffs]
             self.series[self.calls, :] = values
             self.calls = self.calls + 1
             return np.nan  # return something to make Rolling apply not error
 
     helper = Helper(len(arr), n)
-    arr.rolling(n).apply(helper.calc_func, raw=True)
+    arr.rolling(n, min_periods=0).apply(helper.calc_func, raw=True)
     return pd.DataFrame(helper.series)
 
 

@@ -131,6 +131,39 @@ class TestRollingFeatures(unittest.TestCase):
         result = self.simple_transform("cwt", 0, 4, width=2.5)
         assert_frame_equal(result, expected)
 
+    def test_withmissing(self):
+        X = pd.DataFrame({
+            "X": [10, 12, 15, np.nan, 0, 0, 1]
+        })
+        roller = BuildRollingFeatures('sum', lookback=0, window_size=2, keep_original=False)
+        result = roller.fit_transform(X)
+        expected = pd.DataFrame({'X#sum_2': [np.nan, 22, 27, np.nan, np.nan, 0, 1]})
+        assert_frame_equal(result, expected)
+
+    def test_fourier_withmissing(self):
+
+        def fastfft(values):
+            return np.absolute(np.fft.fft(np.array(values)))[1]
+
+        # Tests T502: missing values caused the results to shift.
+        X = pd.DataFrame({
+            "X": [10, 12, 15, np.nan, 0, 0, 1]
+        })
+
+        roller = BuildRollingFeatures('fourier', lookback=0, window_size=2, keep_original=False)
+        result = roller.fit_transform(X)
+
+        expected = [np.nan,
+                    fastfft(X.X.iloc[0:2]),
+                    fastfft(X.X.iloc[1:3]),
+                    np.nan,
+                    np.nan,
+                    fastfft(X.X.iloc[4:6]),
+                    fastfft(X.X.iloc[5:7])]
+        expected = pd.DataFrame({'X#fourier_2_1': expected})
+
+        assert_frame_equal(result, expected)
+
     # all the others are not tested because they are functionally exactly identical.
     # for example: std is just  lambda arr, n: arr.rolling(n).std(), which is just
     # exactly the same as sum or mean
