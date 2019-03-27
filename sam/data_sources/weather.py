@@ -60,7 +60,12 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
               variables='default'):
     """Export historic variables from KNMI, either hourly or daily.
     There are many weather stations in the Netherlands, but this function will select the station
-    that is physically closest to the desired location, and use that station
+    that is physically closest to the desired location, and use that station.
+
+    knmi only has historic data. Usually, the most recent datapoint is about half a day prior to
+    the current time. If the start_date and/or end_date is after the most recent available
+    datapoint, any datapoints that are not available will not be included in the results, not
+    even as missing data.
 
     Parameters
     ----------
@@ -92,7 +97,7 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
 
     Examples
     --------
-    >>> read_knmi(52.09, 5.09, '2018-01-01 00:00:00', '2018-01-01 06:00:00', 'hourly', ['SQ', 'T'])
+    >>> read_knmi('2018-01-01 00:00:00', '2018-01-01 06:00:00', 52.09, 5.09, 'hourly', ['SQ', 'T'])
         SQ	T	TIME
     0	0	87	2018-01-01 00:00:00
     1	0	85	2018-01-01 01:00:00

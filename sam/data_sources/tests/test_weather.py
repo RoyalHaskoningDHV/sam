@@ -84,8 +84,6 @@ class TestWeather(unittest.TestCase):
     def test_incorrect_knmi(self):
         self.assertRaises(Exception, read_knmi, '2017-01-01 00:00:00', '2017-01-01 00:06:00',
                           freq='monthly')
-        self.assertRaises(Exception, read_knmi, '2017-01-01 00:00:00', '2017-01-01 00:06:00',
-                          variables=['RAINFALL'])
 
     @skipowm
     def test_incorrect_owm(self):
