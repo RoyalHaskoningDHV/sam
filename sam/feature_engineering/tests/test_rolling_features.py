@@ -1,9 +1,9 @@
 import unittest
-from pandas.testing import assert_series_equal, assert_frame_equal
-from sam.feature_engineering import BuildRollingFeatures
+from pandas.testing import assert_frame_equal
 from scipy import signal
 import pandas as pd
 import numpy as np
+from sam.feature_engineering import BuildRollingFeatures
 
 
 class TestRollingFeatures(unittest.TestCase):
@@ -12,6 +12,13 @@ class TestRollingFeatures(unittest.TestCase):
         self.X = pd.DataFrame({
             "X": [10, 12, 15, 9, 0, 0, 1]
         })
+
+        self.times = ["2011-01-01 00:00", "2011-01-01 01:00", "2011-01-01 02:00",
+                      "2011-01-01 04:00", "2011-01-01 05:00", "2011-01-01 06:00",
+                      "2011-01-01 07:00"]
+        self.X_times = pd.DataFrame({
+            "X": [10, 12, 15, 9, 0, 0, 1]
+        }, index=pd.DatetimeIndex(self.times))
 
         def simple_transform(rolling_type, lookback, window_size, **kwargs):
             roller = BuildRollingFeatures(rolling_type, lookback, window_size=window_size,
@@ -228,23 +235,38 @@ class TestRollingFeatures(unittest.TestCase):
         })
         assert_frame_equal(result, expected, check_dtype=False)
 
-    def test_calc_window_size(self):
-        roller = BuildRollingFeatures(rolling_type='lag', lookback=0, freq='30 minuutjes',
-                                      keep_original=False, values_roll=[1, 2, 3], unit_roll='hour')
-        result = roller.fit_transform(self.X)
-        expected = pd.DataFrame({
-            "X#lag_1_hour": (np.nan, np.nan, 10, 12, 15, 9, 0),
-            "X#lag_2_hour": (np.nan, np.nan, np.nan, np.nan, 10, 12, 15),
-            "X#lag_3_hour": (np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, 10)
-        }, columns=["X#lag_1_hour", "X#lag_2_hour", "X#lag_3_hour"])
-        assert_frame_equal(result, expected, check_dtype=False)
-
     def test_get_feature_names(self):
         roller = BuildRollingFeatures('lag', lookback=0, window_size=[1, 2, 3])
         _ = roller.fit_transform(self.X)
         result = roller.get_feature_names()
         expected = ['X', 'X#lag_1', 'X#lag_2', 'X#lag_3']
         self.assertEqual(result, expected)
+
+    def test_datetimeindex(self):
+        roller = BuildRollingFeatures('sum', lookback=1, window_size=['61min', '3H'])
+        result = roller.fit_transform(self.X_times)
+        expected = pd.DataFrame({
+            "X": [10, 12, 15, 9, 0, 0, 1],
+            "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0],
+            "X#sum_3H": [np.nan, 10, 22, 37, 24, 9, 9]
+        }, columns=["X", "X#sum_61min", "X#sum_3H"],
+           index=pd.DatetimeIndex(self.times))
+
+        assert_frame_equal(result, expected)
+
+    def test_timecol(self):
+        X = self.X.copy()
+        X['TIME'] = self.times
+        roller = BuildRollingFeatures('sum', lookback=1,
+                                      window_size=['61min', '3H'], timecol='TIME')
+        result = roller.fit_transform(X)
+        expected = pd.DataFrame({
+            "X": [10, 12, 15, 9, 0, 0, 1],
+            "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0],
+            "X#sum_3H": [np.nan, 10, 22, 37, 24, 9, 9]
+        }, columns=["X", "X#sum_61min", "X#sum_3H"])
+
+        assert_frame_equal(result, expected)
 
     def test_incorrect_inputs(self):
         # helper function. This function should already throw exceptions if the input is incorrect
@@ -253,17 +275,8 @@ class TestRollingFeatures(unittest.TestCase):
             roller.fit_transform(X)
         self.assertRaises(Exception, validate)  # No input
         self.assertRaises(ValueError, validate, lookback=-1, window_size=1)  # negative lookback
-        self.assertRaises(TypeError, validate, window_size="INVALID")  # typeerror
+        self.assertRaises(Exception, validate, window_size="INVALID")
         self.assertRaises(Exception, validate, window_size=[1, 2, None])  # runtime error
-        # values_roll cannot be string
-        self.assertRaises(TypeError, validate, freq='15min', values_roll='30', unit_roll='minutes')
-        # unit_roll must be a string
-        self.assertRaises(TypeError, validate, freq='15min', values_roll=30, unit_roll=1)
-        # freq must be a string
-        self.assertRaises(TypeError, validate, freq=1, values_roll=30, unit_roll='minutes')
-        self.assertRaises(Exception, validate, freq='45min', values_roll=[1, 2, 3],
-                          unit_roll='hour')  # does not divide
-        self.assertRaises(ValueError, validate, freq='foobar', values_roll=30, unit_roll='minutes')
 
         # must be pandas
         self.assertRaises(Exception, validate, X=np.array([[1, 2, 3], [2, 3, 4]]), window_size=1)
@@ -288,6 +301,12 @@ class TestRollingFeatures(unittest.TestCase):
         self.assertRaises(Exception, validate, window_size=1, deviation="subtract",
                           rolling_type="fourier")
 
+        # timeoffset can only be used with datetimeindex, and not with lag/ewm/fourier/diff
+        self.assertRaises(ValueError, validate, window_size='1H')
+        self.assertRaises(TypeError, validate,
+                          X=self.X_times, window_size='1H', rolling_type='lag')
+        self.assertRaises(ValueError, validate,
+                          X=self.X_times, window_size=[1, '1H'], rolling_type='lag')
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

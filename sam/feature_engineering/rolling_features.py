@@ -1,10 +1,8 @@
 import pandas as pd
 import numpy as np
-import re
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from scipy import signal  # For cwt
-from sam.utils.time import unit_to_seconds
 from sam.logging import log_dataframe_characteristics, log_new_columns
 import logging
 logger = logging.getLogger(__name__)
@@ -59,10 +57,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     This class provides a stateless transformer that applies to each column in a dataframe.
     It works by applying a certain rolling function to each column individually, with a
     window size. The rolling function is given by rolling_type, for example 'mean',
-    'median', 'sum', etcetera. The window size can be given directly by window_size, or
-    indirectly by values_roll, which is then converted by unit_roll and freq. values_roll
-    and window_size can be array-like, in which case each window size will be used alongside
-    each other.
+    'median', 'sum', etcetera.
 
     An important note is that this transformer assumes that the data is sorted by time already!
     So if the input dataframe is not sorted by time (in ascending order), the results will be
@@ -85,14 +80,11 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     lookback : number type, optional (default=1)
         the features that are built will be shifted by this value
         If more than 0, this prevents leakage
-    values_roll : array-like, shape = (n_outputs, ), optional (default=None)
-        vector of lag or rolling values in specified unit
-    unit_roll : string, optional (default=None)
-        unit of values_roll, must be parseable by utils.time.unit_to_seconds
-    freq : string, optional (default=None)
-        freq of measurements in values_roll, shoud match ^(\d+) (\w+)$
     window_size : array-like, shape = (n_outputs, ), optional (defaut=None)
         vector of values to shift. Ignored when rolling_type is ewm
+        if integer, the window size is fixed, and the timestamps are assumed to be uniform.
+        If string of timeoffset (for example '1H'), the input dataframe must have a DatetimeIndex.
+        timeoffset is not supported for rolling_type 'lag', 'fourier', 'ewm', 'diff'!
     deviation : str, optional (default=None)
         one of ['subtract', 'divide']. If this option is set, the resulting column will either
         have the original column subtracted, or will be divided by the original column. If None,
@@ -105,6 +97,11 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     width : numeric, optional (default=1)
         if rolling_type is 'cwt', the wavelet transform uses a ricker signal. This parameter
         defines the width of that signal
+    timecol: str, optional (default=None)
+        Optional, the column to set as the index during transform. The index is restored before
+        returning. This is only useful when using a timeoffset for window_size, since that needs
+        a datetimeindex. So this column can specify a time column. This column will not be
+        feature-engineered, and will never be returned in the output!
     keep_original : boolean, optional (default=True)
         if the original columns should be kept or discarded
         True by default, which means the new columns are added to the old ones
@@ -133,102 +130,35 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     11          0.0         3               0.0         2.0             0.0         3.0
 
     """
-
     def _validate_params(self):
         """apply various checks to the inputs of the __init__ function
         throw value error or type error based on the result
         """
 
-        if self.window_size is None and \
-                (self.values_roll is None or
-                 self.unit_roll is None or self.freq is None) and \
-                self.rolling_type != "ewm":
-            raise ValueError(("Either window_size must not be None, or values_roll,"
-                              "unit_roll, freq must all be not None"))
+        if self.window_size is None and self.rolling_type != "ewm":
+            raise ValueError("Window_size must not be None, unless rolling_type is ewm")
 
-        # we allow scalar inputs, but _calc_window_size expects an interable
-        if isinstance(self.values_roll, (int, float)):
-            self._values_roll = [self.values_roll]
-        else:
-            self._values_roll = self.values_roll
-
-        if not (isinstance(self.unit_roll, str) or self.unit_roll is None):
-            raise TypeError("unit_roll must be a string")
-        if not (isinstance(self.freq, str) or self.freq is None):
-            raise TypeError("freq must be a string")
-        if not isinstance(self.lookback, (int, float)):
+        if not np.isscalar(self.lookback):
             raise TypeError("lookback must be a scalar")
         if self.lookback < 0:
             raise ValueError("lookback cannot be negative!")
-        if not (isinstance(self._values_roll, (list, tuple)) or
-                (type(self._values_roll) is np.ndarray and self._values_roll.ndim == 1) or
-                self._values_roll is None):
-            raise TypeError("values_roll must be a scalar, list or 1d numpy array")
         if not isinstance(self.rolling_type, str):
             raise TypeError("rolling_type must be a string")
         if not isinstance(self.keep_original, bool):
             raise TypeError("keep_original must be a boolean")
-        if not isinstance(self.width, (int, float)):
+        if not np.isscalar(self.width):
             raise TypeError("width must be a scalar")
         if self.width <= 0:
             raise ValueError("width must be positive")
-        if not isinstance(self.alpha, (int, float)):
+        if not np.isscalar(self.alpha):
             raise TypeError("alpha must be a scalar")
         if self.alpha <= 0 or self.alpha > 1:
             raise ValueError("alpha must be in (0, 1]")
-
-        if self.freq is not None:
-            regex_result = re.search(r"^(\d+) ?(\w+)$", self.freq)
-            if regex_result is None:
-                raise ValueError("The frequency '%s' must be of the form 'num unit', \
-                                  where num is an integer and unit is a string" % self.freq)
-
-        if not (isinstance(self.window_size, (list, tuple)) or
-                (type(self.window_size) is np.ndarray and self.window_size.ndim == 1) or
-                self.window_size is None or
-                isinstance(self.window_size, (int, float))):
-            raise TypeError("window_size must be None, numeric, list or 1d numpy array")
 
         if self.deviation is not None and self.rolling_type in ["fourier", "cwt"]:
             raise ValueError("Deviation cannot be used together with {}".format(self.rolling_type))
         if self.deviation not in [None, "subtract", "divide"]:
             raise ValueError("Deviation must be one of [None, 'subtract', 'divide']")
-
-    def _calc_window_size(self, values_roll, unit_roll, freq):
-        """Determine number of rows to use in rolling
-        Based on a frequency of a dataframe and desired rolling horizon,
-        determing how many rows this is, taking into account the correct units
-
-        Parameters
-        ----------
-        values_roll : array-like, shape = (n_outputs, )
-            vector of lag or rolling values in specified unit
-        unit_roll : string
-            unit of values_roll, must be parseable by utils.time.unit_to_seconds
-        freq : string
-            freq of measurements in values_roll, should match ^(\d+) (\w+)$
-            where the word at the end must be parseable by utils.time.unit_to_seconds
-
-        Returns
-        -------
-        window_sizes : array-like, shape = (n_outputs, )
-            vector of values to use as window sizes
-        """
-
-        regex_result = re.search(r"^(\d+) ?(\w+)$", freq)
-        freq_timestep, freq_unit = regex_result.groups()
-
-        # The difference in units between unit_roll and freq.
-        # for example, if unit_roll is "day" and freq = "30 min", then diff_unit will be 48
-        diff_unit = (unit_to_seconds(unit_roll) / unit_to_seconds(freq_unit)) / \
-            float(freq_timestep)
-        shifts = [val * diff_unit for val in values_roll]
-
-        if not all([shift.is_integer() for shift in shifts]):
-            raise ValueError(("The frequency '%s', does not evenly divide"
-                              " into all the rollling units ('%s')")
-                             % (freq, unit_roll))
-        return([int(shift) for shift in shifts])
 
     def _get_rolling_fun(self, rolling_type="mean"):
         """Given a function name as a string, creates a function that
@@ -273,12 +203,9 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                              % rolling_type)
         return(rolling_functions[rolling_type])
 
-    def __init__(self, rolling_type="mean", lookback=1, values_roll=None, unit_roll=None,
-                 freq=None, window_size=None, deviation=None, alpha=0.5, width=1,
-                 keep_original=True):
-        self.values_roll = values_roll
-        self.unit_roll = unit_roll
-        self.freq = freq
+    def __init__(self, rolling_type="mean", lookback=1, window_size=None, deviation=None,
+                 alpha=0.5, width=1, timecol=None, keep_original=True):
+
         self.window_size = window_size
         self.lookback = lookback
         self.rolling_type = rolling_type
@@ -286,11 +213,12 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         self.alpha = alpha
         self.width = width
         self.keep_original = keep_original
+        self.timecol = timecol
         logger.debug("Initialized rolling generator. rolling_type={}, lookback={}, "
-                     "values_roll={}, unit_roll={}, freq={}, window_size={}, "
-                     "deviation={}, alpha={}, width={}, keep_original={}".
-                     format(rolling_type, lookback, values_roll, unit_roll, freq, window_size,
-                            deviation, alpha, width, keep_original))
+                     "window_size={}, deviation={}, alpha={}, width={}, keep_original={}, "
+                     "timecol={}".
+                     format(rolling_type, lookback, window_size,
+                            deviation, alpha, width, keep_original, timecol))
 
     def fit(self, X=None, y=None):
         """Calculates window_size and feature function
@@ -304,14 +232,9 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         self._validate_params()
 
         if self.rolling_type == "ewm":
-            # ewm needs no window_size calculation
+            # ewm needs no integer window_size
             self.window_size_ = "ewm"
             self.suffix_ = ["ewm_" + str(self.alpha)]
-        elif self.window_size is None:
-            self.window_size_ = self._calc_window_size(
-                                    self._values_roll, self.unit_roll, self.freq)
-            self.suffix_ = [self.rolling_type + "_" + str(i) + "_" + self.unit_roll
-                            for i in self._values_roll]
         else:
             self.window_size_ = self.window_size
             # Singleton window_size is also allowed
@@ -355,6 +278,15 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         else:
             result = pd.DataFrame(index=X.index)
 
+        if self.timecol is not None:
+            # Set DatetimeIndex on the intermediate result
+            index_backup = X.index.copy()
+            new_index = pd.DatetimeIndex(X[self.timecol].values)
+            X = (X.set_index(new_index)
+                 .drop(self.timecol, axis=1))
+            result = (result.set_index(new_index)
+                      .drop(self.timecol, axis=1))
+
         if self.rolling_type in ["fourier", "cwt"]:
             for window_size, suffix in zip(self.window_size_, self.suffix_):
 
@@ -383,6 +315,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                 result = pd.concat([result, new_features], axis=1)
 
         self._feature_names = list(result.columns.values)
+        if self.timecol is not None:
+            result = result.set_index(index_backup)
         log_new_columns(result, X)
         log_dataframe_characteristics(result, logging.DEBUG)  # Log types as well
         return(result)
