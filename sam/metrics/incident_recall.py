@@ -1,13 +1,14 @@
 import numpy as np
+import pandas as pd
 from sam.feature_engineering import range_lag_column
 from sklearn.metrics import precision_recall_curve
 
 
 def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
     """
-    Given y_pred, y_incidents and a prediction range,
-    see what percentage of incidents in y_incidents was positively
-    predicted in y_pred, within window range_pred.
+    Given y_pred, y_incidents and a prediction range, see what percentage of incidents in
+    y_incidents was positively predicted in y_pred, within window range_pred. Works for binary
+    classification only (predicting 1 means incident, predicting 0 means no incident)
 
     For use in a make_scorer, e.g.
     make_scorer(incident_recall, y_incidents=df['incidents'], range_pred=(1,5))
@@ -21,6 +22,8 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
     range_pred : tuple of int, optional (default = (0,0))
         length of two: (start prediction window, end prediction window)
         If we want to predict an incidents 5 to 1 rows in advance, this will be (1,5)
+        range_pred is inclusive, so (0, 1) means you can predict either 0 or 1
+        timesteps in advance
 
     Returns
     -------
@@ -37,25 +40,16 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
     0.5
     """
     assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
-    y_pred, y_incidents = np.array(y_pred), np.array(y_incidents)
-
-    # Get the incides of the actual incidents
-    incident_indices = np.reshape(np.nonzero(y_incidents), -1)
-
-    # Get the ranges that a positive prediction should have been made
-    # Note: we expect 3 rows to be checked when range_pred = (1,3)
-    # namely 1,2,3. Top achieve this indexing, we should add 1 to
-    # the i-range_pred[0] to make the range inclusive of the last record
-    incident_ranges = [(np.maximum(i-range_pred[1], 0), np.maximum(i-range_pred[0]+1, 0))
-                       for i in incident_indices]
-
-    # Find out if there's any positive prediction in this range
-    incidents_found = [np.any(y_pred[start:end]) for start, end in incident_ranges]
-
-    # Calculate the score
-    score = np.sum(incidents_found) / len(incident_indices)
-
-    return score
+    y_pred = pd.Series(y_pred)  # needed for rolling window operation
+    y_incidents = np.array(y_incidents)  # faster than pd.Series
+    window_size_inclusive = range_pred[1] - range_pred[0] + 1
+    # For each time point, look at a window of predictions to see if the time point was
+    # predicted. Then at the end, calculate the recall score (binary only!)
+    y_pred_new = (y_pred
+                  .rolling(window_size_inclusive, min_periods=1).sum()
+                  .shift(range_pred[0])) > 0
+    recall = (y_pred_new & y_incidents).sum() / y_incidents.sum()
+    return recall
 
 
 def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
