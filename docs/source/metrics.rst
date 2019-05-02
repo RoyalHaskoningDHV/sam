@@ -24,4 +24,4 @@ Make Incident recall scorer
 
 Incident precision recall curve
 ---------------------------
-.. autofunction:: sam.metrics.incident_precision_recall_curve
+.. autofunction:: sam.metrics.precision_incident_recall_curve

@@ -40,16 +40,11 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
     0.5
     """
     assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
-    y_pred = pd.Series(y_pred)  # needed for rolling window operation
-    y_incidents = np.array(y_incidents)  # faster than pd.Series
-    window_size_inclusive = range_pred[1] - range_pred[0] + 1
-    # For each time point, look at a window of predictions to see if the time point was
-    # predicted. Then at the end, calculate the recall score (binary only!)
-    y_pred_new = (y_pred
-                  .rolling(window_size_inclusive, min_periods=1).sum()
-                  .shift(range_pred[0])) > 0
-    recall = (y_pred_new & y_incidents).sum() / y_incidents.sum()
-    return recall
+    y_pred, y_incidents = pd.Series(y_pred), pd.Series(y_incidents)
+    # A prediction has effect on the future, so lag to the future
+    y_pred = range_lag_column(y_pred, (-1*range_pred[0], -1*range_pred[1]))
+    predicted_incidents = pd.concat([y_pred, y_incidents], axis=1).min(axis=1).sum()
+    return predicted_incidents / y_incidents.sum()
 
 
 def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
@@ -97,6 +92,47 @@ def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
     return incident_recall_scorer
 
 
+def _merge_thresholds(left_t, right_t, left_val, right_val):
+    """
+    Helper function that merges two different thresholds. Does this by iterating over the
+    thresholds, and selecting the lowest threshold as the next.
+    """
+
+    def step_ahead(new_t, new_val, saved_val, ix, old_t, old_val):
+        new_t.append(old_t[ix])
+        new_val.append(old_val[ix])
+        ix += 1
+        saved_val = old_val[ix]
+        return new_t, new_val, saved_val, ix
+
+    left_ix, right_ix = 0, 0
+    new_t = []
+    new_leftval, new_rightval = [], []
+    saved_leftval, saved_rightval = left_val[0], right_val[0]
+
+    while left_ix < len(left_t) or right_ix < len(right_t):
+        if len(left_t) > 0 and (right_ix == len(right_t) or left_t[left_ix] < right_t[right_ix]):
+            new_t, new_leftval, saved_leftval, left_ix = \
+                step_ahead(new_t, new_leftval, saved_leftval, left_ix, left_t, left_val)
+            new_rightval.append(saved_rightval)
+
+        elif len(right_t) > 0 and (left_ix == len(left_t) or left_t[left_ix] > right_t[right_ix]):
+            new_t, new_rightval, saved_rightval, right_ix = \
+                step_ahead(new_t, new_rightval, saved_rightval, right_ix, right_t, right_val)
+            new_leftval.append(saved_leftval)
+
+        elif left_t[left_ix] == right_t[right_ix]:
+            new_t, new_leftval, saved_leftval, left_ix = \
+                step_ahead(new_t, new_leftval, saved_leftval, left_ix, left_t, left_val)
+            new_t, new_rightval, saved_rightval, right_ix = \
+                step_ahead(new_t, new_rightval, saved_rightval, right_ix, right_t, right_val)
+            new_t = new_t[:-1]
+
+    new_leftval.append(left_val[-1])
+    new_rightval.append(right_val[-1])
+    return np.array(new_leftval), np.array(new_rightval), np.array(new_t)
+
+
 def precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 0)):
     """
     Analogous to sklearn.metrics.precision_recall_curve, but for incident recall and
@@ -132,18 +168,19 @@ def precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 0)):
     >>> y_pred = [0.4, 0.4,  0.1, 0.2, 0.6,  0.5, 0.1]
     >>> y_incidents = [  0, 1, 0, 0, 0, 0, 1]
     >>> range_pred = (0, 2)
-    >>> p, r, t = incident_precision_recall_curve(y_incidents, y_pred, range_pred)
+    >>> p, r, t = precision_incident_recall_curve(y_incidents, y_pred, range_pred)
     >>> p
     array([0.71428571, 0.8, 1., 1., 1., 1.])
     >>> r
-    array([1., 1., 1., 0.6, 0.6, 0.])
+    array([1., 1., 1., 0.5, 0.5, 0.])
     >>> t
     array([0.1, 0.2, 0.4, 0.5, 0.6])
     """
+    assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
     y_lagged = range_lag_column(y_incidents, range_pred)
-    precision, _, thresholds = precision_recall_curve(y_lagged, y_pred)
-    recall = [incident_recall(y_incidents, y_pred > t, range_pred) for t in thresholds]
-    # The first element is missing due to the way thresholds is always 1 shorter than recall.
-    # However, we are missing the first value, which is by definition always 1, so it's easy to add
-    recall = np.array([1] + recall)
-    return precision, recall, thresholds
+    precision, _, thresholds_p = precision_recall_curve(y_lagged, y_pred)
+
+    y_pred_incidents = range_lag_column(y_pred, (-1*range_pred[0], -1*range_pred[1]))
+    _, recall, thresholds_r = precision_recall_curve(y_incidents, y_pred_incidents)
+
+    return _merge_thresholds(thresholds_p, thresholds_r, precision, recall)

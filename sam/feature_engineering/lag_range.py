@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ def range_lag_column(original_column, range_shift=(0, 1)):
 
     Returns
     -------
-    The lagged column as a series
+    The lagged column as a series. The input will be converted to float64.
 
     Example
     -------
@@ -45,15 +44,23 @@ def range_lag_column(original_column, range_shift=(0, 1)):
     original_column = pd.Series(original_column)
     # For loop will fail if not in order
     range_shift = sorted(range_shift)
+    # Window size of the shift (+1 because inclusive)
+    window_size_inclusive = range_shift[1] - range_shift[0] + 1
 
     logger.debug("Now lagging range column with length: {}. Range shift: {}".
                  format(original_column.size, range_shift))
 
-    df = pd.DataFrame()
-    cols = []
-    for i in range(range_shift[0], range_shift[1]+1):
-        cols.append('lag_' + str(i))
-        df['lag_' + str(i)] = original_column.shift(-i)
+    # Reverse because we want to lag.
+    # Then, we take the max which is the boolean version of 'any'
+    # At the end, fix the index which got messed up by the reversing
+    result = (original_column[::-1]
+              .rolling(window_size_inclusive, min_periods=1).max()
+              .shift(range_shift[0]).fillna(0)
+              .reindex(original_column.index))
 
-    # Merge into one outcome column
-    return df[cols].any(axis='columns').astype(np.int64)
+    if range_shift[0] < 0:
+        result[0:-range_shift[0]] = \
+            original_column[0:-range_shift[0]] \
+            .rolling(window_size_inclusive, min_periods=1).max()
+
+    return result
