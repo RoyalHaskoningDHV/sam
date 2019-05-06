@@ -65,9 +65,10 @@ class TestWeather(unittest.TestCase):
         self.assertEqual(result.shape, expected_shape)
 
         # all observations have to be within now and 5 days from now.
-        within_five_days = (result['TIME'] < pd.Timestamp.now() + pd.Timedelta('5 days')) & \
-                           (result['TIME'] > pd.Timestamp.now())
-        self.assertTrue(within_five_days.all())
+        # It is possible for an observation to be before the present, b
+        within_5_days = (result['TIME'] <= pd.Timestamp.now(tz='UTC') + pd.Timedelta('5 days')) & \
+                        (result['TIME'] >= pd.Timestamp.now(tz='UTC'))
+        self.assertTrue(within_5_days.all())
 
     @skiprr
     def test_read_regenradar(self):

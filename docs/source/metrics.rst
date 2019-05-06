@@ -25,3 +25,7 @@ Make Incident recall scorer
 Incident precision recall curve
 ---------------------------
 .. autofunction:: sam.metrics.precision_incident_recall_curve
+
+Mean absolute scaled error
+---------------------------
+.. autofunction:: sam.metrics.mean_absolute_scaled_error

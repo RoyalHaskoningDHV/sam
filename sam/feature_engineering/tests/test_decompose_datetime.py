@@ -27,7 +27,8 @@ class TestBuildTimeFeatures(unittest.TestCase):
         time2 = '2019/03/11 04:00:00'
         freq = '1h'
         daterange = pd.date_range(time1, time2, freq=freq)
-        test_dataframe = pd.DataFrame({'TIME': daterange, 'OTHER': 1})
+        test_dataframe = pd.DataFrame({'TIME': daterange, 'OTHER': 1},
+                                      columns=['TIME', 'OTHER'])
 
         # add without cyclicals
         result = decompose_datetime(test_dataframe, "TIME", ['hour'], [])

@@ -165,6 +165,7 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
     """
     Use openweathermap API to obtain a weather forecast. This forecast has a frequency of 3 hours,
     with a total of 39 observations, meaning the forecast is up to 5 days in the future.
+    The resulting timestamp always uses UTC.
 
     Parameters
     ----------
@@ -177,8 +178,8 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
 
     Returns
     -------
-    forecast : dataframe with TIME column, containing the time of that specific forecast, and the
-    following columns:
+    forecast : dataframe with TIME column, containing the time of that specific forecast,
+    with timezone UTC. And the following columns:
     * cloud_coverage, in %
     * humidity, in %
     * pressure: generally same as pressure_sealevel, in hPa
@@ -211,7 +212,7 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
     res = requests.get(url).json()['list']
     data = json_normalize(res)
 
-    data['TIME'] = pd.to_datetime(data['dt'], unit='s')
+    data['TIME'] = pd.to_datetime(data['dt'], unit='s', utc=True)
     data = data.rename({
         'clouds.all': 'cloud_coverage',
         'main.grnd_level': 'pressure_groundlevel',

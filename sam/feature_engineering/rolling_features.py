@@ -238,7 +238,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         else:
             self.window_size_ = self.window_size
             # Singleton window_size is also allowed
-            if isinstance(self.window_size_, (int, float)):
+            if np.isscalar(self.window_size_):
                 self.window_size_ = [self.window_size_]
             self.suffix_ = [self.rolling_type + "_" + str(window_size)
                             for window_size in self.window_size_]

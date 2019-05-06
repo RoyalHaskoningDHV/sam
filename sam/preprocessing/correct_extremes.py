@@ -25,15 +25,15 @@ def setdoc(func):
                The exclusive threshold. A number for above or below, for
                correct_outside_range it should be a tuple
     method: string (default = "na")
-            To what the threshold exceedingn values should be corrected,
-            options are:
-            - 'na'
-            - 'previous'
-            - 'average': linearly interpolated usind pandas.DataFrame.interpolate,
-                         *might leak and requires an index*
-            - 'clip': set to the max threshold, lower and upper in case of range
-            - 'value': set to a specific value, specified in 'value parameter'
-            - 'remove': removes complete row.
+            To what the threshold exceeding values should be corrected, options are:
+
+            - If 'na', set values to np.nan
+            - If 'previous', set values to previous non non-exceeding value
+            - If 'average', linearly interpolate values using
+              pandas.DataFrame.interpolate, *might leak and requires an index*
+            - If 'clip': set to the max threshold, lower/upper in case of range
+            - If 'value', set to a specific value, specified in 'value parameter'
+            - If 'remove', removes complete row.
     value: (default = None)
            If 'method' is 'value', set the threshold exceeding entry to this value
 

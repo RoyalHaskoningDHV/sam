@@ -52,11 +52,10 @@ def range_lag_column(original_column, range_shift=(0, 1)):
 
     # Reverse because we want to lag.
     # Then, we take the max which is the boolean version of 'any'
-    # At the end, fix the index which got messed up by the reversing
+    # At the end, reverse back, which will maintain the index
     result = (original_column[::-1]
               .rolling(window_size_inclusive, min_periods=1).max()
-              .shift(range_shift[0]).fillna(0)
-              .reindex(original_column.index))
+              .shift(range_shift[0]).fillna(0)[::-1])
 
     if range_shift[0] < 0:
         result[0:-range_shift[0]] = \

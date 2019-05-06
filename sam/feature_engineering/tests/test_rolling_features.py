@@ -268,6 +268,18 @@ class TestRollingFeatures(unittest.TestCase):
 
         assert_frame_equal(result, expected)
 
+    def test_datetimeindex_single_window(self):
+        # Checks bug from T592
+        roller = BuildRollingFeatures('sum', lookback=1, window_size='61min')
+        result = roller.fit_transform(self.X_times)
+        expected = pd.DataFrame({
+            "X": [10, 12, 15, 9, 0, 0, 1],
+            "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0]
+        }, columns=["X", "X#sum_61min"],
+           index=pd.DatetimeIndex(self.times))
+
+        assert_frame_equal(result, expected)
+
     def test_incorrect_inputs(self):
         # helper function. This function should already throw exceptions if the input is incorrect
         def validate(X=self.X, **kwargs):
@@ -303,7 +315,7 @@ class TestRollingFeatures(unittest.TestCase):
 
         # timeoffset can only be used with datetimeindex, and not with lag/ewm/fourier/diff
         self.assertRaises(ValueError, validate, window_size='1H')
-        self.assertRaises(TypeError, validate,
+        self.assertRaises(ValueError, validate,
                           X=self.X_times, window_size='1H', rolling_type='lag')
         self.assertRaises(ValueError, validate,
                           X=self.X_times, window_size=[1, '1H'], rolling_type='lag')

@@ -37,6 +37,11 @@ class TestRangeLagColumn(unittest.TestCase):
         expected = pd.Series([0.4, 0.4, 0.4, 0.6, 0.6, 0.6, 0.5])
         assert_series_equal(range_lag_column(testserie, (-1, 1)), expected)
 
+    def test_duplicate_axis(self):
+        testserie = pd.Series([0, 1, 0, 1, 0], index=[1, 1, 1, 1, 1])
+        expected = pd.Series([1, 1, 1, 1, 0], index=[1, 1, 1, 1, 1])
+        assert_series_equal(range_lag_column(testserie, (0, 1)), expected, check_dtype=False)
+
 
 if __name__ == '__main__':
     unittest.main()
