@@ -1,8 +1,6 @@
 import pandas as pd
 from pandas.io.json import json_normalize
-from knmy import knmy
 import datetime
-import requests
 import math
 from sam.logging import log_dataframe_characteristics
 from sam import config  # Credentials file
@@ -107,6 +105,8 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
     5	0	75	2018-01-01 05:00:00
     6	0	69	2018-01-01 06:00:00
     """
+    from knmy import knmy  # only needed for this function
+
     assert freq in ['hourly', 'daily']
     logger.debug(("Getting KNMI historic data: start_date={}, end_date={}, latitude={}, "
                   "longitude={}, freq={}, variables={}").
@@ -202,6 +202,8 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
     ...
     39	80	1009.42	73	1010.39	1010.39	8.41	8.41	8.41	0.090	204.502	10.28	2019-03-12 12:00:00
     """
+    import requests
+
     # Will raise exception if this section does not appear in the config file
     apikey = config["openweathermap"]["apikey"]
 
@@ -269,6 +271,8 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
     3	2018-05-01 00:15:00	0.07
     4	2018-05-01 00:20:00	0.04
     """
+    import requests
+
     # convert to milliseconds, which the regenradar needs
     window = int(pd.tseries.frequencies.to_offset(freq).nanos / 1000000)
     assert window >= 300 * 1000, "The minimum window for read_regenradar is 300000"

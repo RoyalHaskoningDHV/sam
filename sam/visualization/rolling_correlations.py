@@ -1,7 +1,3 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-
 def plot_lag_correlation(df, ylim=None):
     ''' Visualize the correlations for rolling features
 
@@ -37,6 +33,9 @@ def plot_lag_correlation(df, ylim=None):
         >>> test = create_lag_correlation(res, goal_feature)
         >>> plot_lag_correlation(test)
     '''
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
     fig, ax = plt.subplots()
     for col in df.columns:
         if col == 'LAG':

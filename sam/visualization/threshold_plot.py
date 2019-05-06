@@ -1,5 +1,4 @@
 from sklearn.metrics import precision_recall_curve
-import matplotlib.pyplot as plt
 from sam.metrics import precision_incident_recall_curve
 
 
@@ -35,6 +34,7 @@ def make_threshold_plot(y_true, y_score, range_pred=None):
     >>> # Incident recall threshold plot
     >>> make_threshold_plot([0, 0, 0, 0, 1, 0], [.2, .3, .4, .5, .9, .1], (0, 1))
     """
+    import matplotlib.pyplot as plt
 
     if range_pred is None:
         # Retrieve the curve data

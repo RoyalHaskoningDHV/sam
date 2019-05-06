@@ -1,5 +1,4 @@
 from sklearn.metrics import precision_recall_curve, roc_auc_score
-import matplotlib.pyplot as plt
 from sam.metrics import precision_incident_recall_curve
 
 
@@ -48,6 +47,7 @@ def make_precision_recall_curve(y_true, y_score, range_pred=None, color='b', alp
 
     # shamelessly stolen from
     # https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html#sphx-glr-auto-examples-model-selection-plot-precision-recall-py
+    import matplotlib.pyplot as plt
 
     if range_pred is None:
         precision, recall, _ = precision_recall_curve(y_true, y_score)

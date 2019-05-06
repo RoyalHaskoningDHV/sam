@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 
 
 def make_incident_heatmap(df, resolution='row', row_column='id', value_column='incident',
@@ -62,6 +60,9 @@ def make_incident_heatmap(df, resolution='row', row_column='id', value_column='i
     >>> # Create the heatmap
     >>> make_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds', datefmt="%Y, week %W")
     """
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     df = df.copy()
 
     # Resample the data if needed

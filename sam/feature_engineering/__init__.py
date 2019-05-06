@@ -6,4 +6,5 @@ from .lag_range import range_lag_column
 from . import rolling_features
 from . import lag_range
 
-__all__ = ["build_timefeatures", "decompose_datetime", "BuildRollingFeatures", "range_lag_column"]
+__all__ = ["build_timefeatures", "decompose_datetime", "fix_cyclical_features",
+           "BuildRollingFeatures", "range_lag_column"]

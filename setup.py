@@ -10,14 +10,9 @@ setup(name='sam',
       license='',
       packages=find_packages(exclude=['*tests']),
       zip_safe=True,
-      install_requires=['pandas>=0.23', 'numpy>=1.13'],
+      install_requires=['pandas>=0.23', 'numpy>=1.13', 'scikit-learn'],
       extras_require={
-          'all': ['knmy', 'matplotlib', 'pymongo', 'scipy', 'seaborn', 'sklearn'],
-          'data_sources': ['knmy'],
-          'feature_engineering': ['scipy'],
-          'metrics': ['sklearn'],
-          'utils': ['pymongo'],
-          'visualization': ['matplotlib', 'seaborn', 'sklearn'],
+          'all': ['knmy', 'matplotlib', 'pymongo', 'requests', 'scipy', 'seaborn']
       },
       tests_require=['pytest', 'pytest-cov', 'pytest-mpl']
       )

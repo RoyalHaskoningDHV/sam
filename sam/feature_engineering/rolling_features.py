@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
-from scipy import signal  # For cwt
 from sam.logging import log_dataframe_characteristics, log_new_columns
 import logging
 logger = logging.getLogger(__name__)
@@ -178,6 +177,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             Alternatively, in case of fourier/cwt, a function with one input:
             a numpy array. Will output another numpy array.
         """
+        if self.rolling_type == "cwt":
+            from scipy import signal  # Only needed for this rolling type
         # https://pandas.pydata.org/pandas-docs/stable/api.html#window
         rolling_functions = {
             "lag": lambda arr, n: arr.shift(n),
@@ -271,6 +272,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         result : pandas dataframe, shape = (n_rows, n_features * (n_outputs + 1))
             the pandas dataframe, appended with the new columns
         """
+
         # X = check_array(X) # dont do this, we want to use pandas only
         check_is_fitted(self, 'window_size_')
         if self.keep_original:

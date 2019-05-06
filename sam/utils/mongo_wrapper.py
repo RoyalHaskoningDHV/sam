@@ -1,4 +1,3 @@
-import pymongo
 import pandas as pd
 
 
@@ -31,6 +30,7 @@ class MongoWrapper:
     """
 
     def __init__(self, db, collection, location='localhost', port=27017, **kwargs):
+        import pymongo  # Only needed now
         self.client = pymongo.MongoClient(location, port, **kwargs)
         self.db = self.client[db]
         self.collection = self.db[collection]
