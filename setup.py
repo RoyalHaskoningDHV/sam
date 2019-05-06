@@ -12,7 +12,7 @@ setup(name='sam',
       zip_safe=True,
       install_requires=['pandas>=0.23', 'numpy>=1.13', 'scikit-learn'],
       extras_require={
-          'all': ['knmy', 'matplotlib', 'pymongo', 'requests', 'scipy', 'seaborn']
+          'all': ['knmy', 'matplotlib', 'nfft', 'pymongo', 'requests', 'scipy', 'seaborn']
       },
       tests_require=['pytest', 'pytest-cov', 'pytest-mpl']
       )

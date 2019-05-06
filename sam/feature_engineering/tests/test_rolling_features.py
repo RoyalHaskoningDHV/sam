@@ -4,6 +4,7 @@ from scipy import signal
 import pandas as pd
 import numpy as np
 from sam.feature_engineering import BuildRollingFeatures
+import nfft
 
 
 class TestRollingFeatures(unittest.TestCase):
@@ -277,6 +278,51 @@ class TestRollingFeatures(unittest.TestCase):
             "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0]
         }, columns=["X", "X#sum_61min"],
            index=pd.DatetimeIndex(self.times))
+
+        assert_frame_equal(result, expected)
+
+    def test_nfft(self):
+        X = pd.DataFrame({'X': pd.concat([self.X.X]*2)})  # length 14
+        times = pd.Series(pd.to_datetime(self.times))
+        X['TIME'] = pd.concat([times, times+pd.Timedelta('8H')])
+
+        roller = BuildRollingFeatures('nfft', lookback=0, window_size=['500min'], timecol='TIME',
+                                      nfft_ncol=3, keep_original=False)
+        result = roller.fit_transform(X)
+
+        def nfft_helper(times, values):
+            # The minimum to copy from rolling_features that would be super annoying to do by hand
+            times = times / np.max(times) - 0.5  # Scale between -0.5 and 0.5
+            f = nfft.nfft(times, values - np.mean(values))
+            return pd.Series(np.abs(np.fft.fftshift(f))[1:4])
+
+        expected = pd.concat([
+            pd.Series([0, 0, 0]),  # nfft needs at least 6 values so these will just be 0
+            pd.Series([0, 0, 0]),
+            pd.Series([0, 0, 0]),
+            pd.Series([0, 0, 0]),
+            pd.Series([0, 0, 0]),
+            nfft_helper(np.array([0, 1, 2, 4, 5, 6]), np.array([10, 12, 15, 9, 0, 0])),
+            nfft_helper(np.array([1, 2, 4, 5, 6, 7])-1, np.array([12, 15, 9, 0, 0, 1])),
+            nfft_helper(np.array([0, 1, 2, 4, 5, 6, 7, 8]),
+                        np.array([10, 12, 15, 9, 0, 0, 1, 10])),
+            nfft_helper(np.array([1, 2, 4, 5, 6, 7, 8, 9])-1,
+                        np.array([12, 15, 9, 0, 0, 1, 10, 12])),
+            nfft_helper(np.array([2, 4, 5, 6, 7, 8, 9, 10])-2,
+                        np.array([15, 9, 0, 0, 1, 10, 12, 15])),
+            nfft_helper(np.array([4, 5, 6, 7, 8, 9, 10, 12])-4,
+                        np.array([9, 0, 0, 1, 10, 12, 15, 9])),
+            nfft_helper(np.array([5, 6, 7, 8, 9, 10, 12, 13])-5,
+                        np.array([0, 0, 1, 10, 12, 15, 9, 0])),
+            nfft_helper(np.array([6, 7, 8, 9, 10, 12, 13, 14])-6,
+                        np.array([0, 1, 10, 12, 15, 9, 0, 0])),
+            nfft_helper(np.array([7, 8, 9, 10, 12, 13, 14, 15])-7,
+                        np.array([1, 10, 12, 15, 9, 0, 0, 1])),
+        ], axis=1).transpose()
+        expected.index = [0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6]
+        expected.columns = ["X#nfft_500min_0", "X#nfft_500min_1", "X#nfft_500min_2"]
+        # When window_size is 6, only 2 values are calculated, so remove the third value
+        expected["X#nfft_500min_2"].iloc[5:7] = 0
 
         assert_frame_equal(result, expected)
 

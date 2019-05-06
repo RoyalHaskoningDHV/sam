@@ -7,7 +7,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def multicol_output(arr, n, func, fourier=False):
+def _nfft_helper(series, nfft):
+    # series should be even sample, cutoff one if it is not
+    if series.size % 2 != 0:
+        series = series.iloc[1:]
+    if series.size <= 5:  # too short
+        return np.array([])
+
+    # first convert time index to seconds since epoch
+    time = np.array(series.index.strftime('%s').astype(int))
+    # then make first value 0
+    time -= np.min(time)
+    # normalize to run from -0.5 to 0.5
+    time = time / np.max(time) - 0.5
+
+    # now do fft on normalized values
+    f = nfft(time, series.values - np.mean(series.values))
+    # flip fft spectrum so it matches the numpy spectrum
+    ff = np.fft.fftshift(f)
+    # Only take first half since that is useful. See documentation inside
+    # multicol_output.Helper.__init__ for better explanation
+    return np.abs(ff)[1:len(ff)//2]
+
+
+def multicol_output(arr, n, func, fourier=False, time_window=None):
     """
     Generic function to compute multiple columns
     func is a function that takes in a numpy array, and outputs a numpy array of the same length
@@ -15,6 +38,11 @@ def multicol_output(arr, n, func, fourier=False):
     3 values. Then, those 3 values will be converted to columns in a dataframe.
     For fourier, an additional column selection is done, so less than 3 columns would be returned
     In that case, the option 'fourier' needs to be set to True
+
+    For nfft, we need not only a numpy array of values, but also a DatetimeIndex. Additionally, we
+    have a time_window instead of an integer window. This time_window is for example '100min'.
+    If time_window is set, this function will assume that arr has a DatetimeIndex. n is still used
+    as the output size.
     """
     class Helper:
         # https://stackoverflow.com/a/39064656
@@ -33,20 +61,31 @@ def multicol_output(arr, n, func, fourier=False):
                 self.useful_coeffs = range(0, n)
             ncol = len(self.useful_coeffs)
             self.series = np.full((nrow, ncol), np.nan)
-            self.calls = n - 1
+            if time_window is None:
+                self.calls = n - 1
+            else:
+                self.calls = 0
             self.n = n
 
         def calc_func(self, vector):
-            if len(vector) < self.n:
+            if len(vector) < self.n and time_window is None:
                 # We are still at the beginning of the dataframe, nothing to do
                 return np.nan
-            values = func(vector)[self.useful_coeffs]
+            values = func(vector)
+            # If function did not return enough values, pad with zeros
+            values = np.pad(values, (0, max(0, self.n-values.size)), 'constant')
+            values = values[self.useful_coeffs]
             self.series[self.calls, :] = values
             self.calls = self.calls + 1
             return np.nan  # return something to make Rolling apply not error
 
     helper = Helper(len(arr), n)
-    arr.rolling(n, min_periods=0).apply(helper.calc_func, raw=True)
+    if time_window is None:
+        arr.rolling(n, min_periods=0).apply(helper.calc_func, raw=True)
+    else:
+        # For time-window, we need raw=False because 'func' may need
+        # The DatetimeIndex. Even though raw=False is slower.
+        arr.rolling(time_window).apply(helper.calc_func, raw=False)
     return pd.DataFrame(helper.series)
 
 
@@ -96,6 +135,11 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     width : numeric, optional (default=1)
         if rolling_type is 'cwt', the wavelet transform uses a ricker signal. This parameter
         defines the width of that signal
+    nfft_ncol : numeric, optional (default=10)
+        if rolling_type is 'nfft', there needs to be a fixed number of columns as output, since
+        this is unknown a-priori. This means the number of output-columns will be fixed. If
+        nfft has more outputs, and additional outputs are discarded. If nfft has less outputs,
+        the rest of the columns are right-padded with 0.
     timecol: str, optional (default=None)
         Optional, the column to set as the index during transform. The index is restored before
         returning. This is only useful when using a timeoffset for window_size, since that needs
@@ -151,6 +195,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             raise ValueError("width must be positive")
         if not np.isscalar(self.alpha):
             raise TypeError("alpha must be a scalar")
+        if int(self.nfft_ncol) != self.nfft_ncol:
+            raise ValueError("nfft_ncol must be an integer!")
         if self.alpha <= 0 or self.alpha > 1:
             raise ValueError("alpha must be in (0, 1]")
 
@@ -179,6 +225,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         """
         if self.rolling_type == "cwt":
             from scipy import signal  # Only needed for this rolling type
+        if self.rolling_type == "nfft":
+            from nfft import nfft
         # https://pandas.pydata.org/pandas-docs/stable/api.html#window
         rolling_functions = {
             "lag": lambda arr, n: arr.shift(n),
@@ -197,6 +245,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             # These two have different signature because they are called by multicol_output
             "fourier": lambda vector: np.absolute(np.fft.fft(vector)),
             "cwt": lambda vector:  signal.cwt(vector, signal.ricker, [self.width])[0],
+            "nfft": lambda series: _nfft_helper(series, nfft)
         }
 
         if rolling_type not in rolling_functions:
@@ -205,7 +254,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         return(rolling_functions[rolling_type])
 
     def __init__(self, rolling_type="mean", lookback=1, window_size=None, deviation=None,
-                 alpha=0.5, width=1, timecol=None, keep_original=True):
+                 alpha=0.5, width=1, nfft_ncol=10, timecol=None, keep_original=True):
 
         self.window_size = window_size
         self.lookback = lookback
@@ -213,6 +262,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         self.deviation = deviation
         self.alpha = alpha
         self.width = width
+        self.nfft_ncol = nfft_ncol
         self.keep_original = keep_original
         self.timecol = timecol
         logger.debug("Initialized rolling generator. rolling_type={}, lookback={}, "
@@ -286,15 +336,24 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             new_index = pd.DatetimeIndex(X[self.timecol].values)
             X = (X.set_index(new_index)
                  .drop(self.timecol, axis=1))
-            result = (result.set_index(new_index)
-                      .drop(self.timecol, axis=1))
+            if self.keep_original:
+                result = (result.set_index(new_index)
+                          .drop(self.timecol, axis=1))
+            else:
+                result = pd.DataFrame(index=new_index)
 
-        if self.rolling_type in ["fourier", "cwt"]:
+        if self.rolling_type in ["fourier", "cwt", "nfft"]:
             for window_size, suffix in zip(self.window_size_, self.suffix_):
+                # If rolling type is nfft, the time_window needs to be set
+                if self.rolling_type == "nfft":
+                    window_size, time_window = self.nfft_ncol, window_size
+                else:
+                    time_window = None
 
                 for column in X.columns:
                     new_features = multicol_output(X[column], window_size, self.rolling_fun_,
-                                                   self.rolling_type == "fourier") \
+                                                   self.rolling_type == "fourier",
+                                                   time_window=time_window) \
                                                    .shift(self.lookback)
                     # Fourier has less columns
                     if self.rolling_type == "fourier":
