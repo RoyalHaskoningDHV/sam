@@ -21,6 +21,21 @@ class TestBuildTimeFeatures(unittest.TestCase):
             columns=['hr_sin', 'hr_cos'])
         assert_frame_equal(df_cyc, expected)
 
+    def test_recode_cyclicals_int32(self):
+        # Checks if T606 was fixed
+
+        df = pd.DataFrame()
+        df['hr'] = np.arange(0, 5)
+        df['hr'] = df['hr'].astype(np.int32)
+        # Should not throw an error
+        df_cyc = recode_cyclical_features(df.copy(), cols=['hr'])
+
+        expected = pd.DataFrame(
+            {'hr_sin': [0., 1., 0., -1., 0.],
+             'hr_cos': [1., 0., -1., 0., 1.]},
+            columns=['hr_sin', 'hr_cos'])
+        assert_frame_equal(df_cyc, expected)
+
     def test_cyclicals(self):
         # setup test dataframe
         time1 = '2019/03/11 00:00:00'

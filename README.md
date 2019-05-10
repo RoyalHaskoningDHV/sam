@@ -1,6 +1,6 @@
 # sam
 
-## Version: 0.3.0
+## Version: 1.0.0
 
 The Ynformed library for smart asset management.
 
@@ -40,4 +40,4 @@ apikey=secret456
 
 ## Issue tracking and Feature Requests
 
-Anyone can create feature requests or bug reports! You can browse and create new issues in Phabricator: http://jira.h2o.aihttps://dev.ynformed.nl/project/view/22/
+Anyone can create feature requests or bug reports! You can browse and create new issues in Phabricator: https://dev.ynformed.nl/project/view/22/

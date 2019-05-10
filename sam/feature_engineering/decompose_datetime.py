@@ -129,8 +129,6 @@ def recode_cyclical_features(df, cols, remove_original=True, column=''):
 
         # test whether column is in dataframe
         assert col in df.columns, '%s is not in input dataframe' % col
-        # test colum to convert is of correct data type
-        assert df[col].dtype in [int, float], 'cyclical to convert should be integer or float'
 
         # rescale feature so it runs from 0-2pi:
         norm_feature = 2 * np.pi * df[col] / df[col].max()

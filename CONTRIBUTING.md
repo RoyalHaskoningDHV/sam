@@ -65,6 +65,7 @@ Then, go to the /docs folder, and run the command: `sphinx-build -b html source/
 To ensure quality of code and documentation, we utilise standard definitions of done for SAM. You are kindly requested to comply with these when making a diff.
 
 ### Code implementations
+
 * Functionality implemented in code
 * Code actually tested by using it at least once
 * Code documented including example use
@@ -72,9 +73,11 @@ To ensure quality of code and documentation, we utilise standard definitions of 
 * Code reviewed and landed
 
 If functionality supports a new step in the analyses:
+
 * Update general documentation to incorporate a reference to this code
 
 ### When specifically writing documentation
+
 * Documentation written
 * Build tested locally
 * Reviewed and landed
