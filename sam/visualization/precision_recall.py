@@ -2,7 +2,7 @@ from sklearn.metrics import precision_recall_curve, roc_auc_score
 from sam.metrics import precision_incident_recall_curve
 
 
-def make_precision_recall_curve(y_true, y_score, range_pred=None, color='b', alpha=0.2):
+def plot_precision_recall_curve(y_true, y_score, range_pred=None, color='b', alpha=0.2):
     """
     Create and return a precision-recall curve. It does this by putting the
     precision on the y-axis, the recall on the x-axis, and for each threshold,
@@ -60,6 +60,7 @@ def make_precision_recall_curve(y_true, y_score, range_pred=None, color='b', alp
             format(range_pred[0], range_pred[1])
         recall_label = 'Incident Recall'
 
+    plt.figure()
     ax = plt.subplot()
     ax.step(recall, precision, color=color, alpha=1, where='post')
     ax.fill_between(recall, precision, alpha=alpha, color=color, step='post')

@@ -1,6 +1,6 @@
 import unittest
 import pytest
-from sam.visualization import make_incident_heatmap
+from sam.visualization import plot_incident_heatmap
 import pandas as pd
 import numpy as np
 
@@ -15,7 +15,7 @@ class TestIncidentHeatmap(unittest.TestCase):
                           index=range, columns=['incident', 'id'])
 
         # Create the heatmap
-        ax = make_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds')
+        ax = plot_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds', figsize=(10, 18))
         return ax.get_figure()
 
     @pytest.mark.mpl_image_compare(tolerance=20)
@@ -26,7 +26,8 @@ class TestIncidentHeatmap(unittest.TestCase):
                           index=range, columns=['incident', 'id'])
 
         # Create the heatmap
-        ax = make_incident_heatmap(ts, resolution='row', normalize=True, datefmt='%Y-%m-%d')
+        ax = plot_incident_heatmap(ts, resolution='row', normalize=True,
+                                   datefmt='%Y-%m-%d', figsize=(10, 14))
         return ax.get_figure()
 
 

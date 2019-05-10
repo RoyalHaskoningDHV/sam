@@ -3,10 +3,10 @@ from pandas.testing import assert_frame_equal
 
 import numpy as np
 import pandas as pd
-from sam.feature_selection.top_correlation import retrieve_top_score_correlations
+from sam.exploration import top_score_correlations
 
 
-class TestRetrieveTopCorrelation(unittest.TestCase):
+class TestTopCorrelation(unittest.TestCase):
 
     def test_equal_dataframe_output(self):
         testserie = pd.DataFrame({
@@ -26,12 +26,10 @@ class TestRetrieveTopCorrelation(unittest.TestCase):
             'A': [-0.944911, 0.866025],
         }, columns=['index', 'A'])
 
-        assert_frame_equal(retrieve_top_score_correlations(testserie,
-                                                           'A',
-                                                           score=0.8
-                                                           ),
-                           correlation_df
-                           )
+        assert_frame_equal(
+            top_score_correlations(testserie, 'A', score=0.8),
+            correlation_df
+        )
 
     def test_no_output(self):
         testserie = pd.DataFrame({
@@ -49,12 +47,10 @@ class TestRetrieveTopCorrelation(unittest.TestCase):
         correlation_df = pd.DataFrame(columns=['index', 'A'])
         correlation_df['A'] = correlation_df['A'].astype(float)
 
-        assert_frame_equal(retrieve_top_score_correlations(testserie,
-                                                           'A',
-                                                           score=0.99
-                                                           ),
-                           correlation_df
-                           )
+        assert_frame_equal(
+            top_score_correlations(testserie, 'A', score=0.99),
+            correlation_df
+        )
 
     def test_incorrect_input(self):
         testserie = pd.DataFrame({
@@ -70,7 +66,7 @@ class TestRetrieveTopCorrelation(unittest.TestCase):
         })
 
         self.assertRaises(Exception,
-                          retrieve_top_score_correlations,
+                          top_score_correlations,
                           testserie,
                           'NONSENSE')
 

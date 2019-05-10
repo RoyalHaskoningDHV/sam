@@ -75,12 +75,12 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
     # convert cyclicals
     assert isinstance(cyclicals, list), 'cyclicals must be of type list'
     if cyclicals != []:
-        result = fix_cyclical_features(result, cyclicals, remove_original, column)
+        result = recode_cyclical_features(result, cyclicals, remove_original, column)
 
     return(result)
 
 
-def fix_cyclical_features(df, cols, remove_original=True, column=''):
+def recode_cyclical_features(df, cols, remove_original=True, column=''):
     """
     Convert cyclical features (like day of week, hour of day) to
     continuous variables, so that sunday and monday are close together

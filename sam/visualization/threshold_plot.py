@@ -2,11 +2,10 @@ from sklearn.metrics import precision_recall_curve
 from sam.metrics import precision_incident_recall_curve
 
 
-def make_threshold_plot(y_true, y_score, range_pred=None):
+def plot_threshold_curve(y_true, y_score, range_pred=None):
     """
-    Create and return a threshold, also Ynformed, plot. It does this by putting
-    the threshold on the x-axis, and for each threshold, plotting
-    the precision and recall.
+    Create and return a threshold curve, also known as Ynformed plot. It does this by putting
+    the threshold on the x-axis, and for each threshold, plotting the precision and recall.
     This returns a subplot object that can be shown or edited further.
 
     Parameters
@@ -28,11 +27,11 @@ def make_threshold_plot(y_true, y_score, range_pred=None):
 
     Examples
     --------
-    >>> from sam.visualization import make_threshold_plot
-    >>> make_threshold_plot([0, 1, 0, 1, 1, 0], [.2, .3, .4, .5, .9, .1])
+    >>> from sam.visualization import plot_threshold_curve
+    >>> plot_threshold_curve([0, 1, 0, 1, 1, 0], [.2, .3, .4, .5, .9, .1])
 
     >>> # Incident recall threshold plot
-    >>> make_threshold_plot([0, 0, 0, 0, 1, 0], [.2, .3, .4, .5, .9, .1], (0, 1))
+    >>> plot_threshold_curve([0, 0, 0, 0, 1, 0], [.2, .3, .4, .5, .9, .1], (0, 1))
     """
     import matplotlib.pyplot as plt
 
@@ -50,8 +49,8 @@ def make_threshold_plot(y_true, y_score, range_pred=None):
     ax.set_title("Precision and Recall Scores per threshold")
 
     # Plot the curves in the figure
-    ax.plot(thresholds, precision[:-1], label=recall_label)
-    ax.plot(thresholds, recall[:-1], label="Recall")
+    ax.plot(thresholds, precision[:-1], label="Precision")
+    ax.plot(thresholds, recall[:-1], label=recall_label)
     ax.set_ylabel("Score")
     ax.set_xlabel("Decision Threshold")
     ax.legend(loc='best')

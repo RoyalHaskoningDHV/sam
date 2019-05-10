@@ -3,8 +3,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def complete_timestamps(df, freq='H', start_time='', end_time='',
-                        aggregate_method='mean', fillna_method=None):
+def normalize_timestamps(df, freq='H', start_time='', end_time='',
+                         aggregate_method='mean', fillna_method=None):
     """
     Create a dataframe with all timestamps according to a given frequency,
     aggregating the values using a specified method (default: 'mean')
@@ -57,7 +57,7 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
 
     Examples
     --------
-    >>> from sam.preprocessing import complete_timestamps
+    >>> from sam.preprocessing import normalize_timestamps
     >>> from datetime import datetime
     >>> import pandas as pd
     >>> df = pd.DataFrame({'TIME': [datetime(2018, 6, 9, 11, 13), datetime(2018, 6, 9, 11, 34),
@@ -65,7 +65,7 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
     >>>                    'ID': "SENSOR",
     >>>                    'VALUE': [1, 20, 3, 20]})
     >>>
-    >>> complete_timestamps(df, freq = "15 min", end_time="2018-06-09 12:15:00",
+    >>> normalize_timestamps(df, freq = "15 min", end_time="2018-06-09 12:15:00",
     >>>                     aggregate_method = "median", fillna_method=None)
         TIME                    ID      VALUE
     0 	2018-06-09 11:00:00 	SENSOR 	1.0
@@ -74,7 +74,7 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
     3 	2018-06-09 11:45:00 	SENSOR 	20.0
     4 	2018-06-09 12:00:00 	SENSOR 	NaN
 
-    >>> from sam.preprocessing import complete_timestamps
+    >>> from sam.preprocessing import normalize_timestamps
     >>> from datetime import datetime
     >>> import pandas as pd
     >>> df = pd.DataFrame({'TIME': [datetime(2018, 6, 9, 11, 13), datetime(2018, 6, 9, 11, 34),
@@ -82,7 +82,7 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
     >>>                    'ID': "SENSOR",
     >>>                    'VALUE': [1, 20, 3, 20]})
     >>>
-    >>> complete_timestamps(df, freq = "15 min", end_time="2018-06-09 12:15:00",
+    >>> normalize_timestamps(df, freq = "15 min", end_time="2018-06-09 12:15:00",
     >>>                     aggregate_method = "median", fillna_method="ffill")
         TIME                ID      VALUE
     0   2018-06-09 11:00:00 SENSOR  1.0
@@ -140,7 +140,7 @@ def complete_timestamps(df, freq='H', start_time='', end_time='',
         complete_df['VALUE'] = complete_df.groupby('ID')['VALUE']\
             .apply(lambda x: x.fillna(method=fillna_method))
 
-    logger.info("Dataframe changed because of complete_timestamps: "
+    logger.info("Dataframe changed because of normalize_timestamps: "
                 "Previously it had {} rows, now it has {}".
                 format(original_rows, complete_df.shape[0]))
     logger.info("Also, the VALUE column previously had {} missing values, now it has {}".

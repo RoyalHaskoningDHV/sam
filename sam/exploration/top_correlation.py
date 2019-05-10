@@ -3,7 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True, sep='#'):
+def top_n_correlations(df, goal_feature, n=5, grouped=True, sep='#'):
     """ Given a dataset, retrieve the top n absolute correlating features per group or in general
 
         Parameters
@@ -34,8 +34,8 @@ def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True, sep='#'):
         Examples
         --------
         >>> import pandas as pd
-        >>> from sam.feature_engineering.rolling_features import BuildRollingFeatures
-        >>> from sam.feature_selection.top_correlation import retrieve_top_n_correlations
+        >>> from sam.feature_engineering import BuildRollingFeatures
+        >>> from sam.exploration import retrieve_top_n_correlations
         >>> import numpy as np
         >>> goal_feature = 'DEBIET_TOTAAL#lag_0'
         >>> df = pd.DataFrame({
@@ -95,7 +95,7 @@ def retrieve_top_n_correlations(df, goal_feature, n=5, grouped=True, sep='#'):
     return corrs
 
 
-def retrieve_top_score_correlations(df, goal_feature, score=0.5):
+def top_score_correlations(df, goal_feature, score=0.5):
     """ Function that returns the features that have a correlation
         above a certain threshold with the defined goal feature
 
@@ -120,8 +120,8 @@ def retrieve_top_score_correlations(df, goal_feature, score=0.5):
         Examples
         --------
         >>> import pandas as pd
-        >>> from sam.feature_engineering.rolling_features import BuildRollingFeatures
-        >>> from sam.feature_selection.top_correlation import retrieve_top_score_correlations
+        >>> from sam.feature_engineering import BuildRollingFeatures
+        >>> from sam.exploration import retrieve_top_score_correlations
         >>> import numpy as np
         >>> goal_feature = 'DEBIET_TOTAAL#lag_0'
         >>> df = pd.DataFrame({

@@ -1,14 +1,14 @@
 import unittest
 from pandas.testing import assert_frame_equal
 # Below are needed for setting up tests
-from sam.preprocessing import complete_timestamps
+from sam.preprocessing import normalize_timestamps
 import pandas as pd
 import numpy as np
 
 
 class TestCompleteTimestamps(unittest.TestCase):
 
-    def test_complete_timestamps(self):
+    def test_normalize_timestamps(self):
         data = pd.DataFrame({
             "TIME": pd.to_datetime(['2018/01/01 15:45:09',
                                     '2018/01/01 16:03:09',
@@ -22,7 +22,7 @@ class TestCompleteTimestamps(unittest.TestCase):
         start_time = pd.to_datetime("2018/01/01 15:45:00")
         end_time = pd.to_datetime("2018/01/01 16:30:00")
 
-        result = complete_timestamps(data, '15min', start_time, end_time)
+        result = normalize_timestamps(data, '15min', start_time, end_time)
 
         # Values are matched to their first left side matching time,
         # so the last value is np.NaN
@@ -57,11 +57,11 @@ class TestCompleteTimestamps(unittest.TestCase):
             "VALUE": [1, 2.5, 4, 4]
         }, columns=['TIME', 'ID', 'VALUE'])
 
-        result = complete_timestamps(data,
-                                     '15min',
-                                     start_time,
-                                     end_time,
-                                     fillna_method='ffill')
+        result = normalize_timestamps(data,
+                                      '15min',
+                                      start_time,
+                                      end_time,
+                                      fillna_method='ffill')
         assert_frame_equal(result, output)
 
     def test_agg_method(self):
@@ -87,8 +87,8 @@ class TestCompleteTimestamps(unittest.TestCase):
             "VALUE": [1, 5, 4, np.NaN]
         }, columns=['TIME', 'ID', 'VALUE'])
 
-        result = complete_timestamps(data, '15min', start_time, end_time,
-                                     aggregate_method='sum')
+        result = normalize_timestamps(data, '15min', start_time, end_time,
+                                      aggregate_method='sum')
         output.equals(result)
 
     def test_empty_start_end_time(self):
@@ -100,7 +100,7 @@ class TestCompleteTimestamps(unittest.TestCase):
             "VALUE": [1, 2, 3, 4]
         }, columns=['TIME', 'ID', 'VALUE'])
 
-        result = complete_timestamps(data, '15min', start_time='', end_time='')
+        result = normalize_timestamps(data, '15min', start_time='', end_time='')
         output = pd.DataFrame({
             "TIME": pd.to_datetime(
                 ['2018/01/01 15:45:00', '2018/01/01 16:00:00',
@@ -121,7 +121,7 @@ class TestCompleteTimestamps(unittest.TestCase):
         start_time = pd.to_datetime("2018/01/01 15:45:00")
         end_time = pd.to_datetime("2018/01/01 16:15:00")
 
-        result = complete_timestamps(data, '15min', start_time, end_time)
+        result = normalize_timestamps(data, '15min', start_time, end_time)
 
         output = pd.DataFrame({
             "TIME": pd.to_datetime(
@@ -144,12 +144,12 @@ class TestCompleteTimestamps(unittest.TestCase):
         start_time = pd.to_datetime("2018/01/01 15:45:00")
         end_time = pd.to_datetime("2018/01/01 16:15:00")
 
-        result = complete_timestamps(data,
-                                     '15min',
-                                     start_time,
-                                     end_time,
-                                     fillna_method='ffill'
-                                     )
+        result = normalize_timestamps(data,
+                                      '15min',
+                                      start_time,
+                                      end_time,
+                                      fillna_method='ffill'
+                                      )
 
         output = pd.DataFrame({
             "TIME": pd.to_datetime(
@@ -173,7 +173,7 @@ class TestCompleteTimestamps(unittest.TestCase):
 
         # half uur is invalid timeunit
         self.assertRaises(ValueError,
-                          complete_timestamps,
+                          normalize_timestamps,
                           data,
                           'half uur',
                           start_time,
@@ -181,19 +181,19 @@ class TestCompleteTimestamps(unittest.TestCase):
         # wrong is not a time
         # integers are actually allowed, they are interpreted as UNIX time
         self.assertRaises(ValueError,
-                          complete_timestamps,
+                          normalize_timestamps,
                           data,
                           '15min',
                           'wrong',
                           end_time)
 
         data.columns = ["TIME", "ID", "SOMETHINGELSE"]
-        self.assertRaises(Exception, complete_timestamps,
+        self.assertRaises(Exception, normalize_timestamps,
                           data, '15min', start_time, end_time, 'sum')
 
-        self.assertRaises(Exception, complete_timestamps, data, '15min',
+        self.assertRaises(Exception, normalize_timestamps, data, '15min',
                           start_time, end_time, 'unknown_fun', '')
-        self.assertRaises(Exception, complete_timestamps, data, '15min',
+        self.assertRaises(Exception, normalize_timestamps, data, '15min',
                           start_time, end_time, '', 'unknown_fun')
 
 

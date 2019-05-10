@@ -1,8 +1,8 @@
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, make_scorer
 import numpy as np
 
 
-def mean_absolute_scaled_error(y_true, y_pred, shift=1,
+def mean_absolute_scaled_error(y_true, y_pred, shift,
                                sample_weight=None,
                                multioutput='uniform_average'):
     """
@@ -28,7 +28,7 @@ def mean_absolute_scaled_error(y_true, y_pred, shift=1,
         Ground truth (correct) target values, sorted by time (ascending), with uniform timestamps
     y_pred : array-like of shape = (n_samples) or (n_samples, n_outputs)
         Estimated target values, sorted by time (ascending), with uniform timestamps
-    shift: int, optional (default=1)
+    shift: int
         The shift used when calculating the naive benchmark. For example, when the timestamps have
         a frequency of 15 minutes, and your model is predicting 1 hour ahead, then you should set
         shift to 4 to have an honest benchmark.

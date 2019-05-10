@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def create_lag_correlation(df, target_name, lag=12, method='pearson'):
+def lag_correlation(df, target_name, lag=12, method='pearson'):
     """
     Creates a new dataframe that contains the correlation of a goal_variable
     with other variables in the dataframe based on the output from
@@ -35,7 +35,7 @@ def create_lag_correlation(df, target_name, lag=12, method='pearson'):
     Examples
     --------
     >>> import pandas as pd
-    >>> from sam.feature_selection.lag_correlation import create_lag_correlation
+    >>> from sam.exploration import create_lag_correlation
     >>> import numpy as np
     >>> X = pd.DataFrame({
     >>>        'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],

@@ -4,8 +4,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, max_gap_perc=1,
-                        min_dist_total=0, actual='ACTUAL', low='PREDICT_LOW', high='PREDICT_HIGH'):
+def incident_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, max_gap_perc=1,
+                    min_dist_total=0, actual='ACTUAL', low='PREDICT_LOW', high='PREDICT_HIGH'):
     """
     Finds and labels connected outliers, or 'curves'. The basic idea of this function is to define
     an outlier as a row where the value is outside some interval. 'Interval' here refers to a
@@ -61,14 +61,14 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
 
     Examples
     --------
-    >>> from sam.train_model import find_outlier_curve
+    >>> from sam.exploration import incident_curves
     >>> data = pd.DataFrame({'ACTUAL': [0.3, np.nan, 0.3, np.nan, 0.3, 0.5, np.nan, 0.7],
     >>>                      'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4})
-    >>> find_outlier_curve(data)
+    >>> incident_curves(data)
     array([1, 0, 2, 0, 3, 0, 0, 4])
-    >>> find_outlier_curve(data, max_gap=1)
+    >>> incident_curves(data, max_gap=1)
     array([1, 1, 1, 1, 1, 0, 0, 2])
-    >>> find_outlier_curve(data, max_gap=1, max_gap_perc=0.2)
+    >>> incident_curves(data, max_gap=1, max_gap_perc=0.2)
     array([0, 0, 0, 0, 0, 0, 0, 2])
     """
     def _number_true_streaks(series):
@@ -129,11 +129,11 @@ def find_outlier_curves(data, under_conf_interval=True, max_gap=0, min_duration=
     return np.where(data.REAL_OUTLIER, data.OUTLIER_CURVE, 0)
 
 
-def create_outlier_information(data, under_conf_interval=True, return_aggregated=True,
-                               normal='PREDICT', time='TIME', **kwargs):
+def incident_curves_information(data, under_conf_interval=True, return_aggregated=True,
+                                normal='PREDICT', time='TIME', **kwargs):
     """
-    Aggregates a dataframe by outlier curves.
-    This function calculates outlier curves using find_outlier_curve, and then calculates
+    Aggregates a dataframe by incident_curves.
+    This function calculates incident_curves using incident_curves, and then calculates
     information about each outlier curve. This function can either return raw information
     about each outlier row, keeping the number of rows the same, or it can aggregate the dataframe
     by outlier curve, which means there will be specific information per curve, such as the length,
@@ -201,14 +201,14 @@ def create_outlier_information(data, under_conf_interval=True, return_aggregated
     >>> data = pd.DataFrame({'TIME': range(1547477436, 1547477436+3),  # unix timestamps
     >>>                     'ACTUAL': [0.3, 0.5, 0.7],
     >>>                     'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
-    >>> create_outlier_information(data)
+    >>> outlier_curves_information(data)
     OUTLIER_DURATION	OUTLIER_TYPE	OUTLIER_SCORE_MAX	OUTLIER_START_TIME	OUTLIER_END_TIME \
     OUTLIER_DIST_SUM	OUTLIER_DIST_MAX
     OUTLIER_CURVE
     1	1	negative	0.090909	1547477436	1547477436	0.1	0.1
     2	1	positive	0.090909	1547477438	1547477438	0.1	0.1
 
-    >>> create_outlier_information(data, return_aggregated=False)
+    >>> outlier_curves_information(data, return_aggregated=False)
     ACTUAL	PREDICT	PREDICT_HIGH	PREDICT_LOW	TIME	OUTLIER_CURVE	OUTLIER	OUTLIER_DIST \
     OUTLIER_SCORE	OUTLIER_TYPE
     0	0.3	0.5	0.6	0.4	1547477436	1	True	0.1	0.090909	negative
@@ -218,10 +218,10 @@ def create_outlier_information(data, under_conf_interval=True, return_aggregated
     data = data.copy()
     data = data.rename(columns={normal: 'PREDICT', time: 'TIME'})
     logging.debug("Creating outlier information: return_aggregated={}".format(return_aggregated))
-    data['OUTLIER_CURVE'] = find_outlier_curves(data, under_conf_interval, **kwargs). \
+    data['OUTLIER_CURVE'] = incident_curves(data, under_conf_interval, **kwargs). \
         astype(np.int64)
     # On unix, 64 is already the default, but on windows, the
-    # find_outlier_curves function returns 32 bit integers. This function returns pandas
+    # outlier_curves function returns 32 bit integers. This function returns pandas
     # which is consistent across platforms, so we convert to 64-bit to ensure consistency.
 
     data['OUTLIER'] = (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW) \
@@ -263,6 +263,6 @@ def create_outlier_information(data, under_conf_interval=True, return_aggregated
                        'OUTLIER_TYPE', 'OUTLIER_SCORE_MAX',
                        'OUTLIER_START_TIME', 'OUTLIER_END_TIME',
                        'OUTLIER_DIST_SUM', 'OUTLIER_DIST_MAX']]
-    logger.info("Created data from create_outlier_information:")
+    logger.info("Created data from outlier_curves_information:")
     log_dataframe_characteristics(streaks, logging.INFO)
     return streaks[streaks.index != 0]

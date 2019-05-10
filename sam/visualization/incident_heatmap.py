@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def make_incident_heatmap(df, resolution='row', row_column='id', value_column='incident',
+def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='incident',
                           time_column=None, normalize=False, figsize=(24, 4),
                           xlabel_rotation=30, datefmt=None, **kwargs):
     """
@@ -44,7 +44,7 @@ def make_incident_heatmap(df, resolution='row', row_column='id', value_column='i
 
     Examples
     --------
-    >>> from sam.visualization import make_incident_heatmap
+    >>> from sam.visualization import incident_heatmap
     >>> import pandas as pd
     >>> import numpy as np
     >>> # Initialize a random dataframe
@@ -58,7 +58,7 @@ def make_incident_heatmap(df, resolution='row', row_column='id', value_column='i
     >>> ts.loc[ts['values'] > .5, 'incident'] = 1
     >>>
     >>> # Create the heatmap
-    >>> make_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds', datefmt="%Y, week %W")
+    >>> plot_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds', datefmt="%Y, week %W")
     """
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -81,7 +81,7 @@ def make_incident_heatmap(df, resolution='row', row_column='id', value_column='i
         df_grouped = df_grouped / df_grouped.values.max()
 
     # We typically want a wide figure
-    plt.rcParams['figure.figsize'] = figsize
+    plt.figure(figsize=figsize)
 
     # Initialize heatmap
     ax = sns.heatmap(df_grouped, **kwargs)

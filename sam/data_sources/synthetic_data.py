@@ -48,10 +48,10 @@ def _add_temporal_noise(time, noisetype='poisson', noisesize=0, length=1):
     return temp
 
 
-def create_synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 0),
-                                daynoise=(None, 0), noise={}, minmax_values=None,
-                                cutoff_values=None, negabs=None, random_missing=None,
-                                seed=None):
+def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 0),
+                         daynoise=(None, 0), noise={}, minmax_values=None,
+                         cutoff_values=None, negabs=None, random_missing=None,
+                         seed=None):
     """
     Create a synthetic time series, with some temporal patterns, and some noise. There are various
     parameters to control the distribution of the variables. The output will never be completely
@@ -133,11 +133,11 @@ def create_synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=
     --------
     >>> # Create data that slightly resembles the temperature in a Nereda reactor:
     >>> dates= pd.date_range('2015-01-01', '2016-01-01', freq='6H').to_series()
-    >>> rnd = create_synthetic_timeseries(dates,
-    >>>                                   monthly=5, daily=1, hourly=0.0,
-    >>>                                   monthnoise = ('normal', 0.01), daynoise=('normal', 0.01),
-    >>>                                   noise={'normal': 0.1}, minmax_values=(5, 25),
-    >>>                                   cutoff_values=None, random_missing=0.12)
+    >>> rnd = synthetic_timeseries(dates,
+    >>>                            monthly=5, daily=1, hourly=0.0,
+    >>>                            monthnoise = ('normal', 0.01), daynoise=('normal', 0.01),
+    >>>                            noise={'normal': 0.1}, minmax_values=(5, 25),
+    >>>                            cutoff_values=None, random_missing=0.12)
     >>> # visualize the result to see if it looks random or not
     >>> import matplotlib.pyplot as plt
     >>> fig, ax = plt.subplots()

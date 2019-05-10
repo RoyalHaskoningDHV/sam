@@ -4,49 +4,7 @@ from pandas.testing import assert_frame_equal
 
 import pandas as pd
 import numpy as np
-from sam.utils import unit_to_seconds, label_dst, average_winter_time
-
-
-class TestUnitToSeconds(unittest.TestCase):
-
-    def test_different_units(self):
-        self.assertEqual(unit_to_seconds('min'), 60)
-        self.assertEqual(unit_to_seconds('MINUTES'), 60)
-        self.assertEqual(unit_to_seconds('sec'), 1)
-        self.assertEqual(unit_to_seconds('SECONDS'), 1)
-        self.assertEqual(unit_to_seconds('secundos'), 1)
-        self.assertEqual(unit_to_seconds('SeCoNdS'), 1)
-        self.assertEqual(unit_to_seconds('sec0nds'), 1)
-        self.assertEqual(unit_to_seconds('hour'), 3600)
-        self.assertEqual(unit_to_seconds('hours'), 3600)
-        self.assertEqual(unit_to_seconds('days'), 3600 * 24)
-        self.assertEqual(unit_to_seconds('DAY'), 3600 * 24)
-        self.assertEqual(unit_to_seconds('week'), 3600 * 24 * 7)
-        self.assertEqual(unit_to_seconds('WEEKS'), 3600 * 24 * 7)
-
-        # binary data should also work because why not
-        self.assertRaises(TypeError, unit_to_seconds, 'SECOND'.encode('ascii'))
-
-    def test_incorrect_spelling(self):
-        self.assertRaises(ValueError, unit_to_seconds, 'dagen')
-        self.assertRaises(ValueError, unit_to_seconds, 'weken')
-        self.assertRaises(ValueError, unit_to_seconds, 'jaren')
-        self.assertRaises(ValueError, unit_to_seconds, 'hoours')
-        self.assertRaises(ValueError, unit_to_seconds, 'segundos')
-        self.assertRaises(ValueError, unit_to_seconds, 'm1nute')
-
-        self.assertRaises(ValueError, unit_to_seconds, 'month')
-        self.assertRaises(ValueError, unit_to_seconds, 'year')
-
-    def test_incorrect_type(self):
-        # this can either be a valueerror or an attributeerror
-        self.assertRaises(Exception, unit_to_seconds, 1)
-        self.assertRaises(Exception, unit_to_seconds, None)
-        self.assertRaises(Exception, unit_to_seconds, [7])
-        self.assertRaises(Exception, unit_to_seconds, ['minute'])
-        self.assertRaises(Exception, unit_to_seconds, unit_to_seconds)
-        self.assertRaises(Exception, unit_to_seconds, -1)
-        self.assertRaises(Exception, unit_to_seconds, {"minute": 60})
+from sam.preprocessing import label_dst, average_winter_time
 
 
 class TestLabelDst(unittest.TestCase):

@@ -1,5 +1,5 @@
 import unittest
-from sam.utils import MongoWrapper
+from sam.data_sources import MongoWrapper
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import pytest

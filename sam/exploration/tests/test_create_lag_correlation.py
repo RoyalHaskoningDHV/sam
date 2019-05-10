@@ -2,7 +2,7 @@ import unittest
 from pandas.testing import assert_frame_equal
 
 import pandas as pd
-from sam.feature_selection.lag_correlation import create_lag_correlation
+from sam.exploration import lag_correlation
 
 
 class TestCreateLagCorrelation(unittest.TestCase):
@@ -18,10 +18,10 @@ class TestCreateLagCorrelation(unittest.TestCase):
             'TEST': [-1.0, -1.0, -1.0],
         })
 
-        result = create_lag_correlation(X, 'TARGET', lag=3)
+        result = lag_correlation(X, 'TARGET', lag=3)
         assert_frame_equal(result, expected)
 
-        self.assertRaises(Exception, create_lag_correlation, X, 'nonsense')
+        self.assertRaises(Exception, lag_correlation, X, 'nonsense')
 
 
 if __name__ == '__main__':

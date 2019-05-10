@@ -22,7 +22,7 @@ class MongoWrapper:
 
     Examples
     --------
-    >>> from sam.utils.mongo_wrapper import MongoWrapper
+    >>> from sam.data_sources import MongoWrapper
     >>> mon = MongoWrapper('test_magweg','test_magookweg')
     >>> mon.empty().add([{'test': 7}]).get()
         test

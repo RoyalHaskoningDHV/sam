@@ -1,6 +1,7 @@
 import pandas as pd
 from sam.logging import log_dataframe_characteristics
 import logging
+import warnings
 logger = logging.getLogger(__name__)
 
 
@@ -60,6 +61,11 @@ def build_timefeatures(start_time, end_time, freq=None, year=True, seasonal=True
     7   2018-12-31 05:00:00 2018    12      4       1       0       False   5    0       night
     8   2018-12-31 16:00:00 2018    12      4       1       0       False   16   0       afternoon
     """
+    msg = ("build_timefeatures is deprecated, and will be removed in a future release. "
+           "Please use pandas instead, e.g. pd.date_range followed by "
+           "sam.feature_engineering.decompose_datetime")
+    warnings.warn(msg, DeprecationWarning)
+
     logger.debug("Creating timefeatures from {} to {} with freq {}".
                  format(start_time, end_time, freq))
     logger.debug("Timefeatures will be year: {}, seasonal: {}, weekly: {}, daily: {}".

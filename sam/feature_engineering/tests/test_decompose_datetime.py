@@ -5,7 +5,7 @@ from pandas.testing import assert_frame_equal
 import pandas as pd
 import numpy as np
 from sam.feature_engineering import decompose_datetime
-from sam.feature_engineering.decompose_datetime import fix_cyclical_features
+from sam.feature_engineering import recode_cyclical_features
 
 
 class TestBuildTimeFeatures(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
     def test_sine_cosine_transform(self):
         df = pd.DataFrame()
         df['hr'] = np.arange(0, 5)
-        df_cyc = fix_cyclical_features(df.copy(), cols=['hr'])
+        df_cyc = recode_cyclical_features(df.copy(), cols=['hr'])
 
         expected = pd.DataFrame(
             {'hr_sin': [0., 1., 0., -1., 0.],

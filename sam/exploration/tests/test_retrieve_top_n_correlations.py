@@ -3,10 +3,10 @@ from pandas.testing import assert_frame_equal
 
 import numpy as np
 import pandas as pd
-from sam.feature_selection import retrieve_top_n_correlations
+from sam.exploration import top_n_correlations
 
 
-class TestRetrieveTopNCorrelation(unittest.TestCase):
+class TestTopNCorrelation(unittest.TestCase):
 
     # We do not test what happens if multiple columns tie for first place
     # This is because this sorting can differ between platforms, and does not
@@ -25,7 +25,7 @@ class TestRetrieveTopNCorrelation(unittest.TestCase):
             'TEST_lag_0': [1.0],
         }, columns=['index', 'TEST_lag_0'])
 
-        result = retrieve_top_n_correlations(testserie, 'TEST_lag_0', grouped=False, n=1)
+        result = top_n_correlations(testserie, 'TEST_lag_0', grouped=False, n=1)
 
         assert_frame_equal(result, expected)
 
@@ -44,7 +44,7 @@ class TestRetrieveTopNCorrelation(unittest.TestCase):
             'TEST#lag_0': [-1.0, 1.0],
         }, columns=['GROUP', 'index', 'TEST#lag_0'])
 
-        result = retrieve_top_n_correlations(testserie, 'TEST#lag_0', grouped=True, n=1)
+        result = top_n_correlations(testserie, 'TEST#lag_0', grouped=True, n=1)
 
         assert_frame_equal(result, expected)
 
@@ -67,7 +67,7 @@ class TestRetrieveTopNCorrelation(unittest.TestCase):
             'A': [-0.944911, 0.522233, 0.514496, -0.174078, 0.866025, -0.412514],
         }, columns=['GROUP', 'index', 'A'])
 
-        result = retrieve_top_n_correlations(testserie, 'A', 2, grouped=True, sep='_')
+        result = top_n_correlations(testserie, 'A', 2, grouped=True, sep='_')
 
         assert_frame_equal(result, expected)
 
@@ -89,7 +89,7 @@ class TestRetrieveTopNCorrelation(unittest.TestCase):
             'A': [-0.944911, 0.866025],
         }, columns=['index', 'A'])
 
-        result = retrieve_top_n_correlations(testserie, 'A', 2, grouped=False)
+        result = top_n_correlations(testserie, 'A', 2, grouped=False)
 
         assert_frame_equal(result, expected)
 
@@ -100,7 +100,7 @@ class TestRetrieveTopNCorrelation(unittest.TestCase):
             "A_lag_2": [np.NaN, np.NaN, 1, 2, 4],
         })
 
-        self.assertRaises(Exception, retrieve_top_n_correlations, testserie, 'NONSENSE')
+        self.assertRaises(Exception, top_n_correlations, testserie, 'NONSENSE')
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import unittest
 import pytest
 import pandas as pd
-from sam.feature_selection import create_lag_correlation
+from sam.exploration import lag_correlation
 from sam.visualization import plot_lag_correlation
 
 
@@ -15,7 +15,7 @@ class TestRollingCorrelations(unittest.TestCase):
                        'A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
                        'B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
         X['TOTAAL'] = X['A'] + X['B']
-        test = create_lag_correlation(X, 'TOTAAL')
+        test = lag_correlation(X, 'TOTAAL')
         ax = plot_lag_correlation(test)
         return ax.get_figure()
 
