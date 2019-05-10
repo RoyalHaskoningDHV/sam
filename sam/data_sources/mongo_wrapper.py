@@ -9,15 +9,15 @@ class MongoWrapper:
 
     Parameters
     ----------
-    db : string
+    db: string
         Name of the database
-    collection : string
+    collection: string
         the name of the collection to fetch
-    location : string, optional (default="localhost")
+    location: string, optional (default="localhost")
         Location of the database
-    port : integer, optional (default=27017)
+    port: integer, optional (default=27017)
         Port that the database is reachable on
-    **kwargs : arbitrary keyword arguments
+    **kwargs: arbitrary keyword arguments
         Passed through to pymongo.MongoClient
 
     Examples
@@ -40,10 +40,10 @@ class MongoWrapper:
 
         Parameters
         ----------
-        query : dictionary-like, optional (default={})
+        query: dictionary-like, optional (default={})
             dictionary of parameters to use in the query.
             e.g. { "address": "Park Lane 38" }
-        as_df : boolean, optional (default=True)
+        as_df: boolean, optional (default=True)
             return the query results as a Pandas Dataframe
 
         Returns
@@ -64,7 +64,7 @@ class MongoWrapper:
 
         Parameters
         ----------
-        content : list of dictionaries, or pandas dataframe
+        content: list of dictionaries, or pandas dataframe
             list of items to add to the collection
 
         Returns
@@ -84,7 +84,7 @@ class MongoWrapper:
 
         Returns
         -------
-        result : self
+        result: self
         """
         if self.collection.delete_many({}):
             return self

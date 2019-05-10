@@ -12,15 +12,13 @@ Welcome to SAM's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   project
    general_documents
    examples
    data_sources
    preprocessing
+   exploration
    feature_engineering
-   feature_selection
    metrics
-   train_models
    visualization
    utils
 

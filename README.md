@@ -19,7 +19,7 @@ To install the package, you need to have access to phabricator via git. Then, yo
 ```
 lang=python
 pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git
-# To install all optional dependencies: (such as pymongo, sklearn, seaborn)
+# To install all optional dependencies: (such as pymongo, knmy, seaborn)
 pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git#egg=sam[all]
 ```
 

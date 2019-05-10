@@ -17,7 +17,7 @@ def setdoc(func):
 
     Parameters
     ----------
-    df : A pandas dataframe
+    df: A pandas dataframe
          The dataframe with the target_column included
     target_column: string (default = TARGET)
                    The name of the column to check against the threshold
@@ -39,7 +39,8 @@ def setdoc(func):
 
     Returns
     -------
-    The original dataframe with the threshold exceeding values corrected
+    data: pandas dataframe
+        The original dataframe with the threshold exceeding values corrected
 
     Examples
     --------

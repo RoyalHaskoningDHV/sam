@@ -58,14 +58,15 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
     realistic, it will at least resemble what real life data could look like.
 
     The algorithm works like this:
-    * 3 cubic splines are created: one with a monthly pattern, one with a day-of-week pattern, and
-    one with an hourly pattern. These splines are added together.
-    * For each month and day of the week, noise is generated according to monthnoise and daynoise
-    These two sources of noise are added together
-    * Noise as specified by the noise parameter is generated for each point
-    * The above three series are added together. The result is rescaled according to minmax_values
-    * Missing values are added according to cutoff_values and random_missing
-    * The values are mutated according to negabs
+
+    - 3 cubic splines are created: one with a monthly pattern, one with a day-of-week pattern, and
+      one with an hourly pattern. These splines are added together.
+    - For each month and day of the week, noise is generated according to monthnoise and daynoise
+      These two sources of noise are added together
+    - Noise as specified by the noise parameter is generated for each point
+    - The above three series are added together. The result is rescaled according to minmax_values
+    - Missing values are added according to cutoff_values and random_missing
+    - The values are mutated according to negabs
 
     The result is returned in a numpy array with the same length as the dates input.
     Due to the way the cubic splines are generated, there may be several dozen to a hundred data
@@ -205,21 +206,22 @@ def synthetic_date_range(start='2016-01-01', end='2017-01-01', freq='H',
     creates an array of datetimes that is somewhat random.
 
     The algorithm:
-    * Generate a regular pandas date_range with start, end, and frequency
-    * Delay each time by a uniformly chosen random number between 0 and max_delay, in seconds.
-    * Pick a proportion random_stop_freq of times randomly. Each of these times x_i
+
+    - Generate a regular pandas date_range with start, end, and frequency
+    - Delay each time by a uniformly chosen random number between 0 and max_delay, in seconds.
+    - Pick a proportion random_stop_freq of times randomly. Each of these times x_i
       are deemed 'stoppages', and for each, a number between 1 and random_stop_max_length is
       uniformly chosen, say k_i. Then, the 'stoppage', the k_i next points after x_i are deleted,
       causing a hole in the times.
-    * Only the times strictly smaller than end are kept. This means end is an exclusive bound.
+    - Only the times strictly smaller than end are kept. This means end is an exclusive bound.
 
     Parameters
     ----------
-    start : str or datetime-like, optional (default='2016-01-01')
+    start: str or datetime-like, optional (default='2016-01-01')
         Left bound for generating dates.
-    end : str or datetime-like, optional (default='2017-01-01')
+    end: str or datetime-like, optional (default='2017-01-01')
         Right bound for generating dates. Exclusive bound.
-    freq : str or DateOffset, optional (default='H') (hourly)
+    freq: str or DateOffset, optional (default='H') (hourly)
         Frequency strings can have multiples, e.g. ‘5H’. See here for a list of frequency aliases.
         https://pandas.pydata.org/pandas-docs/stable/timeseries.html#timeseries-offset-aliases
     max_delay: numeric, optional (default=0)
@@ -227,7 +229,7 @@ def synthetic_date_range(start='2016-01-01', end='2017-01-01', freq='H',
     random_stop_freq: numeric, optional (default=0)
         Number between 0 and 1. This proportion of all times are deemed as starting points of
         'stoppages'. A stoppage means that a number of points are removed from the result.
-    random_stop_max_length, optional (default=1)
+    random_stop_max_length: numeric, optional (default=1)
         Each stoppage will have a randomly generated length, between 1 and random_stop_max_length.
         A stoppage of length k means that the first k points after the start of the stoppage are
         deleted.

@@ -15,11 +15,11 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
 
     Parameters
     ----------
-    y_pred : 1d array-like, or label indicator array / sparse matrix
+    y_pred: 1d array-like, or label indicator array / sparse matrix
         Predicted labels, as returned by a classifier.
-    y_incidents : 1d array-like, or label indicator array / sparse matrix
+    y_incidents: 1d array-like, or label indicator array / sparse matrix
         Incidents that we want to predict with the classifier within window range_pred
-    range_pred : tuple of int, optional (default = (0,0))
+    range_pred: tuple of int, optional (default = (0,0))
         length of two: (start prediction window, end prediction window)
         If we want to predict an incidents 5 to 1 rows in advance, this will be (1,5)
         range_pred is inclusive, so (0, 1) means you can predict either 0 or 1
@@ -27,7 +27,7 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
 
     Returns
     -------
-    result : float
+    result: float
         The percentage of incidents that was positively predicted
 
     Examples
@@ -58,16 +58,16 @@ def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
 
     Parameters
     ----------
-    range_pred : tuple of int, optional (default = (0,0))
+    range_pred: tuple of int, optional (default = (0,0))
         length of two: (start prediction window, end prediction window)
         Passed through to incident_recall
-    colname : string, optional (default = "indicent")
+    colname: string, optional (default = "indicent")
         The column name that is given to incident_recall as incidents
         we want to predict
 
     Returns
     -------
-    scorer : a function that acts as a sklearn scorer object.
+    scorer: a function that acts as a sklearn scorer object.
         signature is scorer(clf, X), where clf is a fit model,
         X is test data
 
@@ -149,19 +149,22 @@ def precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 0)):
 
     Parameters
     ----------
-    y_incidents : 1d array-like, or label indicator array / sparse matrix
+    y_incidents: 1d array-like, or label indicator array / sparse matrix
         Incidents that we want to predict with the classifier within window range_pred
-    y_pred : 1d array-like, or label indicator array / sparse matrix
+    y_pred: 1d array-like, or label indicator array / sparse matrix
         Predicted labels, as returned by a classifier.
-    range_pred : tuple of int, optional (default = (0,0))
+    range_pred: tuple of int, optional (default = (0,0))
         length of two: (start prediction window, end prediction window)
         If we want to predict an incidents 5 to 1 rows in advance, this will be (1,5)
 
     Returns
     -------
-    precision: 1d array-like: an array of precision scores
-    recall: 1d array-like: an array of incident recall scores
-    thresholds: 1d array-like: an array of thresholds to interpret the above 2
+    precision: 1d array-like
+        an array of precision scores
+    recall: 1d array-like
+        an array of incident recall scores
+    thresholds: 1d array-like
+        an array of thresholds to interpret the above 2
 
     Examples
     --------

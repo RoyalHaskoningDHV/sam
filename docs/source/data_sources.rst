@@ -6,18 +6,22 @@ Data Sources
 
 This is the documentation for data sources functions.
 
-Create Synthetic Date Range
--------------------
+Create Synthetic Data
+---------------------
 .. autofunction:: sam.data_sources.synthetic_date_range
-
-Create Synthetic Timeseries
----------------------------
-.. autofunction:: sam.data_sources.create_synthetic_timeseries
+.. autofunction:: sam.data_sources.synthetic_timeseries
 
 .. image:: general_documents/images/synthetic_temperature.png
 
-Weather
--------
+Read Weather API's
+------------------
 .. autofunction:: sam.data_sources.read_knmi
 .. autofunction:: sam.data_sources.read_openweathermap
 .. autofunction:: sam.data_sources.read_regenradar
+
+Mongo wrapper
+-------------
+.. autoclass:: sam.data_sources.MongoWrapper
+    :members:
+    :undoc-members:
+    :show-inheritance:

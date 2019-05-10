@@ -13,10 +13,12 @@ Rolling Features
     :undoc-members:
     :show-inheritance:
 
-Build timefeatures
--------------------
-.. autofunction:: sam.feature_engineering.build_timefeatures
+.. autofunction:: sam.feature_engineering.lag_range_column
 
 Decompose datetime
 ------------------
 .. autofunction:: sam.feature_engineering.decompose_datetime
+
+Cyclical features
+-----------------
+.. autofunction:: sam.feature_engineering.recode_cyclical_features

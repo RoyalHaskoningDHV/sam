@@ -169,28 +169,29 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
 
     Parameters
     ----------
-    latitude : float, optional (default=52.11)
+    latitude: float, optional (default=52.11)
         latitude of the location from which to export weather. By default, use location of weather
         station De Bilt
-    longitude : float, optional (default=5.18)
+    longitude: float, optional (default=5.18)
         longitude of the location from which to export weather. By default, use location of
         weather station De Bilt
 
     Returns
     -------
-    forecast : dataframe with TIME column, containing the time of that specific forecast,
-    with timezone UTC. And the following columns:
-    * cloud_coverage, in %
-    * humidity, in %
-    * pressure: generally same as pressure_sealevel, in hPa
-    * pressure_groundlevel, in hPa
-    * pressure_sealevel, in hPa
-    * temp, in celcius
-    * temp_max, in celcius
-    * temp_min, in celcius
-    * rain_3h: volume of the last 3h, in mm
-    * wind_deg: wind direction in degrees (meteorological)
-    * wind_speed, in meter/sec
+    forecast: dataframe with TIME column, containing the time of that specific forecast,
+        with timezone UTC. And the following columns:
+
+        - cloud_coverage, in %
+        - humidity, in %
+        - pressure: generally same as pressure_sealevel, in hPa
+        - pressure_groundlevel, in hPa
+        - pressure_sealevel, in hPa
+        - temp, in celcius
+        - temp_max, in celcius
+        - temp_min, in celcius
+        - rain_3h: volume of the last 3h, in mm
+        - wind_deg: wind direction in degrees (meteorological)
+        - wind_speed, in meter/sec
 
     Examples
     --------
@@ -238,16 +239,16 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
 
     Parameters
     ----------
-    start_date : str or datetime-like
+    start_date: str or datetime-like
         the start time of the period from which to export weather
         if str, must be in the format %Y-%m-%d or %Y-%m-%d %H:%M:%S
-    end_date : str or datetime-like
+    end_date: str or datetime-like
         the end time of the period from which to export weather
         if str, must be in the format %Y-%m-%d or %Y-%m-%d %H:%M:%S
-    latitude : float, optional (default=52.11)
+    latitude: float, optional (default=52.11)
         latitude of the location from which to export weather. By default, use location of weather
         station De Bilt
-    longitude : float, optional (default=5.18)
+    longitude: float, optional (default=5.18)
         longitude of the location from which to export weather. By default, use location of
         weather station De Bilt
     freq: str or DateOffset, default ‘5min’

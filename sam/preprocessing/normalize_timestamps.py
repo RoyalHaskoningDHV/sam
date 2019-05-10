@@ -17,26 +17,25 @@ def normalize_timestamps(df, freq='H', start_time='', end_time='',
 
     Parameters
     ----------
-    df : pandas dataframe with TIME, ID and VALUE columns, shape = (nrows, 3)
+    df: pandas dataframe with TIME, ID and VALUE columns, shape = (nrows, 3)
         Dataframe from which the values are created
 
-    start_time : str or datetime-like, optional (default = '')
+    start_time: str or datetime-like, optional (default = '')
         the start time of the period to create features over
         if string, the format 'YYYY/MM/DD HH:mm:SS' will always work
         Pandas also accepts other formats, or a datetime object
 
-    end_time : str or datetime-like, optional (default = '')
+    end_time: str or datetime-like, optional (default = '')
         the end time of the period to create features over
         if string, the format 'YYYY/MM/DD HH:mm:SS' will always work
         Pandas also accepts other formats, or a datetime object
 
-    freq : str or DateOffset, optional (default = 'H')
+    freq: str or DateOffset, optional (default = 'H')
         the frequency with which the time features are made
         frequencies can have multiples, e.g. "15 min" for 15 minutes
         https://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases
 
-    aggregate_method : function, string, dictionary, list of string/functions
-                        (default = 'mean')
+    aggregate_method: function, string, dictionary, list of string/functions (default = 'mean')
         Method that is used to aggregate values when multiple values fall
         within a specified frequency region.
         For example, when you have data per 5 minutes, but you're creating a
@@ -44,14 +43,14 @@ def normalize_timestamps(df, freq='H', start_time='', end_time='',
         Can be strings such as mean, sum, min, max, or a function.
         https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.aggregate.html
 
-    fillna_method : string, optional (default = None)
+    fillna_method: string, optional (default = None)
         Method used to fill NA values, must follow pandas data frame fillna.
         Options are: 'backfill', 'bfill', 'pad', 'ffill', None
         https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.fillna.html
 
     Returns
     -------
-    complete_df : pandas dataframe, shape (length(TIME) * length(unique IDs), 3)
+    complete_df: pandas dataframe, shape (length(TIME) * length(unique IDs), 3)
         dataframe containing all possible combinations of timestamps and IDs
         with selected frequency, aggregate method and fillna method
 
