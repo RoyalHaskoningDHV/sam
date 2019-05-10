@@ -11,10 +11,13 @@ def incident_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, m
     an outlier as a row where the value is outside some interval. 'Interval' here refers to a
     prediction interval, that can be different for every row. This interval defines what a model
     considers a 'normal' value for that timepoint. Missing values are never an
-    outlier. Then, we apply various checks and filters to it to create 'curves', or streaks of
+    outlier.
+
+    Then, we apply various checks and filters to it to create 'curves', or streaks of
     connected outlies. These curves can have gaps, if max_gap > 0. In the end, only the curves that
     satisfy conditions are kept. Curves that do not satisfy one of the conditions are ignored
     (essentially, the output will act as if they are not outliers at all).
+
     The output is an array of the same length as the number of rows as data, with each streak of
     outliers labeled with an unique number.
     This algorithm assumes the input is sorted by time, adjacent rows are adjacent measurements!
@@ -167,6 +170,7 @@ def incident_curves_information(data, under_conf_interval=True, return_aggregate
     information, dataframe
         if return_aggregated is false: information about each outlier.
         The output will have the folowing columns:
+
         - all the original columns
         - OUTLIER (boolean) whether the value of the row is considered an outlier
         - OUTLIER_CURVE (numeric) the streak the outlier belongs to, or 0 if it's
@@ -182,6 +186,7 @@ def incident_curves_information(data, under_conf_interval=True, return_aggregate
 
         if return_aggregated, then it will return information about each outlier curve
         The output will have the following columns:
+
         - index: OUTLIER_CURVE (numeric) The id of the curve. 0 is not included
         - OUTLIER_DURATION (numeric) The number of points in the curve, including gaps
         - OUTLIER_TYPE (string) if the first point is positive or negative. Other points

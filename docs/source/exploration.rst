@@ -6,12 +6,12 @@ Exploration
 
 This is the documentation for Exploration functions. 
 
-If you are interested in feature selection, please see [Features](general_documents/feature_extraction.md) for further details on which features to use.
+If you are interested in feature selection, please see `Features <general_documents/feature_extraction.md>`_ for further details on which features to use.
 
 Incident curves information
 --------------------------
-.. autofunction:: sam.exporation.incident_curves
-.. autofunction:: sam.exporation.incident_curves_information
+.. autofunction:: sam.exploration.incident_curves
+.. autofunction:: sam.exploration.incident_curves_information
 
 Retrieve correlation features
 -----------------------------

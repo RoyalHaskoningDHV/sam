@@ -4,7 +4,7 @@
 Feature Engineering
 ===================
 
-This is the documentation for feature engineering. Please see [Features](general_documents/feature_extraction.md) for further details on which features to use.
+This is the documentation for feature engineering. Please see `Features <general_documents/feature_extraction.md>`_ for further details on which features to use.
 
 Rolling Features
 ----------------

@@ -11,30 +11,31 @@ def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='i
 
     Parameters
     ----------
-    df : Pandas DataFrame
+    df: Pandas DataFrame
         Contains the data to be plotted in long format
-    resolution : string (default="row")
+    resolution: string (default="row")
         The aggregation level to be plotted. Is either "row" when every
         row needs to be plotted, or e.g. H, D, W, M for aggregations over time.
-    row_column : string (default="id")
+    row_column: string (default="id")
         The column that used to split the rows of the heatmap
-    value_column : string (default="incident")
+    value_column: string (default="incident")
         The column containing the count to be plotted in the heatmap
-    time_column : string (default=None)
+    time_column: string (default=None)
         The column containing the time for the x-axis. When left None, the
         index will be used. Aggregation based on the resolution parameter
         is done on this column.
-    normalize : boolean (default=False)
+    normalize: boolean (default=False)
         Normalize the aggregated values
-    figsize : tuple of floats (default=(24,4))
+    figsize: tuple of floats (default=(24,4))
         Size of the output figure, must be set before initialization.
-    xlabel_rotation : numeric, optional (default=30)
+    xlabel_rotation: numeric, optional (default=30)
         The rotation of the x-axis date labels. Rotation is counterclockwise, beginning
         with the text lying horizontally. By default, rotate 30 degrees.
-    datefmt : string, optional (default=None)
+    datefmt: string, optional (default=None)
         Optionally, the format of the x-axis date labels. By default, use
         %Y-%m-%dT%H:%M:%S%f
-    **kwargs : any arguments to pass to sns.heatmap()
+    **kwargs:
+        any arguments to pass to sns.heatmap()
 
     Returns
     -------
