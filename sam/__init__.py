@@ -2,6 +2,11 @@ import logging
 import datetime
 from os.path import isdir
 import configparser
+import warnings
+import re
+
+warnings.filterwarnings('always', category=DeprecationWarning,
+                        module=r'^{0}\.'.format(re.escape(__name__)))
 
 # Only log if the directory exists, stops erros on unit tests
 if isdir("logs"):
