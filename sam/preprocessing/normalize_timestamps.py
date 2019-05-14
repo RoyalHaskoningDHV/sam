@@ -95,6 +95,7 @@ def normalize_timestamps(df, freq='H', start_time='', end_time='',
 
     original_rows = df.shape[0]
     original_nas = df['VALUE'].isna().sum()
+    timezone = df['TIME'].dt.tz
 
     fillna_options = ['backfill', 'bfill', 'pad', 'ffill', None]
     if fillna_method not in fillna_options:
@@ -112,14 +113,17 @@ def normalize_timestamps(df, freq='H', start_time='', end_time='',
     time, ids = pd.core.reshape.util.cartesian_product(
         [pd.date_range(start=start_time,
                        end=end_time,
-                       freq=freq
+                       freq=freq,
+                       tz=timezone
                        ),
          df['ID'].unique()
          ])
 
+    # cartesian product converts to UTC string, so we need to convert back
+    time = pd.to_datetime(time).tz_localize('UTC').tz_convert(timezone)
+
     complete_df = pd.DataFrame(dict(TIME=time, ID=ids), columns=['TIME', 'ID'])
-    complete_df['TIME'] = pd.to_datetime(complete_df['TIME'], dayfirst=True)\
-        .dt.floor(freq)
+    complete_df['TIME'] = complete_df['TIME'].dt.floor(freq)
 
     # Function currently groups based on first left matching frequency,
     # can be set to the first right frequency within the Grouper function

@@ -37,6 +37,43 @@ class TestCompleteTimestamps(unittest.TestCase):
         # Make sure function has no side effects
         assert_frame_equal(data, data_backup)
 
+    def test_normalize_with_timezone(self):
+        data = pd.DataFrame({
+            "TIME": pd.to_datetime(['2018/01/01 15:45:09',
+                                    '2018/01/01 16:03:09',
+                                    '2018/01/01 16:10:09',
+                                    '2018/01/01 16:22:09'])
+            .tz_localize('Asia/Qyzylorda'),
+            "ID": 1,
+            "VALUE": [1, 2, 3, 4]
+        }, columns=['TIME', 'ID', 'VALUE'])
+        data_backup = data.copy()
+
+        # Test these in either string or tz-aware timestamp
+        start_time = "2018/01/01 15:45:00"
+        end_time = "2018/01/01 16:30:00"
+        start_time2 = pd.Timestamp("2018/01/01 15:45:00", tz='Asia/Qyzylorda')
+        end_time2 = pd.Timestamp("2018/01/01 16:30:00", tz='Asia/Qyzylorda')
+
+        result = normalize_timestamps(data, '15min', start_time, end_time)
+        result2 = normalize_timestamps(data, '15min', start_time2, end_time2)
+
+        # Values are matched to their first left side matching time,
+        # so the last value is np.NaN
+        output = pd.DataFrame({
+            "TIME": pd.to_datetime(
+                ['2018/01/01 15:45:00', '2018/01/01 16:00:00',
+                 '2018/01/01 16:15:00', '2018/01/01 16:30:00'])
+            .tz_localize('Asia/Qyzylorda'),
+            "ID": 1,
+            "VALUE": [1, 2.5, 4, np.NaN]
+        }, columns=['TIME', 'ID', 'VALUE'])
+
+        assert_frame_equal(result, output)
+        assert_frame_equal(result2, output)
+        # Make sure function has no side effects
+        assert_frame_equal(data, data_backup)
+
     def test_fillna_method(self):
         data = pd.DataFrame({
             "TIME": pd.to_datetime(
