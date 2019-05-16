@@ -139,9 +139,12 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
                                            inseason=False, variables=variables, parse=True)
 
     # First row are headers, so drop and fix types
-    knmi = knmi_raw.drop(0).reset_index(drop=True).astype(int)
+    # Convert variables to float because pandas does not handle nans wit int
+    dtype_dict = dict(zip(variables, [float] * len(variables)))
+    knmi = knmi_raw.drop(0).reset_index(drop=True).astype(dtype_dict)
 
     if freq == 'hourly':
+        knmi['HH'] = pd.to_numeric(knmi['HH'])  # needs to be numeric to subtract 1
         # Subtract 1 from HH since it runs from 1 to 24, which will make datetime conversion fail
         knmi['TIME'] = knmi['YYYYMMDD'].astype(str) + ' ' + (knmi['HH'] - 1).astype(str) + ":00:00"
     elif freq == 'daily':

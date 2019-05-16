@@ -30,15 +30,16 @@ class TestWeather(unittest.TestCase):
     # The TIME column is tested exactly, since it should be deterministic
 
     def test_read_knmi_hourly(self):
-        result = read_knmi('2017-01-01 00:00:00', '2017-01-01 00:06:00', latitude=52.11,
-                           longitude=5.18, freq='hourly', variables='default')
-        self.assertEqual(result.columns.tolist(), ['RH', 'SQ', 'T', 'TIME'])
+        result = read_knmi('2016-03-07 06:00:00', '2016-03-07 12:00:00', latitude=52.11,
+                           longitude=5.18, freq='hourly', variables=['RH', 'SQ', 'N'])
+        self.assertEqual(result.columns.tolist(), ['RH', 'SQ', 'N', 'TIME'])
 
-        expected_time = pd.Series(pd.date_range('2017-01-01', '2017-01-01 00:06:00', freq='H'))
+        expected_time = pd.Series(pd.date_range('2016-03-07 06:00:00',
+                                                '2016-03-07 12:00:00', freq='H'))
         expected_time.name = 'TIME'
         assert_series_equal(expected_time, result['TIME'])
 
-        expected_dtypes = [np.dtype('int64'), np.dtype('int64'), np.dtype('int64'),
+        expected_dtypes = [np.dtype('float64'), np.dtype('float64'), np.dtype('float64'),
                            np.dtype('<M8[ns]')]
         self.assertEqual(expected_dtypes, result.dtypes.tolist())
 
@@ -50,7 +51,7 @@ class TestWeather(unittest.TestCase):
         expected_time.name = 'TIME'
         assert_series_equal(expected_time, result['TIME'])
 
-        expected_dtypes = [np.dtype('int64'), np.dtype('int64'), np.dtype('<M8[ns]')]
+        expected_dtypes = [np.dtype('float64'), np.dtype('float64'), np.dtype('<M8[ns]')]
         self.assertEqual(expected_dtypes, result.dtypes.tolist())
 
     @skipowm
