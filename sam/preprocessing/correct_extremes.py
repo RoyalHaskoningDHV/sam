@@ -17,10 +17,8 @@ def setdoc(func):
 
     Parameters
     ----------
-    df: A pandas dataframe
-         The dataframe with the target_column included
-    target_column: string (default = TARGET)
-                   The name of the column to check against the threshold
+    df: A pandas series
+         The series containing potential outliers
     threshold: number, (default = 1) or a tuple (default = (0,1))
                The exclusive threshold. A number for above or below, for
                correct_outside_range it should be a tuple
@@ -81,62 +79,65 @@ def setdoc(func):
     return func
 
 
-def _fix_values(df, target_column, threshold, method, value):
+def _fix_values(series, outliers, threshold, method, value, outside_range=False):
     """
     Helper function, read the other docs
     """
-    assert method in ['na', 'clip', 'previous', 'average', 'value', 'remove']
-    original_nas = df[target_column].isna().sum()
+    methods = ['na', 'clip', 'previous', 'average', 'value', 'remove']
+    if method not in methods:
+        raise ValueError("Method {} not allowed, it must be in {}".format(method, methods))
 
-    logging.debug("Now correcting threshold, target_column={}, "
+    logging.debug("Now correcting threshold"
                   "threshold={}, method={}, value={}".
-                  format(target_column, threshold, method, value))
+                  format(threshold, method, value))
 
-    # Only for range cutoffs we need the original value
-    if (method != 'clip'):
-        # This fixes case 'if (method == "na")'
-        df.loc[df[target_column + '_INCORRECT'], target_column] = np.nan
-    else:
-        if (type(threshold) == tuple):
-            df[target_column] = df[target_column].clip(lower=threshold[0], upper=threshold[1])
-        else:
-            df[target_column] = df[target_column].where(-(df[target_column + '_INCORRECT']),
-                                                        threshold)
+    na_locations = series.isna()
 
     if (method == "previous"):
-        df[target_column] = df[target_column].fillna(method='ffill')
+        series.loc[outliers] = np.nan
+        series = series.fillna(method='ffill')
+        series.loc[na_locations] = np.nan  # Recover original nans
     elif (method == "average"):
+        series.loc[outliers] = np.nan
         # Values seems to work with time indexes as well
-        df[target_column] = df[target_column].interpolate(method='values')
+        series = series.interpolate(method='values')
+        series.loc[na_locations] = np.nan  # Recover original nans
     elif (method == 'value'):
-        df[target_column] = df[target_column].fillna(value)
+        series.loc[outliers] = value
     elif (method == 'remove'):
-        df = df.dropna(subset=[target_column])
+        series = series.loc[~outliers]
+    elif (method == 'na'):
+        series.loc[outliers] = np.nan
+    elif (method == 'clip'):
+        if outside_range:
+            series = series.clip(lower=threshold[0], upper=threshold[1])
+        else:
+            series.loc[outliers] = threshold
 
     logger.info("Correct_outside_range changed {} values using method {}".
-                format(sum(df[target_column + '_INCORRECT']), method))
-    logger.info("The column {} previously had {} missing values, now it has {}".
-                format(target_column, original_nas, df[target_column].isna().sum()))
+                format(sum(outliers), method))
+    logger.info("The series previously had {} missing values, now it has {}".
+                format(na_locations.sum(), series.isna().sum()))
 
-    return df.drop(target_column + '_INCORRECT', axis=1)
-
-
-@setdoc
-def correct_above_threshold(df, target_column="TARGET", threshold=1, method="na", value=None):
-
-    df[target_column + '_INCORRECT'] = df[target_column] > threshold
-    return _fix_values(df, target_column, threshold, method, value)
+    return series
 
 
 @setdoc
-def correct_below_threshold(df, target_column="TARGET", threshold=0, method="na", value=None):
-    df[target_column + '_INCORRECT'] = df[target_column] < threshold
-    return _fix_values(df, target_column, threshold, method, value)
+def correct_above_threshold(series, threshold=1, method="na", value=None):
+    outliers = series > threshold
+    return _fix_values(series, outliers, threshold, method, value)
 
 
 @setdoc
-def correct_outside_range(df, target_column="TARGET", threshold=(0, 1), method="na", value=None):
-    df[target_column + '_INCORRECT'] = (df[target_column] < threshold[0]) | \
-                                        (df[target_column] > threshold[1])
+def correct_below_threshold(series, target_column="TARGET", threshold=0, method="na", value=None):
+    outliers = series < threshold
+    return _fix_values(series, outliers, threshold, method, value)
 
-    return _fix_values(df, target_column, threshold, method, value)
+
+@setdoc
+def correct_outside_range(series, target_column="TARGET", threshold=(0, 1), method="na",
+                          value=None):
+    if not threshold[0] < threshold[1]:
+        raise ValueError("Threshold must be a tuple (a, b) with a < b")
+    outliers = (series < threshold[0]) | (series > threshold[1])
+    return _fix_values(series, outliers, threshold, method, value, outside_range=True)
