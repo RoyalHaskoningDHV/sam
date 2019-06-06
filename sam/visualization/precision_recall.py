@@ -1,4 +1,4 @@
-from sklearn.metrics import precision_recall_curve, roc_auc_score
+from sklearn.metrics import precision_recall_curve, average_precision_score
 from sam.metrics import precision_incident_recall_curve
 
 
@@ -51,8 +51,8 @@ def plot_precision_recall_curve(y_true, y_score, range_pred=None, color='b', alp
 
     if range_pred is None:
         precision, recall, _ = precision_recall_curve(y_true, y_score)
-        roc_score = roc_auc_score(y_true, y_score)
-        title = '2-class Precision-Recall curve. AUC={0:0.2f}'.format(roc_score)
+        ap_score = average_precision_score(y_true, y_score)
+        title = '2-class Precision-Recall curve. AP={0:0.2f}'.format(ap_score)
         recall_label = 'Recall'
     else:
         precision, recall, _ = precision_incident_recall_curve(y_true, y_score, range_pred)
