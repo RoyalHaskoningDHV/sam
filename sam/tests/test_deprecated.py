@@ -32,7 +32,7 @@ class TestDeprecatedAPIS(unittest.TestCase):
         with self.assertWarns(DeprecationWarning):
             df = pd.DataFrame({'TIME': [datetime(2018, 6, 9, 11, 13), datetime(2018, 6, 9, 11, 34),
                                         datetime(2018, 6, 9, 11, 44), datetime(2018, 6, 9, 11, 4)],
-                               'ID': "SENSOR", 'VALUE': [1, 20, 3, 20]})
+                               'ID': "SENSOR", 'TYPE': 0, 'VALUE': [1, 20, 3, 20]})
             complete_timestamps(df, freq="15 min", end_time="2018-06-09 12:15:00",
                                 aggregate_method="median", fillna_method=None)
 
