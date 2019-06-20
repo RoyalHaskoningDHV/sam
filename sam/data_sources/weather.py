@@ -237,8 +237,21 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
     return data
 
 
-def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='5min'):
-    """Export historic precipitation from Nationale Regenradar
+def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='5min', **kwargs):
+    """
+    Export historic precipitation from Nationale Regenradar.
+
+    By default, this function collects the best-known information for a single point, given by
+    latitude and longitude in coordinate system EPSG:4326 (WGS84). This can be configured
+    using **kwargs, but this requires some knowledge of the underlying API.
+
+    The parameters agg=average, rasters=730d6675, srs=EPSG:4326m are given to the API, as well as
+    start, end, window given by start_date, end_date, freq. Lastly geom, which is
+    `POINT+(latitude+longitude)`.
+    Alternatively, a different geometry can be passed via the 'geom' argument in **kwargs.
+    A different coordinate system can be passed via the 'srs' argument in **kwargs.
+    This is a WKT string. For example: geom='POINT+(191601+500127)', srs='epsg:28992'.
+    Exact information about the API specification and possible arguments is unfortunately unknown.
 
     Parameters
     ----------
@@ -258,6 +271,9 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
         frequency of export. Minimum, and default frequency is every 5 minutes. To learn more
         about the frequency strings, see `this link
         <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases>`__.
+    kwargs: dict
+        additional parameters passed in the url. Must be convertable to string. Any entries with a
+        value of None will be ignored and not passed in the url.
 
     Returns
     -------
@@ -267,6 +283,7 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
 
     Examples
     --------
+    >>> from sam.data_sources import read_regenradar
     >>> read_regenradar('2018-01-01', '2018-01-01 00:20:00')
         TIME	PRECIPITATION
     0	2018-05-01 00:00:00	0.05
@@ -274,6 +291,17 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
     2	2018-05-01 00:10:00	0.09
     3	2018-05-01 00:15:00	0.07
     4	2018-05-01 00:20:00	0.04
+
+    >>> # Example of using alternative **kwargs
+    >>> # For more info about these parameters, ask regenradar experts at RHDHV
+    >>> read_regenradar('2018-01-01', '2018-01-01 00:20:00', boundary_type='MUNICIPALITY',
+    >>>                 geom_id=95071, geom=None)
+        TIME	PRECIPITATION
+    0	2018-05-01 00:00:00	0.00
+    1	2018-05-01 00:05:00	0.00
+    2	2018-05-01 00:10:00	0.00
+    3	2018-05-01 00:15:00	0.00
+    4	2018-05-01 00:20:00	0.00
     """
     import requests
 
@@ -293,13 +321,20 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
     if isinstance(end_date, str):
         end_date = _try_parsing_date(end_date)
 
-    regenradar_template = ('https://rhdhv.lizard.net/api/v3/raster-aggregates/'
-                           '?agg=average&geom=POINT+({x}+{y})&rasters=730d6675'
-                           '&srs=EPSG:4326&start={start}&stop={end}&window={window}')
-    regenradar_url = regenradar_template.format(x=longitude, y=latitude,
-                                                start=start_date, end=end_date, window=window)
+    regenradar_url = 'https://rhdhv.lizard.net/api/v3/raster-aggregates/?'
+    params = {'agg': 'average',
+              'rasters': '730d6675',
+              'srs': 'EPSG:4326',
+              'start': str(start_date),
+              'stop': str(end_date),
+              'window': str(window),
+              'geom': 'POINT+({x}+{y})'.format(x=longitude, y=latitude)
+              }
+    params.update(kwargs)
+    params = '&'.join('%s=%s' % (k, v) for k, v in params.items() if v is not None)
 
-    res = requests.get(regenradar_url, auth=(user, password)).json()
+    res = requests.get(regenradar_url + params, auth=(user, password))
+    res = res.json()
     data = json_normalize(res, 'data')
 
     # Time in miliseconds, convert to posixct
