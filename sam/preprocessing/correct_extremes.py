@@ -10,14 +10,15 @@ def setdoc(func):
     This documentation covers *correct_above_threshold*, *correct_below_threshold*
     and *correct_outside_range*. These three functions can be used to filter extreme
     values or fill them with a specified method. The function can correctly handle
-    dataframes with a DatetimeIndex, to interpolate correctly even in the case of
+    series with a DatetimeIndex, to interpolate correctly even in the case of
     measurements with a varying frequency.
 
-    Note: Using a method that is not 'na' will remove 'na' values from the target column
+    Note: this function does not affect nans. To filter/fill missing values,
+    use pandas `fillna` instead.
 
     Parameters
     ----------
-    df: A pandas series
+    series: A pandas series
          The series containing potential outliers
     threshold: number, (default = 1) or a tuple (default = (0,1))
                The exclusive threshold. A number for above or below, for
@@ -26,7 +27,7 @@ def setdoc(func):
             To what the threshold exceeding values should be corrected, options are:
 
             - If 'na', set values to np.nan
-            - If 'previous', set values to previous non non-exceeding value
+            - If 'previous', set values to previous non non-exceeding, non-na value
             - If 'average', linearly interpolate values using
               pandas.DataFrame.interpolate, *might leak and requires an index*
             - If 'clip': set to the max threshold, lower/upper in case of range
@@ -37,44 +38,40 @@ def setdoc(func):
 
     Returns
     -------
-    data: pandas dataframe
-        The original dataframe with the threshold exceeding values corrected
+    series: pandas series
+        The original series with the threshold exceeding values corrected
 
     Examples
     --------
     >>> from sam.preprocessing import correct_below_threshold
     >>> import pandas as pd
-    >>> df = pd.DataFrame({"TEST" : [2, 3, 4, 6],
-    >>>            "TARGET" : [0, -1, 2, 1]})
+    >>> data = pd.Series([0, -1, 2, 1], index = [2, 3, 4, 6])
     >>>
-    >>> df = df.set_index(df['TEST'])
-    >>> correct_below_threshold(df, method = "average", threshold=0)
-        TEST    TARGET
-    TEST
-    2   2       0.0
-    3   3       1.0
-    4   4       2.0
-    6   6       1.0
+    >>> correct_below_threshold(data, method = "average", threshold=0)
+    2    0
+    3    1
+    4    2
+    6    1
+    dtype: int64
     >>> from sam.preprocessing import correct_outside_range
     >>> import pandas as pd
-    >>> df = pd.DataFrame({"TEST" : [2, 3, 4, 6],
-    >>>            "TARGET" : [0, -1, 2, 1]})
+    >>> data = pd.Series([0, -1, 2, 1])
     >>>
-    >>> correct_outside_range(df, method = "na", threshold=(0,1))
-        TEST    TARGET
-    0   2       0.0
-    1   3       NaN
-    2   4       NaN
-    3   6       1.0
+    >>> correct_outside_range(data, method = "na", threshold=(0,1))
+    0    0
+    1    NaN
+    2    NaN
+    3    1
+    dtype: int64
     >>> from sam.preprocessing import correct_above_threshold
     >>> import pandas as pd
-    >>> df = pd.DataFrame({"TEST" : [2, 3, 4, 6],
-    >>>            "TARGET" : [0, -1, 2, 1]})
+    >>> data = pd.Series([0, -1, 2, 1])
     >>>
-    >>> correct_above_threshold(df, method = "remove", threshold = 0)
-        TEST    TARGET
-    0   2       0.0
-    1   6       1.0
+    >>> correct_above_threshold(data, method = "remove", threshold = 1)
+    0    0
+    1    -1
+    3    1
+    dtype: int64
     """
     return func
 
