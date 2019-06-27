@@ -2,12 +2,23 @@ from sam.logging import log_dataframe_characteristics, log_new_columns
 import numpy as np
 import pandas as pd
 import logging
+import warnings
 logger = logging.getLogger(__name__)
 
 
-def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_original=True):
+def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_original=None,
+                       remove_categorical=True, keep_original=True):
     """
-    Decomposes a time column to one or more components suitable as features
+    Decomposes a time column to one or more components suitable as features.
+
+    The input is a dataframe with a pandas timestamp column. New columns will be added to this
+    dataframe. For example, if column is 'TIME', and components is ['hour', 'minute'], two
+    columns: 'TIME_hour' and 'TIME_minute' will be added.
+
+    Optionally, cyclical features can be added instead. For example, if cyclicals is ['hour'],
+    then the 'TIME_hour' column will not be added, but two columns 'TIME_hour_sin' and
+    'TIME_hour_cos' will be added instead. If you want both the categorical and cyclical features,
+    set 'remove_categorical' to False.
 
     Parameters
     ----------
@@ -24,9 +35,14 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
         Cyclicals are variables that do not inncrease linearly, but wrap around.
         such as days of the week and hours of the day.
         Format is identical to components input.
-    remove_original: bool
+    remove_original: bool, optional (default=None)
+        Deprecated. Will be removed in a future release. Please use remove_categorical instead.
+    remove_categorical: bool, optional (default=True)
         whether to keep the original cyclical features (i.e. day)
         after conversion (i.e. day_sin, day_cos)
+    keep_original: bool, optional (default=True)
+        whether to keep the original columns from the dataframe. If this is False, then the
+        returned dataframe will only contain newly generated columns, and none of the original ones
 
     Returns
     -------
@@ -48,10 +64,19 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
     2   2018-12-29  3           2018        Saturday
     3   2018-12-30  2           2018        Sunday
     """
-    result = df.copy()
+    if remove_original is not None:
+        msg = ("the remove_original parameter in decompose_datetime is deprecated."
+               "Please use the remove_categorical parameter instead.")
+        warnings.warn(msg, DeprecationWarning)
+        remove_categorical = remove_original
+
+    if keep_original:
+        result = df.copy()
+    else:
+        result = pd.DataFrame(index=df.index)
 
     logging.debug("Decomposing datetime, number of dates: {}. Components: ".
-                  format(len(result[column]), components))
+                  format(len(df[column]), components))
 
     # We should check first if the column has a compatible type
     pandas_functions = [f for f in dir(df[column].dt) if not f.startswith('_')]
@@ -75,12 +100,15 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
     # convert cyclicals
     assert isinstance(cyclicals, list), 'cyclicals must be of type list'
     if cyclicals != []:
-        result = recode_cyclical_features(result, cyclicals, remove_original, column)
+        result = recode_cyclical_features(result, cyclicals, column=column,
+                                          remove_categorical=remove_categorical,
+                                          keep_original=True)
 
     return(result)
 
 
-def recode_cyclical_features(df, cols, remove_original=True, column=''):
+def recode_cyclical_features(df, cols, remove_original=None, column='', remove_categorical=True,
+                             keep_original=True):
     """
     Convert cyclical features (like day of week, hour of day) to
     continuous variables, so that sunday and monday are close together
@@ -89,17 +117,32 @@ def recode_cyclical_features(df, cols, remove_original=True, column=''):
     - https://www.kaggle.com/avanwyk/encoding-cyclical-features-for-deep-learning
     - http://blog.davidkaleko.com/feature-engineering-cyclical-features.html
 
+    IMPORTANT NOTE: this function assumes that the maximum in your data is also the global maximum
+    that can ever occur. For example, if your traindata runs from 1 to 12, but your test data runs
+    from 1 to 6, this function will recode the train/testdata completely differently. This means
+    that using this function for e.g. predicting a single sample, will give the wrong result!
+
     Parameters
     ----------
     df: pandas dataframe
         Dataframe in which the columns to convert should be present.
     cols: list of strings
-        The column names to convert to continuous numerical values
-    remove_original: bool
+        The suffixes column names to convert to continuous numerical values.
+        These suffixes will be added to the `column` argument to get the actual column names, with
+        a '_' in between.
+    remove_original: bool, optional (default=None)
+        Deprecated. Will be removed in a future release. Please use remove_categorical instead.
+    column: string, optional (default='')
+        name of original time column in df (e.g. TIME)
+        By default, assume the columns in cols literally refer to column names in the data
+    remove_categorical: bool, optional (default=True)
         whether to keep the original cyclical features (i.e. day)
         after conversion (i.e. day_sin, day_cos)
-    column: string
-        name of original time column in df (e.g. TIME)
+    keep_original: bool, optional (default=True)
+        whether to keep the original columns from the dataframe. If this is False, then the
+        returned dataframe will only contain newly generated columns, and none of the original
+        ones. If `remove_categorical` is False, the categoricals will be kept, regardless of
+        this argument.
 
     Returns
     -------
@@ -107,6 +150,11 @@ def recode_cyclical_features(df, cols, remove_original=True, column=''):
         The input dataframe with cols removed, and replaced by the
         converted features (2 for each feature).
     """
+    if remove_original is not None:
+        msg = ("the remove_original parameter in recode_cyclical_features is deprecated."
+               "Please use the remove_categorical parameter instead.")
+        warnings.warn(msg, DeprecationWarning)
+        remove_categorical = remove_original
 
     # add underscore to column if not empty
     if not column == '':
@@ -115,10 +163,16 @@ def recode_cyclical_features(df, cols, remove_original=True, column=''):
     # test inputs
     assert isinstance(df, pd.DataFrame), 'df should be pandas dataframe'
     assert isinstance(cols, list), 'cols should be a list of columns to convert'
-    assert isinstance(remove_original, bool)
+    assert isinstance(remove_categorical, bool)
 
     # save copy of original dataframe
-    new_df = df.copy()
+    if keep_original:
+        new_df = df.copy()
+    # We don't want to keep the orignal columns, but we want to keep the categoricals
+    elif not remove_categorical:
+        new_df = df.copy()[[column + col for col in cols]]
+    else:
+        new_df = pd.DataFrame(index=df.index)
 
     logging.debug("Sine/cosine converting cyclicals columns: %s" % (cols))
 
@@ -136,8 +190,8 @@ def recode_cyclical_features(df, cols, remove_original=True, column=''):
         new_df[col+'_sin'] = np.sin(norm_feature)
         new_df[col+'_cos'] = np.cos(norm_feature)
 
-        # drop the original
-        if remove_original:
+        # drop the original. if keep_original is False, this is unneeded: it was already removed
+        if remove_categorical and keep_original:
             new_df = new_df.drop(col, axis=1)
 
     # log changes

@@ -1,5 +1,5 @@
 import unittest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from pandas.testing import assert_frame_equal
 
 import pandas as pd
@@ -65,7 +65,8 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_frame_equal(result, expected)
 
         # and with keep original
-        result = decompose_datetime(test_dataframe, "TIME", ['hour'], ['hour'], False)
+        result = decompose_datetime(test_dataframe, "TIME", ['hour'], ['hour'],
+                                    remove_categorical=False)
         expected = pd.DataFrame(
             {'TIME': daterange,
              'OTHER': 1,
@@ -130,6 +131,37 @@ class TestBuildTimeFeatures(unittest.TestCase):
 
         result = decompose_datetime(test_dataframe, "TIME", [])
         assert_frame_equal(result, test_dataframe)
+
+    def test_remove_original(self):
+        # Test if T643 was fixed
+
+        time1 = '2018/03/11 15:08:12'
+        time2 = '2018/03/11 16:10:11'
+        freq = '15min'
+        daterange = pd.date_range(time1, time2, freq=freq)
+
+        data = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+        expected = pd.DataFrame({"TIME_minute": [8, 23, 38, 53, 8]})
+
+        result = decompose_datetime(data, "TIME", ['minute'], keep_original=False)
+        assert_frame_equal(result, expected)
+
+        # Also try it with cyclical
+        cyclical_result = decompose_datetime(data, "TIME", ['minute'], ['minute'],
+                                             keep_original=False)
+        assert_array_equal(cyclical_result.columns.values,
+                           np.array(['TIME_minute_sin', 'TIME_minute_cos']))
+
+        # Also try just cyclical, no decompose
+        result1 = recode_cyclical_features(data, ['OTHER'], remove_categorical=True,
+                                           column='', keep_original=False)
+        result2 = recode_cyclical_features(data, ['OTHER'], remove_categorical=False,
+                                           column='', keep_original=False)
+
+        # The first had remove_categorical, so TIME and OTHER are both dropped
+        assert_array_equal(result1.columns.values, np.array(['OTHER_sin', 'OTHER_cos']))
+        # The second had remove_categorical False, so TIME is dropped but OTHER isn't
+        assert_array_equal(result2.columns.values, np.array(['OTHER', 'OTHER_sin', 'OTHER_cos']))
 
     def test_incorrect_column(self):
         test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
