@@ -23,3 +23,9 @@ Note that *incident recall >= recall* in every case, traditional recall is a low
 Mean absolute scaled error
 ---------------------------
 .. autofunction:: sam.metrics.mean_absolute_scaled_error
+
+Keras metrics
+-------------
+.. autofunction:: sam.metrics.keras_tilted_loss
+.. autofunction:: sam.metrics.keras_rmse
+.. autofunction:: sam.metrics.get_keras_forecasting_metrics
