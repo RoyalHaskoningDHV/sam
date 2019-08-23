@@ -116,7 +116,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     ----------
     rolling_type : string, optional (default="mean")
         The rolling function. Must be one of: 'median', 'skew', 'kurt', 'max', 'std', 'lag',
-        'mean', 'diff', 'sum', 'var', 'min', 'numpos', 'ewm', 'fourier', 'cwt'
+        'mean', 'diff', 'sum', 'var', 'min', 'numpos', 'ewm', 'fourier', 'cwt', 'trimmean'
     lookback : number type, optional (default=1)
         the features that are built will be shifted by this value
         If more than 0, this prevents leakage
@@ -134,6 +134,10 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         if rolling_type is 'ewm', this is the parameter alpha used for weighing the samples.
         The current sample weighs alpha, the previous sample weighs alpha*(1-alpha), the
         sample before that weighs alpha*(1-alpha)^2, etcetera. Must be in (0, 1]
+    proportiontocut : numeric, optional (default=0.1)
+        if rolling_type is 'trimmean', this is the parameter used to trim values on both tails
+        of the distribution. Must be in [0, 0.5). Value 0 results in the mean, close to 0.5
+        appoaches the median.
     width : numeric, optional (default=1)
         if rolling_type is 'cwt', the wavelet transform uses a ricker signal. This parameter
         defines the width of that signal
@@ -197,10 +201,14 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             raise ValueError("width must be positive")
         if not np.isscalar(self.alpha):
             raise TypeError("alpha must be a scalar")
+        if not np.isscalar(self.proportiontocut):
+            raise TypeError("proportiontocut must be a scalar")
         if int(self.nfft_ncol) != self.nfft_ncol:
             raise ValueError("nfft_ncol must be an integer!")
         if self.alpha <= 0 or self.alpha > 1:
             raise ValueError("alpha must be in (0, 1]")
+        if self.proportiontocut >= 0.5 or self.proportiontocut < 0:
+            raise ValueError("proportiontocut must be in [0, 0.5)")
 
         if self.deviation is not None and self.rolling_type in ["fourier", "cwt"]:
             raise ValueError("Deviation cannot be used together with {}".format(self.rolling_type))
@@ -215,7 +223,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         ----------
         rolling_type : string, default="mean"
             the description of the rolling function. must be one of lag, sum, mean,
-            median, var, std, max, min, skew, kurt, diff, numpos, ewm, fourier, cwt
+            median, trimmean, var, std, max, min, skew, kurt, diff, numpos, ewm, fourier, cwt
 
         Returns
         -------
@@ -229,11 +237,16 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             from scipy import signal  # Only needed for this rolling type
         if self.rolling_type == "nfft":
             from nfft import nfft
+        if self.rolling_type == "trimmean":
+            from scipy.stats import trim_mean
+
         # https://pandas.pydata.org/pandas-docs/stable/api.html#window
         rolling_functions = {
             "lag": lambda arr, n: arr.shift(n),
             "sum": lambda arr, n: arr.rolling(n).sum(),
             "mean": lambda arr, n: arr.rolling(n).mean(),
+            "trimmean": lambda arr, n: arr.rolling(n).apply(
+                lambda w: trim_mean(w, self.proportiontocut)),
             "median": lambda arr, n: arr.rolling(n).median(),
             "var": lambda arr, n: arr.rolling(n).var(),
             "std": lambda arr, n: arr.rolling(n).std(),
@@ -256,7 +269,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         return(rolling_functions[rolling_type])
 
     def __init__(self, rolling_type="mean", lookback=1, window_size=None, deviation=None,
-                 alpha=0.5, width=1, nfft_ncol=10, timecol=None, keep_original=True):
+                 alpha=0.5, width=1, nfft_ncol=10, proportiontocut=0.1, timecol=None,
+                 keep_original=True):
 
         self.window_size = window_size
         self.lookback = lookback
@@ -265,13 +279,14 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         self.alpha = alpha
         self.width = width
         self.nfft_ncol = nfft_ncol
+        self.proportiontocut = proportiontocut
         self.keep_original = keep_original
         self.timecol = timecol
         logger.debug("Initialized rolling generator. rolling_type={}, lookback={}, "
-                     "window_size={}, deviation={}, alpha={}, width={}, keep_original={}, "
-                     "timecol={}".
-                     format(rolling_type, lookback, window_size,
-                            deviation, alpha, width, keep_original, timecol))
+                     "window_size={}, deviation={}, alpha={}, proportiontocut={}, width={}, "
+                     "keep_original={}, timecol={}".
+                     format(rolling_type, lookback, window_size, deviation,
+                            alpha, proportiontocut, width, keep_original, timecol))
 
     def fit(self, X=None, y=None):
         """Calculates window_size and feature function

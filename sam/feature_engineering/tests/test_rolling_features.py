@@ -55,6 +55,15 @@ class TestRollingFeatures(unittest.TestCase):
         }, columns=["X#mean_1", "X#mean_2", "X#mean_3"])
         assert_frame_equal(result, expected, check_dtype=False)
 
+    def test_trimmean(self):
+        result = self.simple_transform('trimmean', 0, [3, 4, 5], proportiontocut=0.3)
+        expected = pd.DataFrame({
+            "X#trimmean_3": [np.nan, np.nan, 12 + 1/3, 12, 8, 3, 1/3],
+            "X#trimmean_4": [np.nan, np.nan, np.nan, 11, 10.5, 4.5, 0.5],
+            "X#trimmean_5": [np.nan, np.nan, np.nan, np.nan, 10 + 1/3, 7, 3 + 1/3]
+        }, columns=["X#trimmean_3", "X#trimmean_4", "X#trimmean_5"])
+        assert_frame_equal(result, expected, check_dtype=False)
+
     def test_window_zero(self):
         result = self.simple_transform('lag', 1, [0, 1, 2])
         expected = pd.DataFrame({
@@ -358,6 +367,12 @@ class TestRollingFeatures(unittest.TestCase):
                           rolling_type="cwt")
         self.assertRaises(Exception, validate, window_size=1, deviation="subtract",
                           rolling_type="fourier")
+
+        # trimmean must have proportiontocut in [0, 0.5)
+        self.assertRaises(Exception, validate, window_size=0, rolling_type="trimmean",
+                          proportiontocut=-0.2)
+        self.assertRaises(Exception, validate, rolling_type="trimmean", proportiontocut=0.8)
+        self.assertRaises(Exception, validate, rolling_type="trimmean", proportiontocut=[0.1, 0.2])
 
         # timeoffset can only be used with datetimeindex, and not with lag/ewm/fourier/diff
         self.assertRaises(ValueError, validate, window_size='1H')
