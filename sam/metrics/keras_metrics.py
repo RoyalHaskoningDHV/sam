@@ -1,15 +1,5 @@
-# Keras is now included in tensorflow, and we choose to prefer tensorflow to the
-# actual keras package. Especially because tf.keras is default in tensorflow 2.0
-# If that doesn't work for some reason, we use keras for backwards compatibility
-try:
-    import tensorflow.keras.backend as K
-except ImportError:
-    try:
-        import keras.backend as K
-    except ImportError:
-        # Below functions will give errors.
-        # But that is expected when you use keras metrics without keras
-        pass
+import tensorflow.keras.backend as K
+import tensorflow as tf
 
 
 def keras_tilted_loss(y_true, y_pred, quantile=0.5):
@@ -36,10 +26,48 @@ def keras_tilted_loss(y_true, y_pred, quantile=0.5):
     >>> from sam.metrics import keras_tilted_loss
     >>> model = Sequential(...)  # Any keras model
     >>> quantile = 0.5  # Quantile, in this case the median
-    >>> model.compile(loss=lambda y,f: tilted_loss(y, f, quantile))
+    >>> model.compile(loss=lambda y,f: keras_tilted_loss(y, f, quantile))
     """
     e = y_true - y_pred
     return K.mean(K.maximum(quantile*e, (quantile-1)*e), axis=-1)
+
+
+def keras_joint_mse_tilted_loss(y_true, y_pred, quantiles=[]):
+    """ Joint mean and quantile regression loss function
+    Sum of mean squared error and multiple tilted loss functions
+    Custom loss function, inspired by https://github.com/fmpr/DeepJMQR
+    Only compatible with tensorflow backend
+
+    Parameters
+    ----------
+    y_true: tensorflow tensor
+        True values
+    y_pred: tensorflow tensor
+        Predicted values
+    quantiles: list of floats
+        Quantiles to predict, values in (0,1)
+
+    Examples
+    --------
+    >>> from sam.metrics import keras_joint_mse_tilted_loss as mse_tilted
+    >>> model = Sequential(...)  # Any keras model
+    >>> qs = [0.1, 0.9]
+    >>> model.compile(loss=lambda y,f: mse_tilted(y, f, qs))
+    """
+    # select the last column (node) of the output
+    k = len(quantiles)
+    mean_pred = tf.slice(y_pred, [0, k], [-1, 1])
+    # The last node will be fit with regular mean squared error
+    loss = K.mean(K.square(y_true - mean_pred), axis=-1)
+    # For each quantile fit one node with corresponding tilted loss
+    for k in range(len(quantiles)):
+        q = quantiles[k]
+        # Select the kth node
+        q_pred = tf.slice(y_pred, [0, k], [-1, 1])
+        e = y_true - q_pred
+        # add tilted loss to total loss
+        loss += K.mean(K.maximum(q*e, (q-1)*e), axis=-1)
+    return(loss)
 
 
 def keras_rmse(y_true, y_pred):

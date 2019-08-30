@@ -1,6 +1,6 @@
 # sam
 
-## Version: 1.0.0
+## Version: 1.0.3
 
 The Ynformed library for smart asset management.
 
@@ -8,7 +8,7 @@ Author: Fenno Vermeij
 
 Email: fenno@ynformed.nl
 
-Contributors: Fenno, Loes, Rutger, Sebastiaan, Tim
+Contributors: Fenno, Loes, Rutger, Sebastiaan, Tim, Arjan
 
 ## Getting started
 

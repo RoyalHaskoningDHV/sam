@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 1.0.3
+Added new functions: `keras_joint_mse_tilted_loss`, `create_keras_quantile_mlp`
+
 ## Version 1.0.2
 
 Change `decompose_datetime` and `recode_cyclical_features`: the `remove_original` argument has been deprecated and renamed to `remove_categorical`. The original name was wrong, since this parameter never removed the original features, but only the newly created categorical features.

@@ -1,4 +1,4 @@
-from sam.metrics import keras_tilted_loss, keras_rmse
+from sam.metrics import keras_tilted_loss, keras_rmse, keras_joint_mse_tilted_loss
 import numpy as np
 import unittest
 import pytest
@@ -9,12 +9,9 @@ skipkeras = False
 try:
     import tensorflow.keras.backend as K
     from tensorflow.keras.layers import Input
+    import tensorflow as tf
 except ImportError:
-    try:
-        import keras.backend as K
-        from keras.layers import Input
-    except ImportError:
-        skipkeras = True
+    skipkeras = True
 
 
 # Helper function to create keras function that will actually compute
@@ -50,7 +47,7 @@ class TestKerasMetrics(unittest.TestCase):
     def test_tilted_loss(self):
         fun = create_function(keras_tilted_loss, self.x, self.y, 0.8)
         result = fun(self.y_true, self.y_predict)
-        # Total postitive error is 2, total negative error isa 3
+        # Total postitive error is 2, total negative error is 3
         expected = ((0.8 * 2) + (0.2 * 3)) / 6
         self.assertAlmostEqual(result, expected)
 
