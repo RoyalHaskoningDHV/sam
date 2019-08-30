@@ -25,9 +25,16 @@ def sam_format_to_wide(data, sep='_'):
         sorted by TIME, ascending. The index will be a range from 0 to nrows.
     """
     data = pd.pivot_table(data, 'VALUE', ['TIME'], ['ID', 'TYPE'])
-    data.columns = [str(x[0]) + sep + x[1] for x in
-                    list(zip(data.columns.levels[0][data.columns.codes[0]],
-                             data.columns.levels[1][data.columns.codes[1]]))]
+    try:
+        data.columns = [str(x[0]) + sep + x[1] for x in
+                        list(zip(data.columns.levels[0][data.columns.codes[0]],
+                                 data.columns.levels[1][data.columns.codes[1]]))]
+    except AttributeError:
+        # In pandas 0.24, 'labels' was replaced by 'codes'
+        # Since we support pandas 0.23, we need to fallback on labels if needed
+        data.columns = [str(x[0]) + sep + x[1] for x in
+                        list(zip(data.columns.levels[0][data.columns.labels[0]],
+                                 data.columns.levels[1][data.columns.labels[1]]))]
     data = data.reset_index().sort_values(by='TIME', axis=0)
     return data
 
