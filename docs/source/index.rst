@@ -19,6 +19,7 @@ Welcome to SAM's documentation!
    exploration
    feature_engineering
    metrics
+   models
    visualization
    utils
 
