@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from pandas.io.json import json_normalize
 import datetime
@@ -55,11 +56,10 @@ def _try_parsing_date(text):
 
 
 def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly',
-              variables='default'):
+              variables='default', find_nonan_station=False):
     """Export historic variables from KNMI, either hourly or daily.
     There are many weather stations in the Netherlands, but this function will select the station
     that is physically closest to the desired location, and use that station.
-
     knmi only has historic data. Usually, the most recent datapoint is about half a day prior to
     the current time. If the start_date and/or end_date is after the most recent available
     datapoint, any datapoints that are not available will not be included in the results, not
@@ -87,6 +87,9 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
         here <https://projects.knmi.nl/klimatologie/daggegevens/selectie.cgi>`_
         by default, export [average temperature, sunshine duration, rainfall], which is
         ['RH', 'SQ', 'T'] for hourly, and ['RH', 'SQ', 'TG'] for daily
+    find_nonan_station: bool, optional (defaut=False)
+        by default (False), return the closest stations even if it includes nans.
+        If True, return the closest station that does not include nans instead
 
     Returns
     -------
@@ -119,7 +122,7 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
 
     # Provide 1 of 50 stations, find closest to specified coordinate
     distances = knmy_stations.apply(_haversine, axis=1, args=(latitude, longitude))
-    station = knmy_stations['number'][distances.values.argmin()]
+    stations = np.array(knmy_stations['number'][np.argsort(distances.values)])
 
     if isinstance(start_date, str):
         start_date = _try_parsing_date(start_date)
@@ -134,9 +137,36 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
         start_date = start_date.replace(hour=0, minute=0)
         end_date = end_date.replace(hour=23, minute=0)
 
-    _, _, _, knmi_raw = knmy.get_knmi_data(type=freq, stations=[station],
-                                           start=start_date, end=end_date,
-                                           inseason=False, variables=variables, parse=True)
+    for si, station in enumerate(stations):
+        # get data for this station
+        _, _, _, knmi_raw = knmy.get_knmi_data(
+            type=freq,
+            stations=[station],
+            start=start_date,
+            end=end_date,
+            inseason=False,
+            variables=variables,
+            parse=True)
+        # save first station for later return if no no-nan station is found
+        if si == 0:
+            first_knmi_data = knmi_raw
+        if (not find_nonan_station or
+           (knmi_raw[variables].isna().sum().sum() == 0)):
+            break
+
+    # if there are no stations without nans, raise exception:
+    if si == len(stations):
+        knmi_raw = first_knmi_data
+        raise RuntimeException(
+            'Warning, no stations without nans found, ' +
+            'returning requested station instead (including nans).')
+
+    # log proximity of station
+    logger.info('Got data from station %s' % station)
+    if si > 0:
+        logger.warning('Retrieved data is %d stations away ' % si +
+                       'from the one requested. If this is too far away, ' +
+                       'please run this function with return_nonan=False')
 
     # First row are headers, so drop and fix types
     # Convert variables to float because pandas does not handle nans wit int

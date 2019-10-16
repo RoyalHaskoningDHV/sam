@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from pandas.testing import assert_series_equal
 import pytest
+import warnings
 
 try:
     owm_apikey = config['openweathermap']['apikey']
@@ -53,6 +54,26 @@ class TestWeather(unittest.TestCase):
 
         expected_dtypes = [np.dtype('float64'), np.dtype('float64'), np.dtype('<M8[ns]')]
         self.assertEqual(expected_dtypes, result.dtypes.tolist())
+
+    def test_nonan_knmi_station(self):
+
+        # This station had all nan values for variable 'P' when I check it,
+        # so I picked a relatively short and past moment. If knmi will fill
+        # these values later on, the warning below will start to warn for this.
+        # If this happens, we need to pick a new nan returning call.
+        result = read_knmi('2017-01-01 00:00:00', '2017-01-05 00:00:00', latitude=51.55,
+                           longitude=6.75, freq='hourly', variables=['P'],
+                           find_nonan_station=False)
+
+        if result.isna().sum().sum() == 0:
+            warnings.warn('The data already contains no nans, so ' +
+                          'find_nonan_station unit test is worthless',
+                          UserWarning)
+
+        result = read_knmi('2017-01-01 00:00:00', '2017-01-05 00:00:00', latitude=51.55,
+                           longitude=6.75, freq='hourly', variables=['P'],
+                           find_nonan_station=True)
+        self.assertEqual(result.isna().sum().sum(), 0)
 
     @skipowm
     def test_read_openweathermap(self):
