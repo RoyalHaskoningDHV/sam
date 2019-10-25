@@ -75,5 +75,6 @@ class TestSamReshape(unittest.TestCase):
 
         assert_frame_equal(result, expected)
 
+
 if __name__ == '__main__':
     unittest.main()

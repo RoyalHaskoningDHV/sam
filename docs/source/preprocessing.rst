@@ -25,3 +25,7 @@ SAM-format Reshaping
 --------------------
 .. autofunction:: sam.preprocessing.sam_format_to_wide
 .. autofunction:: sam.preprocessing.wide_to_sam_format
+
+Recurrent Features Reshaping 
+--------------------
+.. autofunction:: sam.preprocessing.RecurrentReshaper

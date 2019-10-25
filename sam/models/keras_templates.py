@@ -8,7 +8,7 @@ from sam.metrics import keras_joint_mse_tilted_loss
 def create_keras_quantile_mlp(n_input,
                               n_neurons,
                               n_layers,
-                              quantiles,
+                              quantiles=[],
                               dropout=None,
                               momentum=None,
                               hidden_activation='relu',
@@ -27,9 +27,10 @@ def create_keras_quantile_mlp(n_input,
     n_layers: int
         Number of hidden layers. 0 implies that the output is no additional layer
         between input and output.
-    quantiles: list of floats
+    quantiles: list of floats (default=[])
         Quantiles to predict, values between 0 and 1,
-        an empty list returns a regular mlp for mean squared error regression
+        default is [], which returns a regular mlp (single output)
+        for mean squared error regression
     dropout: float, optional (default=None)
         Rate parameter for dropout, value in (0,1)
         default is None, which means that no batch dropout is applied
