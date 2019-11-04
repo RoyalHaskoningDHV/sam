@@ -2,6 +2,7 @@ from .precision_recall import plot_precision_recall_curve
 from .threshold_plot import plot_threshold_curve
 from .incident_heatmap import plot_incident_heatmap
 from .rolling_correlations import plot_lag_correlation
+from .diagnostic_flatline_removal import diagnostic_flatline_removal
 from .deprecated import make_precision_recall_curve, make_threshold_plot, \
     make_incident_heatmap
 from .extreme_removal_plot import diagnostic_extreme_removal

@@ -18,3 +18,13 @@ Trainset image:
 
 Testset image:
 .. image:: general_documents/images/extreme_values_example_testset.png
+
+Detect Flatlines
+---------------------------
+.. autoclass:: sam.validation.RemoveFlatlines
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Trainset image:
+.. image:: general_documents/images/flatline_removal_example.png
