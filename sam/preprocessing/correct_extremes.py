@@ -82,7 +82,8 @@ def _fix_values(series, outliers, threshold, method, value, outside_range=False)
     """
     methods = ['na', 'clip', 'previous', 'average', 'value', 'remove']
     if method not in methods:
-        raise ValueError("Method {} not allowed, it must be in {}".format(method, methods))
+        raise ValueError(
+            "Method {} not allowed, it must be in {}".format(method, methods))
 
     logging.debug("Now correcting threshold"
                   "threshold={}, method={}, value={}".

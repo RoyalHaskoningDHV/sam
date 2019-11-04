@@ -4,6 +4,7 @@ from .incident_heatmap import plot_incident_heatmap
 from .rolling_correlations import plot_lag_correlation
 from .deprecated import make_precision_recall_curve, make_threshold_plot, \
     make_incident_heatmap
+from .extreme_removal_plot import diagnostic_extreme_removal
 
 from . import precision_recall
 from . import threshold_plot
@@ -11,4 +12,4 @@ from . import incident_heatmap
 from . import rolling_correlations
 
 __all__ = ["plot_precision_recall_curve", "plot_threshold_curve", "plot_incident_heatmap",
-           "plot_lag_correlation"]
+           "plot_lag_correlation", "diagnostic_extreme_removal"]

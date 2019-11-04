@@ -55,7 +55,8 @@ class TestCorrectExtremes(unittest.TestCase):
         assert_series_equal(result, expected, check_dtype=False)
 
     def testIncorrectMethod(self):
-        self.assertRaises(ValueError, correct_below_threshold, self.X, method="error")
+        self.assertRaises(ValueError, correct_below_threshold,
+                          self.X, method="error")
 
     def testNanChange(self):
         # Test if nans are ignored as they should be
