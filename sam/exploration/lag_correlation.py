@@ -19,12 +19,14 @@ def lag_correlation(df, target_name, lag=12, method='pearson'):
         input dataframe contains variables to calculate lag correlation of
     target_name: str
         The name of the goal variable to calculate lag correlation with
-    lag: numeric, (default=12)
-       The number of lag points to calculate. By default is 12, which means
-       the correlation is calculated for lag ranging from 0 to 11
+    lag: int or list of ints (default=12)
+        When an integer is provided, a range is created from 0 to lag in steps
+        of 1, when an array of ints is provided, this is directly used.
+        Default is 12, which means the correlation is calculated for lag
+        ranging from 0 to 11.
     method: string or callable, optional (default='pearson')
-       The method used to calculate correlation. See pandas.DataFrame.corrwith.
-       Options are {‘pearson’, ‘kendall’, ‘spearman’}, or a callable.
+        The method used to calculate correlation. See pandas.DataFrame.corrwith.
+        Options are {‘pearson’, ‘kendall’, ‘spearman’}, or a callable.
 
     Returns
     -------
@@ -35,14 +37,15 @@ def lag_correlation(df, target_name, lag=12, method='pearson'):
     Examples
     --------
     >>> import pandas as pd
-    >>> from sam.exploration import create_lag_correlation
+    >>> from sam.exploration import lag_correlation
     >>> import numpy as np
     >>> X = pd.DataFrame({
-    >>>        'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    >>>        'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0,
+    >>>                 0.0, 0.0, 0.0, 0.0, 0.0],
     >>>        'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
     >>>        'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
     >>> X['DEBIET#TOTAAL'] = X['DEBIET#A'] + X['DEBIET#B']
-    >>> tab = create_lag_correlation(df, 'DEBIET#TOTAAL', lag=11)
+    >>> tab = lag_correlation(X, 'DEBIET#TOTAAL', lag=11)
     >>> tab
         LAG  Debiet#A  Debiet#B       Rain
     0     0  0.838591  0.897340  -0.017557
@@ -56,17 +59,19 @@ def lag_correlation(df, target_name, lag=12, method='pearson'):
     8     8  0.291111  0.039253   0.871695
     9     9  0.188982  0.755929  -0.944911
     10   10  1.000000 -1.000000   1.000000
-
     """
 
     logging.debug("Now creating lag correlation with lag {}".format(lag))
     y = df[target_name]
     X = df.drop(target_name, axis=1)
 
-    RollingFeatures = BuildRollingFeatures(rolling_type='lag', window_size=np.arange(lag),
+    if np.isscalar(lag):
+        lag = np.arange(lag)
+
+    RollingFeatures = BuildRollingFeatures(rolling_type='lag', window_size=lag,
                                            lookback=0, keep_original=False)
     df = RollingFeatures.fit_transform(X)
-    corr_table = df.corrwith(y).reset_index()
+    corr_table = df.corrwith(y, method=method).reset_index()
     corr_table.columns = ['index', 'corr']
     corr_table['LAG'] = corr_table['index'].apply(lambda x: x.rsplit('_', 1)[1])
     corr_table['GROUP'] = corr_table['index'].apply(lambda x: x.rsplit('#', 1)[0])

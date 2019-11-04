@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def plot_lag_correlation(df, ylim=None):
     ''' Visualize the correlations for rolling features
 
@@ -17,36 +20,41 @@ def plot_lag_correlation(df, ylim=None):
         Examples
         --------
         >>> import pandas as pd
-        >>> from sam.feature_engineering.rolling_features import BuildRollingFeatures
-        >>> from sam.feature_selection.lag_correlation import create_lag_correlation
+        >>> from sam.feature_engineering import BuildRollingFeatures
+        >>> from sam.exploration import lag_correlation
         >>> from sam.visualization.rolling_correlations import plot_lag_correlation
         >>> import numpy as np
-        >>> goal_feature = 'DEBIET#TOTAAL_lag_0'
+        >>> goal_feature = 'DEBIET#TOTAAL'
         >>> df = pd.DataFrame({
-        >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0,
+        >>>                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         >>>                'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
         >>>                'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
         >>> df['DEBIET#TOTAAL'] = df['DEBIET#A'] + df['DEBIET#B']
-        >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \\
-        >>>     window_size = np.arange(12), lookback=0, keep_original=False)
-        >>> res = RollingFeatures.fit_transform(df)
-        >>> test = create_lag_correlation(res, goal_feature)
-        >>> plot_lag_correlation(test)
+        >>> test = lag_correlation(df, goal_feature)
+        >>> f = plot_lag_correlation(test)
     '''
-    import seaborn as sns
     import matplotlib.pyplot as plt
+    import seaborn as sns
 
-    fig, ax = plt.subplots()
-    for col in df.columns:
-        if col == 'LAG':
-            continue
-        sns.lineplot(x='LAG', y=col, data=df, label=col, ax=ax)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    plt.axhline(0, ls='--', c='k')
+
+    df_long = df.melt(id_vars='LAG')
+    sns.lineplot(data=df_long, x='LAG', hue='variable',
+                 y='value', ax=ax, ls='--', marker='o', ms=12)
 
     if ylim:
         ax.set_ylim(ylim)
 
+    for col in df.drop('LAG', axis=1).columns:
+        maxi = np.argmax(np.abs(df[col].values))
+        plt.plot(df['LAG'].iloc[maxi], df[col].iloc[maxi], marker='o', ms=8, c='w')
+
     ax.set_ylabel('Correlation')
     ax.legend(loc='center right',
               bbox_to_anchor=(0.35, 0.5, 1, 0))
+    sns.despine()
+    plt.tight_layout()
 
     return ax
