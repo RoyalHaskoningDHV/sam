@@ -21,6 +21,7 @@ Welcome to SAM's documentation!
    metrics
    models
    visualization
+   validation
    utils
 
 

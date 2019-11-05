@@ -10,10 +10,9 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
 
         # create some random data
         data = [1, 2, 6, 3, 4, 4, 4, 3, 6, 7, 7, 2, 2]
-        # with one clear outlier
         test_df = pd.DataFrame()
         test_df['values'] = data
-        # now detect extremes
+        # now detect flatlines
         cols_to_check = ['values']
         RF = RemoveFlatlines(
             cols=cols_to_check,
