@@ -2,7 +2,7 @@ from sklearn.pipeline import Pipeline
 from sam.validation import RemoveExtremeValues, RemoveFlatlines
 from sklearn.impute import SimpleImputer
 from sklearn.impute._iterative import IterativeImputer
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 import pandas as pd
 
 
@@ -16,7 +16,6 @@ def create_validation_pipe(
         flatwindow=2,
         max_iter=10,
         n_nearest_features=10,
-        n_estimators=10,
         impute_method='iterative'):
     '''
     Sets up a pipeline to do data validation. Can incorporate:
@@ -48,10 +47,6 @@ def create_validation_pipe(
         how many close features to use for iterative_imputer
         `Example <https://scikit-learn.org/stable/modules/generated/
         sklearn.impute.IterativeImputer.html>`
-    n_estimators: int (default=10)
-        how many trees to use in RandomForestRegressor for iterative imputer
-        `Example <http://www.scikit-learn.org/stable/modules/generated/
-        sklearn.ensemble.RandomForestRegressor.html>`
     impute_method: string (default='iterative')
         if set to 'iterative', will impute values using IterativeImputer. This is much slower,
         but also much more accurate. Can also be set to any of the SimpleImputer strategies:
@@ -120,8 +115,7 @@ def create_validation_pipe(
 
     if impute_values:
         if impute_method == 'iterative':
-            estimator = RandomForestRegressor(n_estimators=n_estimators)
-            IMP = IterativeImputer(estimator=estimator, verbose=2,
+            IMP = IterativeImputer(estimator=LinearRegression(), verbose=2,
                                    n_nearest_features=n_nearest_features)
         else:
             IMP = SimpleImputer(strategy=impute_method)

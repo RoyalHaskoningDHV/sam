@@ -108,17 +108,19 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
             these_data = data.loc[:, col]
 
             # to start, use window of 1
-            flatliners = (these_data.shift(1)-these_data) == 0
+            flatliners = np.array((these_data.shift(1)-these_data) == 0)
 
             # now see if they expand across the self.window n samples
             for w in range(2, self.window+1):
-                flatliners &= ((these_data.shift(w)-these_data) == 0)
+                flatliners &= np.array((these_data.shift(w)-these_data) == 0)
 
             # prepend all nans with window amount of nans
             seq = np.hstack([np.zeros(self.window), [1]])
             indices = self._search_sequence_numpy(
-                flatliners.values.astype(int), seq)
-            flatliners[indices] = True
+                flatliners.astype(int), seq)
+
+            if len(indices) > 0:
+                flatliners[indices] = True
 
             # save to self for later plot
             self.invalids[col] = flatliners
@@ -129,6 +131,6 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
                 'with window of %d ' % self.window)
 
             # now replace with nans
-            data_r.loc[flatliners, col] = np.nan
+            data_r[col].iloc[flatliners] = np.nan
 
         return data_r
