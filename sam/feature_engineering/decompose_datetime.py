@@ -6,8 +6,36 @@ import warnings
 logger = logging.getLogger(__name__)
 
 
+def get_maxes_from_strings(cyclicals):
+    # This contains cyclical_maxes for pandas datetime features
+    # It only contains maxes for those features that are actually cyclical.
+    # For example, 'year' is not cyclical so is not included here.
+    # Note that the maxes are chosen such that these values are equivalent to 0.
+    # e.g.: a minute of 60 is equivalent to a minute of 0
+    # For month, dayofyear and week, these are approximations, but close enough.
+    lookup = {
+        "day": 31,
+        "dayofweek": 7,
+        "weekday": 7,
+        "dayofyear": 366,
+        "hour": 24,
+        "microsecond": 1e6,
+        "minute": 60,
+        "month": 12,
+        "quarter": 4,
+        "second": 60,
+        "week": 53
+    }
+    for c in cyclicals:
+        if c not in lookup:
+            raise ValueError(str(c) + " is not a known cyclical. "
+                                      "Provide cyclical_maxes yourself")
+    return [lookup[c] for c in cyclicals]
+
+
 def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_original=None,
-                       remove_categorical=True, keep_original=True):
+                       remove_categorical=True, keep_original=True, cyclical_maxes=None,
+                       cyclical_mins=0):
     """
     Decomposes a time column to one or more components suitable as features.
 
@@ -43,6 +71,12 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
     keep_original: bool, optional (default=True)
         whether to keep the original columns from the dataframe. If this is False, then the
         returned dataframe will only contain newly generated columns, and none of the original ones
+    cyclical_maxes: list, optional (default=None)
+        Passed through to recode_cyclical_features. See :ref:`recode_cyclical_features` for more
+        information.
+    cyclical_mins: list, optional (default=0)
+        Passed through to recode_cyclical_features. See :ref:`recode_cyclical_features` for more
+        information.
 
     Returns
     -------
@@ -102,13 +136,15 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
     if cyclicals != []:
         result = recode_cyclical_features(result, cyclicals, column=column,
                                           remove_categorical=remove_categorical,
+                                          cyclical_maxes=cyclical_maxes,
+                                          cyclical_mins=cyclical_mins,
                                           keep_original=True)
 
     return(result)
 
 
 def recode_cyclical_features(df, cols, remove_original=None, column='', remove_categorical=True,
-                             keep_original=True):
+                             keep_original=True, cyclical_maxes=None, cyclical_mins=0):
     """
     Convert cyclical features (like day of week, hour of day) to
     continuous variables, so that sunday and monday are close together
@@ -117,10 +153,18 @@ def recode_cyclical_features(df, cols, remove_original=None, column='', remove_c
     - https://www.kaggle.com/avanwyk/encoding-cyclical-features-for-deep-learning
     - http://blog.davidkaleko.com/feature-engineering-cyclical-features.html
 
-    IMPORTANT NOTE: this function assumes that the maximum in your data is also the global maximum
-    that can ever occur. For example, if your traindata runs from 1 to 12, but your test data runs
-    from 1 to 6, this function will recode the train/testdata completely differently. This means
-    that using this function for e.g. predicting a single sample, will give the wrong result!
+    IMPORTANT NOTE: This function requires a global maximum and minimum for the data. For example,
+    for minutes, the global maximum and minimum are 0 and 60 respectively, even if your data never
+    reaches these global minimums/maximums explicitly. This function assumes that the minimum and
+    maximum should be encoded as the same value: minute 0 and minute 60 mean the same thing.
+
+    If you only use cyclical pandas timefeatures, nothing needs to be done. For these features,
+    the minimum/maximum will be chosen automatically. These are: ['day', 'dayofweek', 'weekday',
+    'dayofyear', 'hour', 'microsecond', 'minute', 'month', 'quarter', 'second', 'week']
+
+    For any other scenario, global minimums/maximums will need to be passed in the parameters
+    `cyclical_maxes` and `cyclical_mins`. Minimums are set to 0 by default, meaning that
+    only the maxes need to be chosen as the value that is `equivalent` to 0.
 
     Parameters
     ----------
@@ -143,6 +187,14 @@ def recode_cyclical_features(df, cols, remove_original=None, column='', remove_c
         returned dataframe will only contain newly generated columns, and none of the original
         ones. If `remove_categorical` is False, the categoricals will be kept, regardless of
         this argument.
+    cyclical_maxes: array-like, optional (default=None)
+        The maximums that your data can reach. Keep in mind that the maximum value and the
+        minimum value will be encoded as the same value. By default, None means that only
+        standard pandas timefeatures will be encoded.
+    cyclical_mins: array-like, optional (default=0)
+        The minimums that your data can reach. Keep in mind that the maximum value and the
+        minimum value will be encoded as the same value. By default, 0 is used, which is
+        applicable for all pandas timefeatures.
 
     Returns
     -------
@@ -165,6 +217,12 @@ def recode_cyclical_features(df, cols, remove_original=None, column='', remove_c
     assert isinstance(cols, list), 'cols should be a list of columns to convert'
     assert isinstance(remove_categorical, bool)
 
+    if cyclical_maxes is None:
+        cyclical_maxes = get_maxes_from_strings(cols)
+
+    if np.isscalar(cyclical_mins):
+        cyclical_mins = [cyclical_mins] * len(cyclical_maxes)
+
     # save copy of original dataframe
     if keep_original:
         new_df = df.copy()
@@ -176,7 +234,11 @@ def recode_cyclical_features(df, cols, remove_original=None, column='', remove_c
 
     logging.debug("Sine/cosine converting cyclicals columns: %s" % (cols))
 
-    for col in cols:
+    for cyclical_min, cyclical_max, col in zip(cyclical_mins, cyclical_maxes, cols):
+
+        if cyclical_min >= cyclical_max:
+            raise ValueError("Cyclical min {} is higher than cyclical max {} for column {}"
+                             .format(cyclical_min, cyclical_max, col))
 
         # prepend column name (like TIME) to match df column names
         col = column + col
@@ -184,8 +246,11 @@ def recode_cyclical_features(df, cols, remove_original=None, column='', remove_c
         # test whether column is in dataframe
         assert col in df.columns, '%s is not in input dataframe' % col
 
-        # rescale feature so it runs from 0-2pi:
-        norm_feature = 2 * np.pi * df[col] / df[col].max()
+        # rescale feature so it runs from 0 to 2*pi:
+        # Features that exceed the maximum are rolled over by the sinus/cosinus:
+        # e.g. if min=0 max=7, 9 will be treated the same as 2
+        norm_feature = (df[col] - cyclical_min) / (cyclical_max - cyclical_min)
+        norm_feature = 2 * np.pi * norm_feature
         # convert cyclical to 2 variables that are offset:
         new_df[col+'_sin'] = np.sin(norm_feature)
         new_df[col+'_cos'] = np.cos(norm_feature)

@@ -13,7 +13,8 @@ class TestBuildTimeFeatures(unittest.TestCase):
     def test_sine_cosine_transform(self):
         df = pd.DataFrame()
         df['hr'] = np.arange(0, 5)
-        df_cyc = recode_cyclical_features(df.copy(), cols=['hr'])
+        # Since 'hr' is not a dt attribute, we have to provide max ourself
+        df_cyc = recode_cyclical_features(df.copy(), cols=['hr'], cyclical_maxes=[4])
 
         expected = pd.DataFrame(
             {'hr_sin': [0., 1., 0., -1., 0.],
@@ -28,7 +29,8 @@ class TestBuildTimeFeatures(unittest.TestCase):
         df['hr'] = np.arange(0, 5)
         df['hr'] = df['hr'].astype(np.int32)
         # Should not throw an error
-        df_cyc = recode_cyclical_features(df.copy(), cols=['hr'])
+        # Since 'hr' is not a dt attribute, we have to provide max ourself
+        df_cyc = recode_cyclical_features(df.copy(), cols=['hr'], cyclical_maxes=[4])
 
         expected = pd.DataFrame(
             {'hr_sin': [0., 1., 0., -1., 0.],
@@ -55,7 +57,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_frame_equal(result, expected)
 
         # add cyclical test without keeping original
-        result = decompose_datetime(test_dataframe, "TIME", ['hour'], ['hour'])
+        result = decompose_datetime(test_dataframe, "TIME", ['hour'], ['hour'], cyclical_maxes=[4])
         expected = pd.DataFrame(
             {'TIME': daterange,
              'OTHER': 1,
@@ -65,7 +67,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_frame_equal(result, expected)
 
         # and with keep original
-        result = decompose_datetime(test_dataframe, "TIME", ['hour'], ['hour'],
+        result = decompose_datetime(test_dataframe, "TIME", ['hour'], ['hour'], cyclical_maxes=[4],
                                     remove_categorical=False)
         expected = pd.DataFrame(
             {'TIME': daterange,
@@ -154,9 +156,11 @@ class TestBuildTimeFeatures(unittest.TestCase):
 
         # Also try just cyclical, no decompose
         result1 = recode_cyclical_features(data, ['OTHER'], remove_categorical=True,
-                                           column='', keep_original=False)
+                                           column='', keep_original=False,
+                                           cyclical_maxes=[1])
         result2 = recode_cyclical_features(data, ['OTHER'], remove_categorical=False,
-                                           column='', keep_original=False)
+                                           column='', keep_original=False,
+                                           cyclical_maxes=[1])
 
         # The first had remove_categorical, so TIME and OTHER are both dropped
         assert_array_equal(result1.columns.values, np.array(['OTHER_sin', 'OTHER_cos']))
@@ -171,6 +175,35 @@ class TestBuildTimeFeatures(unittest.TestCase):
     def test_absent_column(self):
         test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
         self.assertRaises(KeyError, decompose_datetime, test_dataframe, "TEST", ["hour"])
+
+    def test_recode_cyclical_datetime(self):
+        # Test with the default datetime features instead of custom min/max
+        time1 = '2019/03/11 00:00:00'
+        time2 = '2019/03/11 18:00:00'
+        freq = '6h'
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({'TIME': daterange, 'OTHER': 1})
+
+        result = decompose_datetime(test_dataframe, components=['day', 'hour', 'minute'],
+                                    cyclicals=['day', 'hour', 'minute'])
+
+        expected = pd.DataFrame({
+            'TIME': test_dataframe['TIME'],
+            'OTHER': test_dataframe['OTHER'],
+            'TIME_day_sin': np.sin(2 * np.pi * 11 / 31),  # always 11 out of 31
+            'TIME_day_cos': np.cos(2 * np.pi * 11 / 31),  # always 11 out of 31
+            'TIME_hour_sin': [0.0, 1.0, 0.0, -1.0],  # round trip around the clock
+            'TIME_hour_cos': [1.0, 0.0, -1, 0.0],  # round trip around the clock
+            'TIME_minute_sin': [0.0, 0.0, 0.0, 0.0],  # always 0
+            'TIME_minute_cos': [1.0, 1.0, 1.0, 1.0],  # always 0
+
+        })
+        assert_frame_equal(result, expected)
+
+    def test_min_higher_than_max(self):
+        test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
+        self.assertRaises(ValueError, recode_cyclical_features, test_dataframe, ["TIME"],
+                          cyclical_mins=[1], cyclical_maxes=[0])
 
 
 if __name__ == '__main__':
