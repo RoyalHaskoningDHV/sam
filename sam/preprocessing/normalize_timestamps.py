@@ -23,7 +23,7 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
     Firstly, 'normalized' date ranges are created according to the required frequency.
     The start/end times of these date ranges can be given by start_time/end_time. If not given,
     the global minimum/maximum across all TYPE/ID is used. For example, if ID='foo' runs from 2017
-    to 2019, and ID='bar' runs from 2018 to 2019, then ID='foo' will have missing values in
+    to 2019, and ID='bar' runs from 2018 to 2019, then ID='bar' will have missing values in
     the entirety of 2017.
 
     Secondly, all timestamps are rounded to the required frequency. For example, if the frequency
