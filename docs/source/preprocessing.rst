@@ -29,3 +29,8 @@ SAM-format Reshaping
 Recurrent Features Reshaping 
 --------------------
 .. autofunction:: sam.preprocessing.RecurrentReshaper
+
+Differencing
+------------
+.. autofunction:: sam.preprocessing.make_differenced_target
+.. autofunction:: sam.preprocessing.inverse_differenced_target
