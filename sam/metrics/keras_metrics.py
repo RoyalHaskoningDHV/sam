@@ -1,5 +1,12 @@
-import tensorflow.keras.backend as K
-import tensorflow as tf
+try:
+    import tensorflow.keras.backend as K
+    import tensorflow as tf
+except ImportError:
+    # These are optional dependencies so we don't crash if they aren't found.
+    # However, this will crash once we run one of the functions below.
+    # We don't defer the import until the function itself, because these metrics are intended
+    # to be used repeatedly inside training, so import statements would cause unneccecary overhead.
+    pass
 
 
 def keras_tilted_loss(y_true, y_pred, quantile=0.5):

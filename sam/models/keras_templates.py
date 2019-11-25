@@ -1,7 +1,4 @@
 import numpy as np
-from tensorflow.keras.layers import Input, Dense, BatchNormalization, Dropout, Activation
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
 from sam.metrics import keras_joint_mse_tilted_loss
 
 
@@ -62,6 +59,10 @@ def create_keras_quantile_mlp(n_input,
     >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles, dropout)
     >>> model.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=16, epochs=20)
     """
+    from tensorflow.keras.layers import Input, Dense, BatchNormalization, Dropout, Activation
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.optimizers import Adam
+
     if len(quantiles) == 0:
         mse_tilted = 'mse'
     else:

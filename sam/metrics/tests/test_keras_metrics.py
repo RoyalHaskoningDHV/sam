@@ -10,6 +10,10 @@ try:
     import tensorflow.keras.backend as K
     from tensorflow.keras.layers import Input
     import tensorflow as tf
+    import os
+    # For this unit test, we don't need GPU
+    # So run on CPU to increase reliability
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 except ImportError:
     skipkeras = True
 
