@@ -1,6 +1,14 @@
+import warnings
+
 try:
-    import tensorflow.keras.backend as K
-    import tensorflow as tf
+    # Tensorflow often raises warnings when importing.
+    # When importing sam, we don't want to show these warnings since they
+    # are not relevant to sam
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        warnings.simplefilter("ignore", category=FutureWarning)
+        import tensorflow.keras.backend as K
+        import tensorflow as tf
 except ImportError:
     # These are optional dependencies so we don't crash if they aren't found.
     # However, this will crash once we run one of the functions below.

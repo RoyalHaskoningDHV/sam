@@ -9,6 +9,7 @@ from sam.models import create_keras_quantile_mlp
 from sam.preprocessing import make_differenced_target, inverse_differenced_target
 
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -75,6 +76,8 @@ class SamQuantileMLP(BaseEstimator):
         The type of dropout to use in the model, see :ref:`create_keras_quantile_mlp`
     momentum: integer, optional (default=None)
         The type of momentum in the model, see :ref:`create_keras_quantile_mlp`
+    verbose: boolean, optional (default=1)
+        The verbosity of fitting the keras model
 
     Attributes
     ----------
@@ -217,8 +220,8 @@ class SamQuantileMLP(BaseEstimator):
     def __init__(self,
                  predict_ahead=1,
                  quantiles=(),
-                 use_y_as_feature=True,  # by default, use y as a feature
-                 timecol=None,  # default: time in index
+                 use_y_as_feature=True,
+                 timecol=None,
                  time_components=('minute', 'hour', 'month', 'weekday'),
                  time_cyclicals=('minute', 'hour', 'month', 'weekday'),
                  rolling_window_size=(5,),
@@ -228,7 +231,8 @@ class SamQuantileMLP(BaseEstimator):
                  epochs=20,
                  lr=0.001,
                  dropout=None,
-                 momentum=None
+                 momentum=None,
+                 verbose=True
                  ):
         self.predict_ahead = predict_ahead
         self.quantiles = quantiles
@@ -244,6 +248,23 @@ class SamQuantileMLP(BaseEstimator):
         self.lr = lr
         self.momentum = momentum
         self.dropout = dropout
+        self.verbose = verbose
+
+    def validate_data(self, X):
+        if self.timecol is None:
+            warnings.warn(("No timecolumn given. Make sure the data is"
+                          "monospaced when given to this model!"), UserWarning)
+        else:
+            monospaced = X[self.timecol].diff()[1:].unique().size == 1
+            if not monospaced:
+                raise ValueError("Data is not monospaced, which is required for"
+                                 "this model. fit/predict is not possible")
+
+        enough_data = \
+            len(self.rolling_window_size) == 0 or X.shape[0] > max(self.rolling_window_size)
+        if not enough_data:
+            warnings.warn("Not enough data given to caluclate rolling features. "
+                          "Output will be entirely missing values.", UserWarning)
 
     def fit(self, X, y):
         """
@@ -258,20 +279,19 @@ class SamQuantileMLP(BaseEstimator):
         - Fit the untrained model and return the history object
         """
 
-        # Make sure X is sorted and monospaced, is done in D1213
-        # I will remove this comment when merging that
+        if not np.isscalar(self.predict_ahead):
+            raise ValueError("For now, multiple timestep predictions are not supported")
 
-        assert np.isscalar(self.predict_ahead), \
-            "For now, multiple timestep predictions are not supported"
+        if not y.index.equals(X.index):
+            raise ValueError("For training, X and y must have an identical index")
 
-        assert y.index.equals(X.index), \
-            "For training, X and y must have an identical index"
+        if self.use_y_as_feature and self.predict_ahead == 0:
+            raise ValueError("For now, when predict_ahead=0, you cannot also use y as a feature")
 
-        assert not self.use_y_as_feature or self.predict_ahead > 0, \
-            "For now, when predict_ahead=0, you cannot also use y as a feature"
+        self.validate_data(X)
 
         if self.use_y_as_feature:
-            X.loc[:, 'y_'] = y.copy()
+            X = X.assign(y_=y.copy())
 
         # Create the actual target
         if self.predict_ahead > 0:
@@ -302,8 +322,9 @@ class SamQuantileMLP(BaseEstimator):
         self.n_outputs_ = len(self.prediction_cols_)
 
         # Remove the first n rows because they are nan anyway because of rolling features
-        X_transformed = X_transformed.iloc[max(self.rolling_window_size):]
-        target = target.iloc[max(self.rolling_window_size):]
+        if len(self.rolling_window_size) > 0:
+            X_transformed = X_transformed.iloc[max(self.rolling_window_size):]
+            target = target.iloc[max(self.rolling_window_size):]
         # Filter rows where the target is unknown
         X_transformed = X_transformed.loc[~targetnanrows]
         target = target.loc[~targetnanrows]
@@ -315,7 +336,8 @@ class SamQuantileMLP(BaseEstimator):
         self.model_ = self.get_untrained_model()
 
         # Fit model
-        self.model_.fit(X_transformed, target, batch_size=self.batch_size, epochs=self.epochs)
+        self.model_.fit(X_transformed, target, batch_size=self.batch_size,
+                        epochs=self.epochs, verbose=self.verbose)
         return self
 
     def preprocess_before_predict(self, X, y, dropna=False):
@@ -328,7 +350,7 @@ class SamQuantileMLP(BaseEstimator):
         assert y is None or y.index.equals(X.index), \
             "For predicting, X and y must have an identical index"
         if self.use_y_as_feature:
-            X.loc[:, 'y_'] = y.copy()
+            X = X.assign(y_=y.copy())
         X_transformed = self.feature_engineer_.transform(X)
         if dropna:
             X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
@@ -348,6 +370,11 @@ class SamQuantileMLP(BaseEstimator):
         """
         assert self.predict_ahead == 0 or y is not None, \
             "When predict_ahead > 0, y is needed for prediction"
+
+        assert y is None or X.index.equals(y.index), \
+            "For predicting, X and y must have an identical index"
+
+        self.validate_data(X)
 
         X_transformed = self.preprocess_before_predict(X, y)
         prediction = self.model_.predict(X_transformed)

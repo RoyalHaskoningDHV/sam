@@ -1,4 +1,11 @@
 import matplotlib
+import os
+# For this unit test, we don't need GPU
+# So run on CPU to increase reliability
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# We don't want some of the tensorflow warnings that aren't our fault anyway
+# Unfortunately, this only works on some of the more recent versions of tensorflow
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 
 # Non-interactive matplotlib backend. This is required for unit testing where the plot cannot
