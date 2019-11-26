@@ -1,4 +1,5 @@
 import pandas as pd
+from math import floor, ceil
 
 
 def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='incident',
@@ -45,7 +46,7 @@ def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='i
 
     Examples
     --------
-    >>> from sam.visualization import incident_heatmap
+    >>> from sam.visualization import plot_incident_heatmap
     >>> import pandas as pd
     >>> import numpy as np
     >>> # Initialize a random dataframe
@@ -87,6 +88,14 @@ def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='i
     # Initialize heatmap
     ax = sns.heatmap(df_grouped, **kwargs)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=xlabel_rotation)
+
+    # Set y limits. On some versions/platforms of seaborn, these are set at 0.5
+    # instead of 0, so we round up the higher limit, and round down the lower limit.
+    # If the limits are correctly set as integers, these lines have no effect.
+    # It is totally possible for ax.get_ylim() to return (high, low), in which
+    # case we need to switch them with `sorted` to obtain (low, high) instead.
+    y_low, y_high = sorted(ax.get_ylim())
+    ax.set_ylim(floor(y_low), ceil(y_high))
 
     # If desired, add custom date format to the x-axis
     if datefmt:
