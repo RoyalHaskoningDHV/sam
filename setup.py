@@ -10,7 +10,7 @@ setup(name='sam',
       license='',
       packages=find_packages(exclude=['*tests']),
       zip_safe=True,
-      install_requires=['pandas>=0.23', 'numpy>=1.13', 'scikit-learn>=0.18'],
+      install_requires=['pandas>=0.23', 'numpy>=1.13', 'scikit-learn>=0.20'],
       extras_require={
           'all': ['knmy', 'matplotlib', 'nfft', 'pymongo', 'requests', 'scipy', 'seaborn',
                   'tensorflow']

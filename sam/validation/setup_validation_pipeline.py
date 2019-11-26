@@ -1,9 +1,8 @@
 from sklearn.pipeline import Pipeline
 from sam.validation import RemoveExtremeValues, RemoveFlatlines
 from sklearn.impute import SimpleImputer
-from sklearn.impute._iterative import IterativeImputer
 from sklearn.linear_model import LinearRegression
-import pandas as pd
+from sklearn import __version__ as sklearn_version  # For testing if IterativeImputer is available
 
 
 def create_validation_pipe(
@@ -100,9 +99,12 @@ def create_validation_pipe(
     >>> f_ext = diagnostic_flatline_removal(
     >>>     pipe['flat'], pd.DataFrame(test_data['target'], columns=['target']), 'target')
     '''
-
     methods = ['iterative', 'mean', 'median', 'most_frequent', 'constant']
-    assert impute_method in methods, print('impute method not in %s' % methods)
+    if impute_method not in methods:
+        raise ValueError('impute method not in %s' % methods)
+    if impute_method == 'iterative' and sklearn_version < "0.21":
+        raise EnvironmentError("For iterative impute method, "
+                               "sklearn version at least 0.21 is required.")
 
     estimators = []
     if remove_extreme_values:
@@ -115,6 +117,9 @@ def create_validation_pipe(
 
     if impute_values:
         if impute_method == 'iterative':
+            # This is a experimental feature in sklearn, only import when needed
+            from sklearn.experimental import enable_iterative_imputer  # noqa:F401
+            from sklearn.impute import IterativeImputer
             IMP = IterativeImputer(estimator=LinearRegression(), verbose=2,
                                    n_nearest_features=n_nearest_features)
         else:
