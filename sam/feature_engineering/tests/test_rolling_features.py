@@ -381,5 +381,6 @@ class TestRollingFeatures(unittest.TestCase):
         self.assertRaises(ValueError, validate,
                           X=self.X_times, window_size=[1, '1H'], rolling_type='lag')
 
+
 if __name__ == "__main__":
     unittest.main()

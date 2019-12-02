@@ -246,7 +246,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             "sum": lambda arr, n: arr.rolling(n).sum(),
             "mean": lambda arr, n: arr.rolling(n).mean(),
             "trimmean": lambda arr, n: arr.rolling(n).apply(
-                lambda w: trim_mean(w, self.proportiontocut)),
+                lambda w: trim_mean(w, self.proportiontocut), raw=True),
             "median": lambda arr, n: arr.rolling(n).median(),
             "var": lambda arr, n: arr.rolling(n).var(),
             "std": lambda arr, n: arr.rolling(n).std(),
@@ -387,7 +387,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                     self.rolling_fun_(arr, window_size).shift(self.lookback),
                     arr,
                     self.deviation
-                ))
+                ), raw=False)
                 new_features.columns = ["#".join([str(col), suffix])
                                         for col in new_features.columns]
                 result = pd.concat([result, new_features], axis=1)
