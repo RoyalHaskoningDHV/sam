@@ -15,6 +15,20 @@ Rolling Features
 
 .. autofunction:: sam.feature_engineering.lag_range_column
 
+Automatic Rolling Engineering
+-----------------------------
+
+.. autoclass:: sam.feature_engineering.AutomaticRollingEngineering
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Rolling feature importances
+.. image:: general_documents/images/automatic_rolling_importances.png
+
+Testset timeseries image:
+.. image:: general_documents/images/automatic_rolling_engineering.png
+
 Decompose datetime
 ------------------
 .. autofunction:: sam.feature_engineering.decompose_datetime
