@@ -14,9 +14,11 @@ Detect Extreme Values
     :show-inheritance:
 
 Trainset image:
+
 .. image:: general_documents/images/extreme_values_example_trainset.png
 
 Testset image:
+
 .. image:: general_documents/images/extreme_values_example_testset.png
 
 Detect Flatlines
@@ -27,4 +29,9 @@ Detect Flatlines
     :show-inheritance:
 
 Trainset image:
+
 .. image:: general_documents/images/flatline_removal_example.png
+
+Create validation Pipeline
+---------------------------
+.. autofunction:: sam.validation.create_validation_pipe

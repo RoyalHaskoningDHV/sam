@@ -60,7 +60,8 @@ def create_validation_pipe(
         However, when a string is used to specify the rollingwindow parameter, the input data
         should have a datetime index.
 
-    Example:
+    Examples
+    --------
     >>> from sam.validation import create_validation_pipe, validate_and_impute
     >>> from sam.visualization import diagnostic_extreme_removal, diagnostic_flatline_removal
     >>>

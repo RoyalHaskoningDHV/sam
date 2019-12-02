@@ -20,7 +20,8 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
         so if set to 2, requires that 2 previous values are identical to
         current to set current value to nan.
 
-    Examples:
+    Examples
+    --------
     >>> from sam.validation import RemoveFlatlines
     >>> # create some data
     >>> data = [1, 2, 6, 3, 4, 4, 4, 3, 6, 7, 7, 2, 2]
