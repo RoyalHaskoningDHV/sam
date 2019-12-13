@@ -174,26 +174,18 @@ class SamQuantileMLP(BaseEstimator):
         def identity(x):
             return x
 
-        feature_engineer_steps = [
-            # Lag features
-            ("lag", BuildRollingFeatures(rolling_type='lag', window_size=self.rolling_window_size,
-                                         lookback=0, keep_original=False),
-             self.rolling_cols_),
-            ("max", BuildRollingFeatures(rolling_type='max', window_size=self.rolling_window_size,
-                                         keep_original=False),
-             self.rolling_cols_),
-            ("min", BuildRollingFeatures(rolling_type='min', window_size=self.rolling_window_size,
-                                         keep_original=False),
-             self.rolling_cols_),
-            ("mean", BuildRollingFeatures(rolling_type='mean',
-                                          window_size=self.rolling_window_size,
-                                          keep_original=False),
-             self.rolling_cols_),
-
-            # Other features
-            ("passthrough", self.FunctionTransformerWithNames(identity, validate=False),
-             self.rolling_cols_)
-        ]
+        feature_engineer_steps = \
+            [
+                # Rolling features
+                (rol, BuildRollingFeatures(rolling_type=rol, window_size=self.rolling_window_size,
+                                           lookback=0, keep_original=False),
+                 self.rolling_cols_) for rol in self.rolling_features
+            ] + \
+            [
+                # Other features
+                ("passthrough", self.FunctionTransformerWithNames(identity, validate=False),
+                 self.rolling_cols_)
+            ]
         if self.timecol:
             feature_engineer_steps += \
                 [("timefeats", self.FunctionTransformerWithNames(time_transformer, validate=False),
@@ -224,7 +216,8 @@ class SamQuantileMLP(BaseEstimator):
                  timecol=None,
                  time_components=('minute', 'hour', 'month', 'weekday'),
                  time_cyclicals=('minute', 'hour', 'month', 'weekday'),
-                 rolling_window_size=(5,),
+                 rolling_window_size=(12,),
+                 rolling_features=['mean'],
                  n_neurons=200,
                  n_layers=2,
                  batch_size=16,
@@ -240,6 +233,7 @@ class SamQuantileMLP(BaseEstimator):
         self.timecol = timecol
         self.time_components = time_components
         self.time_cyclicals = time_cyclicals
+        self.rolling_features = rolling_features
         self.rolling_window_size = rolling_window_size
         self.n_neurons = n_neurons
         self.n_layers = n_layers
@@ -266,7 +260,7 @@ class SamQuantileMLP(BaseEstimator):
             warnings.warn("Not enough data given to caluclate rolling features. "
                           "Output will be entirely missing values.", UserWarning)
 
-    def fit(self, X, y):
+    def fit(self, X, y, validation_data=None, **fit_kwargs):
         """
         This function does the following:
         - Validate that the input is monospaced and has enough rows
@@ -277,6 +271,8 @@ class SamQuantileMLP(BaseEstimator):
         - Remove rows with nan that can't be used for fitting
         - Get untrained model with `self.get_untrained_model()`
         - Fit the untrained model and return the history object
+        - Optionally, preprocess validation data to give to the fit
+        - Pass through any other fit_kwargs to the fit function
         """
 
         if not np.isscalar(self.predict_ahead):
@@ -335,10 +331,37 @@ class SamQuantileMLP(BaseEstimator):
 
         self.model_ = self.get_untrained_model()
 
+        # Create validation data:
+        if validation_data is not None:
+            X_val, y_val = validation_data
+            # This does not affect training: it only calls transform, not fit
+            X_val_transformed = self.preprocess_before_predict(X_val, y_val)
+            X_val_transformed = pd.DataFrame(X_val_transformed,
+                                             columns=self.get_feature_names(), index=X_val.index)
+            if self.use_y_as_feature:
+                y_val_transformed = make_differenced_target(y_val, self.predict_ahead)
+            else:
+                # Dataframe with 1 column. Will use y's index and name
+                y_val_transformed = pd.DataFrame(y_val.copy())
+
+            # The lines below are only to deal with nans in the validation set
+            # These should eventually be replaced by Arjans/Fennos function for removing nan rows
+            # So that this code will be much more readable
+            targetnanrows = y_val_transformed.isna().any(axis=1)
+            # Remove the first n rows because they are nan anyway because of rolling features
+            if len(self.rolling_window_size) > 0:
+                X_val_transformed = X_val_transformed.iloc[max(self.rolling_window_size):]
+                y_val_transformed = y_val_transformed.iloc[max(self.rolling_window_size):]
+            # Filter rows where the target is unknown
+            X_val_transformed = X_val_transformed.loc[~targetnanrows]
+            y_val_transformed = y_val_transformed.loc[~targetnanrows]
+            # Until here
+            validation_data = (X_val_transformed, y_val_transformed)
+
         # Fit model
         self.model_.fit(X_transformed, target, batch_size=self.batch_size,
-                        epochs=self.epochs, verbose=self.verbose)
-        return self
+                        epochs=self.epochs, verbose=self.verbose,
+                        validation_data=validation_data, **fit_kwargs)
 
     def preprocess_before_predict(self, X, y, dropna=False):
         """
