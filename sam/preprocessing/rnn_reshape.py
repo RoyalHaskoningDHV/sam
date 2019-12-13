@@ -68,13 +68,13 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
         y : optional, is ignored
         """
         self._validate_params()
-        self.n_features = X.shape[1]
-        self.lag_transformer = BuildRollingFeatures(
+        self.n_features_ = X.shape[1]
+        self.lag_transformer_ = BuildRollingFeatures(
             rolling_type='lag',
             window_size=self.window_range,
             lookback=self.lookback,
             keep_original=False)
-        self.lag_transformer.fit(X)
+        self.lag_transformer_.fit(X)
         return self
 
     def transform(self, X):
@@ -90,12 +90,12 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
         X_new : numpy array
             A three dimensional numpy array, moving windows over the features table X
         """
-        check_is_fitted(self, 'n_features')
+        check_is_fitted(self, 'n_features_')
         # X needs to be pandas dataframe to use BuildRollingFeatures
         X = pd.DataFrame(X)
         n_samples = X.shape[0]
-        X_lags = self.lag_transformer.transform(X)
-        X_new = np.reshape(X_lags.values, (n_samples, self.window, self.n_features))
+        X_lags = self.lag_transformer_.transform(X)
+        X_new = np.reshape(X_lags.values, (n_samples, self.window, self.n_features_))
         # remove first elements that have no full history
         if self.remove_leading_nan:
             X_new = X_new[self.start:, :, :]

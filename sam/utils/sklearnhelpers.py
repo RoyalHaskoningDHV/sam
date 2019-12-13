@@ -29,11 +29,11 @@ class FunctionTransformerWithNames(FunctionTransformer):
     ['TIME', 'VALUE', 'TIME_hour', 'TIME_minute']
     """
     def __init__(self, func=None, inverse_func=None, validate=False,
-                 accept_sparse=False, pass_y='deprecated', check_inverse=True,
+                 accept_sparse=False, check_inverse=True,
                  kw_args=None, inv_kw_args=None):
         super(FunctionTransformerWithNames, self).\
             __init__(func=func, inverse_func=inverse_func, validate=validate,
-                     accept_sparse=accept_sparse, pass_y=pass_y, check_inverse=check_inverse,
+                     accept_sparse=accept_sparse, check_inverse=check_inverse,
                      kw_args=kw_args, inv_kw_args=inv_kw_args)
 
     def transform(self, X, y=None):
