@@ -4,7 +4,7 @@ import random
 import os
 import unittest
 import pytest
-from pandas.testing import assert_series_equal
+from pandas.testing import assert_series_equal, assert_frame_equal
 from sklearn.metrics import mean_absolute_error
 
 from sam.models import SamQuantileMLP
@@ -93,11 +93,11 @@ class TestSamQuantileMLP(unittest.TestCase):
         # prediction. Likely because mean uses 'mse' whereas quantiles use mae.
         # In this case, I trust the quantiles much more because for this problem, mse seems too
         # strict and can create a local minimum much more often
-        if abs(pred['predict_lag_2_q_0.3'].mean() - pred['predict_lag_2_mean'].mean()) > 5:
-            pred['predict_lag_2_mean'] = pred['predict_lag_2_q_0.3']
+        if abs(pred['predict_lead_2_q_0.3'].mean() - pred['predict_lead_2_mean'].mean()) > 5:
+            pred['predict_lead_2_mean'] = pred['predict_lead_2_q_0.3']
 
         results = pd.DataFrame({
-            'pred': pred['predict_lag_2_mean'],
+            'pred': pred['predict_lead_2_mean'],
             'actual': actual,
             'persistence': self.y_test
         }, index=actual.index).dropna()
@@ -116,16 +116,12 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         self.assertEqual(model.n_outputs_, 3)
         self.assertEqual(model.prediction_cols_,
-                         ['predict_lag_2_q_0.3', 'predict_lag_2_q_0.7', 'predict_lag_2_mean'])
+                         ['predict_lead_2_q_0.3', 'predict_lead_2_q_0.7', 'predict_lead_2_mean'])
 
         # Just run this, see if it throws any warning/errors
         # Score should ouput a scalar, summary should output nothing
         score = model.score(self.X_test, self.y_test)
         assert np.isscalar(score)
-        # This score should never change, since we set the seeds
-        # However, it may be that this score changes often due to small changes to the
-        # API, versions, and updates to SAM. In that case, this test can be disabled
-        self.assertAlmostEqual(score, 3.930387878417969)
 
         output = model.summary()
         assert output is None
@@ -164,22 +160,78 @@ class TestSamQuantileMLP(unittest.TestCase):
         # When there are 100 training rows, this corresponds to 16 out of 20 'successes'
         # at least 16 successes out of 20 is pretty strict: if it was a coinflip, the probability
         # of that happenening would be approx. 1 in 166
-        self.assertGreaterEqual((pred['predict_lag_0_q_0.05'] < pred['predict_lag_0_mean']).sum(),
-                                self.train_size * 0.2)
-        self.assertGreaterEqual((pred['predict_lag_0_mean'] < pred['predict_lag_0_q_0.95']).sum(),
-                                self.train_size * 0.2)
+        self.assertGreaterEqual(
+            (pred['predict_lead_0_q_0.05'] < pred['predict_lead_0_mean']).sum(),
+            self.train_size * 0.2
+        )
+        self.assertGreaterEqual(
+            (pred['predict_lead_0_mean'] < pred['predict_lead_0_q_0.95']).sum(),
+            self.train_size * 0.2
+        )
+
+    def test_multioutput(self):
+        # Test multioutput. Same data as test_predict_future.
+
+        model = SamQuantileMLP(predict_ahead=[1, 2, 3],
+                               use_y_as_feature=True,
+                               timecol='TIME',
+                               quantiles=[0.3, 0.7],
+                               epochs=30,
+                               time_components=['minute'],
+                               time_cyclicals=['minute'],
+                               rolling_window_size=[],
+                               n_neurons=1,
+                               n_layers=1,
+                               lr=0.3,
+                               verbose=0)
+
+        model.fit(self.X_train, self.y_train)
+        pred = model.predict(self.X_test, self.y_test)
+        actual = model.get_actual(self.y_test)
+
+        yname = self.y_test.name
+        # Same as with singleoutput, except in a dataframe this time
+        expected = pd.DataFrame({
+            yname + '_diff_1': self.y_test.shift(-1),
+            yname + '_diff_2': self.y_test.shift(-2),
+            yname + '_diff_3': self.y_test.shift(-3)
+        }, index=self.y_test.index)
+        assert_frame_equal(actual, expected)
+
+        self.assertEqual(model.prediction_cols_, pred.columns.tolist())
+        self.assertEqual(pred.columns.tolist(),
+                         ['predict_lead_1_q_0.3', 'predict_lead_2_q_0.3', 'predict_lead_3_q_0.3',
+                          'predict_lead_1_q_0.7', 'predict_lead_2_q_0.7', 'predict_lead_3_q_0.7',
+                          'predict_lead_1_mean', 'predict_lead_2_mean', 'predict_lead_3_mean'])
+
+        X_transformed = model.preprocess_before_predict(self.X_test, self.y_test)
+        # Should have the same number of columns as model.get_feature_names()
+        self.assertEqual(X_transformed.shape[1], len(model.get_feature_names()))
+
+        self.assertEqual(model.n_outputs_, 9)
+
+        score = model.score(self.X_test, self.y_test)
+        self.assertTrue(np.isscalar(score))
 
     def test_expected_failures(self):
 
-        model = SamQuantileMLP(predict_ahead=(1, 2))
+        # For now, this usecase is not supported so will throw error
+        model = SamQuantileMLP(predict_ahead=1, use_y_as_feature=False, timecol='TIME')
         self.assertRaises(ValueError, model.fit, self.X, self.y)
-        model = SamQuantileMLP(predict_ahead=0, use_y_as_feature=True)
+
+        # No negative values allowed
+        model = SamQuantileMLP(predict_ahead=-1, use_y_as_feature=True, timecol='TIME')
+        self.assertRaises(ValueError, model.fit, self.X, self.y)
+
+        # Cannot use y as feature when predict_ahead is 0
+        model = SamQuantileMLP(predict_ahead=0, use_y_as_feature=True, timecol='TIME')
         self.assertRaises(ValueError, model.fit, self.X, self.y)
 
         # make the index of X and y not match
         y = self.y.copy()
         y.index = range(1, self.n_rows + 1)
 
+        # Index of X and y don't match
         model = SamQuantileMLP(predict_ahead=1, timecol='TIME')
         self.assertRaises(ValueError, model.fit, self.X, y)
 

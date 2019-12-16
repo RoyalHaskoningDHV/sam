@@ -45,14 +45,18 @@ class SamQuantileMLP(BaseEstimator):
 
     Parameters
     ----------
-    predict_ahead: integer, optional (default=1)
-        how many steps to predict ahead. If 0, predict the present, without differencing. If >0,
+    predict_ahead: integer, optional (default=[1])
+        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
+        2 timesteps into the future. If [0], predict the present. If not equal to [0],
         predict the future, with differencing.
+        A single integer is also allowed, in which case the value is converted to a singleton list.
     quantiles: array-like, optional (default=())
         The quantiles to predict. Between 0 and 1. Keep in mind that the mean will be predicted
         regardless of this parameter
     use_y_as_feature: boolean, optional (default=True)
         Whether or not to use y as a feature for predicting. If predict_ahead=0, this must be False
+        Due to time limitations, for now, this option has to be True, unless predict_ahead is 0.
+        Potentially in the future, this option can also be False when predict_ahead is not 0.s
     timeecol: string, optional (default=None)
         If not None, the column to use for constructing time features. For now,
         creating features from a DateTimeIndex is not supported yet.
@@ -203,6 +207,7 @@ class SamQuantileMLP(BaseEstimator):
             n_input=self.n_inputs_,
             n_neurons=self.n_neurons,
             n_layers=self.n_layers,
+            n_target=len(self.predict_ahead),
             quantiles=self.quantiles,
             lr=self.lr,
             momentum=self.momentum,
@@ -275,14 +280,17 @@ class SamQuantileMLP(BaseEstimator):
         - Pass through any other fit_kwargs to the fit function
         """
 
-        if not np.isscalar(self.predict_ahead):
-            raise ValueError("For now, multiple timestep predictions are not supported")
+        if np.isscalar(self.predict_ahead):
+            self.predict_ahead = [self.predict_ahead]
+
+        if not all([p >= 0 for p in self.predict_ahead]):
+            raise ValueError("All values of predict_ahead must be 0 or larger!")
 
         if not y.index.equals(X.index):
             raise ValueError("For training, X and y must have an identical index")
 
-        if self.use_y_as_feature and self.predict_ahead == 0:
-            raise ValueError("For now, when predict_ahead=0, you cannot also use y as a feature")
+        if not self.use_y_as_feature and self.predict_ahead != [0]:
+            raise ValueError("For now, use_y_as_feature must be true, unless predict_ahead is 0")
 
         self.validate_data(X)
 
@@ -290,12 +298,13 @@ class SamQuantileMLP(BaseEstimator):
             X = X.assign(y_=y.copy())
 
         # Create the actual target
-        if self.predict_ahead > 0:
+        if self.use_y_as_feature:
             target = make_differenced_target(y, self.predict_ahead)
         else:
-            target = y.copy()
+            # Dataframe with 1 column. Will use y's index and name
+            target = pd.DataFrame(y.copy())
         # Index where target is nan, cannot be trained on.
-        targetnanrows = target.isna()
+        targetnanrows = target.isna().any(axis=1)
 
         # buildrollingfeatures
         self.rolling_cols_ = [col for col in X if col != self.timecol]
@@ -311,10 +320,14 @@ class SamQuantileMLP(BaseEstimator):
                                      index=X.index)
         self.n_inputs_ = len(self.get_feature_names())
 
-        # Create output column names, depends on sam.models.create_keras_quantile_mlp
+        # Create output column names. In this model, our outputs are assumed to have the
+        # form: [quantile_1_output_1, quantile_1_output_2, ... ,
+        # quantile_n_output_1, quantile_n_output_2, ..., mean_output_1, mean_output_2]
+        # Where n_output (1 or 2 in this example) is decided by self.predict_ahead
         self.prediction_cols_ = \
-            ['predict_lag_{}_q_{}'.format(self.predict_ahead, q) for q in self.quantiles]
-        self.prediction_cols_ += ['predict_lag_{}_mean'.format(self.predict_ahead)]
+            ['predict_lead_{}_q_{}'.format(p, q)
+             for q in self.quantiles for p in self.predict_ahead]
+        self.prediction_cols_ += ['predict_lead_{}_mean'.format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
         # Remove the first n rows because they are nan anyway because of rolling features
@@ -369,6 +382,8 @@ class SamQuantileMLP(BaseEstimator):
         where you want to use the underlying keras model as opposed to the wrapper.
         For example shap, eli5, and even just implementing the `predict` function.
         """
+        # This function only works if the estimator is fitted
+        check_is_fitted(self, 'feature_engineer_')
 
         assert y is None or y.index.equals(X.index), \
             "For predicting, X and y must have an identical index"
@@ -406,17 +421,16 @@ class SamQuantileMLP(BaseEstimator):
         prediction = pd.DataFrame(prediction,
                                   columns=self.prediction_cols_,
                                   index=X.index)
-        if self.predict_ahead > 0:
+        # This parameter decides if we did differencing or not, so undo it if we used it
+        if self.use_y_as_feature:
             prediction = inverse_differenced_target(prediction, y)
-        else:
-            prediction = prediction.copy()
 
-        # We either return a series or a dataframe depending on if there are quantiles
-        if self.quantiles == []:
-            # Only one output, return 1d numpy array
-            return prediction['predict_lag_{}_mean'.format(self.predict_ahead)]
-        else:
-            return prediction
+        if prediction.shape[1] == 1:
+            # If you just wanted to predict a single value without quantiles,
+            # just return a series. Easier to work with.
+            prediction = prediction.iloc[:, 0]
+
+        return prediction
 
     def set_feature_names(self, X, X_transformed):
         """
@@ -438,9 +452,19 @@ class SamQuantileMLP(BaseEstimator):
         This essentially does and undoes differencing on y, meaning this function will output what
         a perfect model would have outputted.
         If predict_ahead is 0, no differencing is done anyway, so y is just returned unchanged.
+
+        If self.predict_ahead is a single value, this function will return a series.
+        If self.predict_ahead is multiple values, this function will return a dataframe.
         """
-        if self.predict_ahead > 0:
-            target = make_differenced_target(y, self.predict_ahead)
+        # This function only works if the estimator is fitted
+        check_is_fitted(self, 'model_')
+        if len(self.predict_ahead) == 1:
+            pred = self.predict_ahead[0]
+        else:
+            pred = self.predict_ahead
+
+        if self.use_y_as_feature:
+            target = make_differenced_target(y, pred)
             actual = inverse_differenced_target(target, y)
         else:
             actual = y.copy()
@@ -448,25 +472,35 @@ class SamQuantileMLP(BaseEstimator):
 
     def score(self, X, y):
         """
-        Default score function. Use sum of rmse and tilted loss
+        Default score function. Use sum of mse and tilted loss
         """
+        # This function only works if the estimator is fitted
+        check_is_fitted(self, 'model_')
         # quantile loss function
         prediction = self.predict(X, y)
-        actual = self.get_actual(y)
+        # We need a dataframe, regardless of if this function outputs a series or dataframe
+        actual = pd.DataFrame(self.get_actual(y))
 
         # actual usually has some missings at the end
         # prediction usually has some missings at the beginning
         # We ignore the rows with missings
-        missings = actual.isna() | prediction.isna().any(axis=1)
+        missings = actual.isna().any(axis=1) | prediction.isna().any(axis=1)
         actual = actual.loc[~missings]
         prediction = prediction.loc[~missings]
 
         # self.prediction_cols_[-1] defines the mean prediction
-        # Therefore, this line calculates the rmse of the mean prediction
-        loss = np.sqrt(np.mean((actual - prediction[self.prediction_cols_[-1]])**2))
+        # For n outputs, we need the last n columns instead
+        # Therefore, this line calculates the mse of the mean prediction
+        mean_prediction = prediction[self.prediction_cols_[-1*len(self.predict_ahead):]].values
+        # Calculate the MSE of all the predictions, and tilted loss of quantile predictions,
+        # then sum them at the end
+        loss = np.sum(np.mean((actual - mean_prediction)**2, axis=0))
         for i, q in enumerate(self.quantiles):
-            e = np.array(actual - prediction[self.prediction_cols_[i]])
-            loss += np.mean(np.max([q*e, (q-1)*e], axis=0))
+            startcol = len(self.predict_ahead)*i
+            endcol = startcol+len(self.predict_ahead)
+            e = np.array(actual - prediction[self.prediction_cols_[startcol:endcol]].values)
+            # Calculate all the quantile losses, and sum them at the end
+            loss += np.sum(np.mean(np.max([q*e, (q-1)*e], axis=0), axis=0))
         return loss
 
     def dump(self, foldername, prefix='model'):
@@ -478,6 +512,9 @@ class SamQuantileMLP(BaseEstimator):
         to the folder given by foldername. prefix is configurable, and is
         'model' by default
         """
+        # This function only works if the estimator is fitted
+        check_is_fitted(self, 'model_')
+
         import cloudpickle
 
         foldername = Path(foldername)
@@ -504,7 +541,7 @@ class SamQuantileMLP(BaseEstimator):
             mse_tilted = 'mse'
         else:
             def mse_tilted(y, f):
-                loss = keras_joint_mse_tilted_loss(y, f, self.quantiles)
+                loss = keras_joint_mse_tilted_loss(y, f, self.quantiles, len(self.predict_ahead))
                 return(loss)
         return mse_tilted
 
@@ -535,6 +572,8 @@ class SamQuantileMLP(BaseEstimator):
         """
         Combines several methods of summary to create a 'wrapper' summary method.
         """
+        # This function only works if the estimator is fitted
+        check_is_fitted(self, 'model_')
         print_fn(str(self))
         print_fn(self.get_feature_names())
         self.model_.summary(print_fn=print_fn)

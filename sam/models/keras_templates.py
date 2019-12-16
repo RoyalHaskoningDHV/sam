@@ -5,6 +5,7 @@ from sam.metrics import keras_joint_mse_tilted_loss
 def create_keras_quantile_mlp(n_input,
                               n_neurons,
                               n_layers,
+                              n_target=1,
                               quantiles=[],
                               dropout=None,
                               momentum=None,
@@ -28,6 +29,9 @@ def create_keras_quantile_mlp(n_input,
         Quantiles to predict, values between 0 and 1,
         default is [], which returns a regular mlp (single output)
         for mean squared error regression
+    n_target: int, optional (default=1)
+        Number of distinct outputs. Each will have their own mean and quantiles
+        When fitting the model, this should be equal to the number of columns in y_train
     dropout: float, optional (default=None)
         Rate parameter for dropout, value in (0,1)
         default is None, which means that no batch dropout is applied
@@ -67,10 +71,10 @@ def create_keras_quantile_mlp(n_input,
         mse_tilted = 'mse'
     else:
         def mse_tilted(y, f):
-            loss = keras_joint_mse_tilted_loss(y, f, quantiles)
+            loss = keras_joint_mse_tilted_loss(y, f, quantiles, n_target)
             return(loss)
 
-    n_out = len(quantiles) + 1  # one extra for mean regression
+    n_out = n_target * (len(quantiles) + 1)  # one extra for mean regression
     input_layer = Input((n_input, ))
     h = input_layer
 
