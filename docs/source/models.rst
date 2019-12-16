@@ -18,3 +18,10 @@ SAM Quantile MLP Model
     :members:
     :undoc-members:
     :show-inheritance:
+
+Benchmarking
+----------------------------
+.. autofunction:: sam.models.preprocess_data_for_benchmarking
+.. autofunction:: sam.models.benchmark_model
+.. autofunction:: sam.models.plot_score_dicts
+.. autofunction:: sam.models.benchmark_wrapper
