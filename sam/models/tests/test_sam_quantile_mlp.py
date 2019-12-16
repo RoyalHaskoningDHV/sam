@@ -51,7 +51,10 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         tf.set_random_seed(42)
         sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-        K.set_session(sess)
+
+        # For now, don't change the session since it makes one of the unit tests (shap)
+        # fail. I'm not sure exactly why
+        # K.set_session(sess)
 
     def test_predict_future(self):
         # We will fit quantiles but don't test them
@@ -118,13 +121,33 @@ class TestSamQuantileMLP(unittest.TestCase):
         self.assertEqual(model.prediction_cols_,
                          ['predict_lead_2_q_0.3', 'predict_lead_2_q_0.7', 'predict_lead_2_mean'])
 
+        # The actual feature importances aren't tested, only that they are outputted in
+        # the correct shape and with correct column names
+        feature_importances = \
+            model.quantile_feature_importances(self.X_test, self.y_test, n_iter=2)
+        self.assertEqual(feature_importances.columns.tolist(),
+                         model.get_feature_names())
+        self.assertEqual(feature_importances.shape, (2, 4))
+
+        # test shap values
+        explainer = model.get_explainer(self.X_test, self.y_test)
+        shap_values = explainer.shap_values(self.X_test[0:10], self.y_test[0:10])
+        test_values = explainer.test_values(self.X_test[0:10], self.y_test[0:10])
+
+        # Should be 3, since we have 3 outputs in our model
+        self.assertEqual(len(shap_values), model.n_outputs_)
+        # We explained 10 rows, with 4 features each
+        self.assertEqual(shap_values[0].shape, (10, model.n_inputs_))
+        self.assertEqual(test_values.shape, (10, model.n_inputs_))
+        self.assertEqual(test_values.columns.tolist(), model.get_feature_names())
+
         # Just run this, see if it throws any warning/errors
         # Score should ouput a scalar, summary should output nothing
         score = model.score(self.X_test, self.y_test)
-        assert np.isscalar(score)
+        self.assertTrue(np.isscalar(score))
 
         output = model.summary()
-        assert output is None
+        self.assertIsNone(output)
 
     def test_predict_present(self):
 

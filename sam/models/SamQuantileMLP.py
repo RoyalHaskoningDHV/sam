@@ -7,12 +7,74 @@ from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import keras_joint_mse_tilted_loss
 from sam.models import create_keras_quantile_mlp
 from sam.preprocessing import make_differenced_target, inverse_differenced_target
+from sam.utils import FunctionTransformerWithNames
 
 from pathlib import Path
 import warnings
 
 import numpy as np
 import pandas as pd
+
+
+class SamShapExplainer(object):
+
+    def __init__(self, explainer, model):
+        """
+        An object that imitates a SHAP explainer object. (Sort of) implements the base Explainer
+        interface `which can be found here
+        <https://github.com/slundberg/shap/blob/master/shap/explainers/explainer.py>`_ .
+        The more advanced, tensorflow-specific attributes can be accessed with obj.explainer.
+        The reason the interface is only sort of implemented, is the same reason why SamQuantileMLP
+        doesn't entirely implement the skearn interface - for predicting, y is needed, which is
+        not supported by the SamShapExplainer.
+
+        Parameters
+        ----------
+        explainer: shap TFDeepExplainer object
+            A shap explainer object. This will be used to generate the actual shap values
+        model: SAMQuantileMLP model
+            This will be used to do the preprocessing before calling explainer.shap_values
+        """
+        self.explainer = explainer
+
+        # Create a proxy model that can call only 3 attributes we need
+        class SamProxyModel():
+            fit = None
+            use_y_as_feature = model.use_y_as_feature
+            feature_names_ = model.get_feature_names()
+            preprocess_before_predict = SamQuantileMLP.preprocess_before_predict
+
+        self.model = SamProxyModel()
+        # Trick sklearn into thinking this is a fitted variable
+        self.model.feature_engineer_ = model.feature_engineer_
+        # Will likely be somewhere around 0
+        self.expected_value = explainer.expected_value
+
+    def shap_values(self, X, y=None, *args, **kwargs):
+        """
+        Imitates explainer.shap_values, but combined with the preprocessing from the model.
+        Returns a similar format as a regular shap explainer: a list of numpy arrays, one
+        for each output of the model.
+        """
+        X_transformed = self.model.preprocess_before_predict(X, y, dropna=False)
+        return self.explainer.shap_values(X_transformed, *args, **kwargs)
+
+    def attributions(self, X, y=None, *args, **kwargs):
+        """
+        Imitates explainer.attributions, which by default just mirrors shap_values
+        """
+        return self.shap_values(X, y, *args, **kwargs)
+
+    def test_values(self, X, y=None):
+        """
+        Only the preprocessing from the model, without the shap values.
+        Returns a pandas dataframe with the actual values used for the explaining
+        Can be used to better interpret the numpy array that is outputted by shap_values.
+        For example, if shap_values outputs a 5x20 numpy array, that means you explained 5 objects
+        with 20 features. This function will then return a 5x20 pandas dataframe.
+        """
+        X_transformed = self.model.preprocess_before_predict(X, y, dropna=False)
+        return pd.DataFrame(X_transformed, columns=self.model.feature_names_, index=X.index)
 
 
 class SamQuantileMLP(BaseEstimator):
@@ -187,12 +249,12 @@ class SamQuantileMLP(BaseEstimator):
             ] + \
             [
                 # Other features
-                ("passthrough", self.FunctionTransformerWithNames(identity, validate=False),
+                ("passthrough", FunctionTransformerWithNames(identity, validate=False),
                  self.rolling_cols_)
             ]
         if self.timecol:
             feature_engineer_steps += \
-                [("timefeats", self.FunctionTransformerWithNames(time_transformer, validate=False),
+                [("timefeats", FunctionTransformerWithNames(time_transformer, validate=False),
                   [self.timecol])]
 
         # Drop the time column if exists
@@ -442,9 +504,12 @@ class SamQuantileMLP(BaseEstimator):
         """
         Function for obtaining feature names. More widely used than an attribute, and more
         compatibly with the sklearn API
+        For the default feature engineer, it outputs features like 'mean__Q#mean_1'
+        Which is much easier to interpret if we remove the 'mean__'
         """
         check_is_fitted(self, '_feature_names')
-        return self._feature_names
+        names = [colname.split('__')[1] for colname in self._feature_names]
+        return names
 
     def get_actual(self, y):
         """
@@ -577,3 +642,131 @@ class SamQuantileMLP(BaseEstimator):
         print_fn(str(self))
         print_fn(self.get_feature_names())
         self.model_.summary(print_fn=print_fn)
+
+    def quantile_feature_importances(self, X, y, score=None, n_iter=5):
+        """
+        Computes feature importances based on the quantile loss function.
+        This function uses `ELI5's 'get_score_importances (link)
+        <https://eli5.readthedocs.io/en/latest/autodocs/permutation_importance.html>`_
+        to compute feature importances. It is a method that measures how the score decreases when
+        a feature is not available.
+        This is essentially a model-agnostic type of feature importance that works with
+        every model, including keras MLP models.
+
+        Parameters
+        ----------
+        X: pd.DataFrame
+              dataframe with test or train features
+        y: pd.Series
+              dataframe with test or train target
+        score: function, optional (default=None)
+             function with signature score(X, y)
+             that returns a scalar. Will be used to measure score decreases for ELI5.
+             By default, use the same scoring as is used by self.score(): RMSE plus MAE of
+             quantiles.
+        n_iter: int, optional (default=5)
+             Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
+             this parameter may provide more stablitity at the cost of a longer runtime
+
+        Returns
+        -------
+        score_decreases: Pandas dataframe,  shape (n_iter x n_features)
+            The score decreases when leaving out each feature per iteration. The higher, the more
+            important each feature is considered by the model.
+
+        Examples
+        --------
+        >>> # Example with a fictional dataset with only 2 features
+        >>> score_decreases = \
+        >>>     model.quantile_feature_importances(X_test[:100], y_test[:100], n_iter=3)
+        >>> # The score decreases of each feature in each iteration
+        >>> score_decreases
+            feature_1 feature_2
+        0   5.5       4.3
+        1   5.1       2.3
+        2   5.0       2.4
+
+        >>> feature_importances = score_decreases.mean()
+        feature_1    5.2
+        feature_2    3.0
+        dtype: float64
+
+        >>> # This will show a barplot of all the score importances, with error bars
+        >>> seaborn.barplot(data=score_decreases)
+        """
+        # Model must be fitted for this method
+        check_is_fitted(self, 'model_')
+        if len(self.predict_ahead) > 1:
+            raise NotImplementedError("This method is currently not implemented "
+                                      "for multiple targets")
+
+        from eli5.permutation_importance import get_score_importances
+
+        if score is None:
+            # By default, use RMSE + quantile MAE
+            def score(X, y, model=self.model_):
+                # quantile loss function that performs on the transformed model/data rather than a
+                # 'wrapper'. X is the transformed data, y is the target, model is a keras model,
+                # qs are the quantiles
+                y_pred = model.predict(X)
+                loss = np.sqrt(np.mean((y - y_pred[:, -1])**2))
+                for i, q in enumerate(self.quantiles):
+                    e = np.array(y - y_pred[:, i])
+                    loss += np.mean(np.max([q*e, (q-1)*e], axis=0))
+                return loss
+
+        X_transformed = self.preprocess_before_predict(X, y)
+        if self.use_y_as_feature:
+            y_target = make_differenced_target(y, self.predict_ahead).iloc[:, 0]
+        else:
+            y_target = y.copy().iloc[:, 0]
+
+        # Remove rows with missings in either of the two arrays
+        missings = np.isnan(y_target) | np.isnan(X_transformed).any(axis=1)
+        X_transformed = X_transformed[~missings, :]
+        y_target = y_target[~missings]
+
+        # use eli5 to compute feature importances:
+        _, score_decreases = get_score_importances(score, X_transformed, y_target, n_iter=n_iter)
+
+        decreases_df = pd.DataFrame(score_decreases, columns=self.get_feature_names())
+
+        return decreases_df
+
+    def get_explainer(self, X, y=None, sample_n=None):
+        """
+        Obtain a shap explainer-like object. This object can be used to
+        create shap values and explain predictions.
+
+        Keep in mind that this will explain
+        the created features from `self.get_feature_names()`, not the input features.
+        To help with this, the explainer comes with a `test_values()` attribute
+        that calculates the test values corresponding to the shap values
+
+        Parameters
+        ----------
+        X: array-like
+            The dataframe used to 'train' the explainer
+        y: array-like, optional (default=None)
+            Only required when self.predict_ahead > 0. Used to 'train' the explainer.
+        sample_n: integer, optional (default=None)
+            The number of samples to give to the explainer. It is reccommended that
+            if your background set is greater than 5000, to sample for performance reasons.
+
+        Examples
+        --------
+        >>> explainer = model.get_explainer(X_test, y_test, sample_n=1000)
+        >>> shap_values = explainer.shap_values(X_test[0:10], y_test[0:10])
+        >>> test_values = explainer.test_values(X_test[0:10], y_test[0:10])
+
+        >>> shap.force_plot(explainer.expected_value[0], shap_values[0][-1,:],
+        >>>                 test_values.iloc[-1,:], matplotlib=True)
+        """
+        import shap
+        X_transformed = self.preprocess_before_predict(X, y, dropna=True)
+        if sample_n is not None:
+            # Sample some rows to increase performance later
+            sampled = np.random.choice(X_transformed.shape[0], sample_n, replace=False)
+            X_transformed = X_transformed[sampled, :]
+        explainer = shap.DeepExplainer(self.model_, X_transformed)
+        return SamShapExplainer(explainer, self)
