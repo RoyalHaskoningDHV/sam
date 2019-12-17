@@ -3,6 +3,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.utils.validation import check_is_fitted
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
 
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import keras_joint_mse_tilted_loss
@@ -253,8 +254,10 @@ class SamQuantileMLP(BaseEstimator):
         # A very simple imputer, for example if a rolling window failed because one of the
         # elements was missing
         imputer = SimpleImputer()
+        # Scaling is needed since it vastly improves MLP performance
+        scaler = StandardScaler()
 
-        return Pipeline([('columns', engineer), ('impute', imputer)])
+        return Pipeline([('columns', engineer), ('impute', imputer), ('scaler', scaler)])
 
     def get_untrained_model(self):
         """
@@ -433,9 +436,10 @@ class SamQuantileMLP(BaseEstimator):
             validation_data = (X_val_transformed, y_val_transformed)
 
         # Fit model
-        self.model_.fit(X_transformed, target, batch_size=self.batch_size,
-                        epochs=self.epochs, verbose=self.verbose,
-                        validation_data=validation_data, **fit_kwargs)
+        history = self.model_.fit(X_transformed, target, batch_size=self.batch_size,
+                                  epochs=self.epochs, verbose=self.verbose,
+                                  validation_data=validation_data, **fit_kwargs)
+        return history
 
     def preprocess_before_predict(self, X, y, dropna=False):
         """
