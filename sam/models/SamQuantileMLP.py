@@ -1,6 +1,8 @@
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.utils.validation import check_is_fitted
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
 
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import keras_joint_mse_tilted_loss
@@ -247,7 +249,12 @@ class SamQuantileMLP(BaseEstimator):
                   [self.timecol])]
 
         # Drop the time column if exists
-        return ColumnTransformer(feature_engineer_steps, remainder='drop')
+        engineer = ColumnTransformer(feature_engineer_steps, remainder='drop')
+        # A very simple imputer, for example if a rolling window failed because one of the
+        # elements was missing
+        imputer = SimpleImputer()
+
+        return Pipeline([('columns', engineer), ('impute', imputer)])
 
     def get_untrained_model(self):
         """
@@ -490,7 +497,7 @@ class SamQuantileMLP(BaseEstimator):
         """
         Default function for setting the feature names
         """
-        return self.feature_engineer_.get_feature_names()
+        return self.feature_engineer_.named_steps['columns'].get_feature_names()
 
     def get_feature_names(self):
         """
