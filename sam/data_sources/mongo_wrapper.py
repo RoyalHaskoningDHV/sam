@@ -2,7 +2,8 @@ import pandas as pd
 
 
 class MongoWrapper:
-    """Provides a simple wrapper to the MongoDB layers
+    """
+    Provides a simple wrapper to the MongoDB layers
 
     This class provides a wrapper for basic functionality in MongoDB. We aim
     to use MongoDB as storage layer between analyses and e.g. dashboarding.
@@ -18,7 +19,7 @@ class MongoWrapper:
     port: integer, optional (default=27017)
         Port that the database is reachable on
     **kwargs: arbitrary keyword arguments
-        Passed through to pymongo.MongoClient
+        Passed through to `pymongo.MongoClient`
 
     Examples
     --------

@@ -15,7 +15,8 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
     So if the input dataframe is not sorted by time (in ascending order), the results will be
     completely wrong.
 
-    Output array is of shape (number of samples, lookback window, number of features)
+    Given an input array with shape `(n_samples, n_features)`, output array is of shape
+    `(n_samples, lookback, n_features)`
 
     Parameters
     ----------
@@ -24,7 +25,7 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
 
     lookback : integer (default=0)
         the features that are built will be shifted by this value.
-        If target is in X, lookback should be greater than 0 to avoid leakage.
+        If target is in `X`, `lookback` should be greater than 0 to avoid leakage.
 
     remove_leading_nan : boolean
         Whether leading nans should be removed.
@@ -82,13 +83,13 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : pandas Dataframe or numpy array, shape = (n_rows, n_features)
+        X : pandas Dataframe or numpy array, shape = `(n_rows, n_features)`
             feature table (so no ID, TYPE, TIME columns) to transform to three dimensional
 
         Returns
         -------
         X_new : numpy array
-            A three dimensional numpy array, moving windows over the features table X
+            A three dimensional numpy array, moving windows over the features table `X`
         """
         check_is_fitted(self, 'n_features_')
         # X needs to be pandas dataframe to use BuildRollingFeatures

@@ -29,3 +29,19 @@ Incident heatmap plot
 .. autofunction:: sam.visualization.plot_incident_heatmap
 
 .. image:: general_documents/images/incident_heatmap.png
+
+.. _flatline-removal-plot:
+
+Flatline Removal plot
+-----------------------
+.. autofunction:: sam.visualization.diagnostic_flatline_removal
+
+.. image:: general_documents/images/flatline_removal_example.png
+
+.. _extreme-removal-plot:
+
+Extreme value removal plot
+---------------------------
+.. autofunction:: sam.visualization.diagnostic_extreme_removal
+
+.. image:: general_documents/images/extreme_values_example_testset.png

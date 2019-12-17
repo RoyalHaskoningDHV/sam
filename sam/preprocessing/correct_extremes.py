@@ -7,34 +7,37 @@ logger = logging.getLogger(__name__)
 def setdoc(func):
 
     func.__doc__ = """
-    This documentation covers *correct_above_threshold*, *correct_below_threshold*
-    and *correct_outside_range*. These three functions can be used to filter extreme
+    This documentation covers `correct_above_threshold`, `correct_below_threshold`
+    and `correct_outside_range`. These three functions can be used to filter extreme
     values or fill them with a specified method. The function can correctly handle
-    series with a DatetimeIndex, to interpolate correctly even in the case of
+    series with a `DatetimeIndex`, to interpolate correctly even in the case of
     measurements with a varying frequency.
 
-    Note: this function does not affect nans. To filter/fill missing values,
-    use pandas `fillna` instead.
+    Note: this function does not affect nans. To filter/fill missing values, use `pd.fillna
+    <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`_
+    instead.
 
     Parameters
     ----------
     series: A pandas series
          The series containing potential outliers
     threshold: number, (default = 1) or a tuple (default = (0,1))
-               The exclusive threshold. A number for above or below, for
-               correct_outside_range it should be a tuple
+        The exclusive threshold. A number for above or below, for
+        `correct_outside_range` it should be a tuple
     method: string (default = "na")
-            To what the threshold exceeding values should be corrected, options are:
+        To what the threshold exceeding values should be corrected, options are:
 
-            - If 'na', set values to np.nan
-            - If 'previous', set values to previous non non-exceeding, non-na value
-            - If 'average', linearly interpolate values using
-              pandas.DataFrame.interpolate, *might leak and requires an index*
-            - If 'clip': set to the max threshold, lower/upper in case of range
-            - If 'value', set to a specific value, specified in 'value parameter'
-            - If 'remove', removes complete row.
+        - If 'na', set values to `np.nan`
+        - If 'previous', set values to previous non non-exceeding, non-na value
+        - If 'average', linearly interpolate values using
+            `pandas.DataFrame.interpolate
+            <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.interpolate.html>`_,
+            *might leak and requires an index*
+        - If 'clip': set to the max threshold, lower/upper in case of range
+        - If 'value', set to a specific value, specified in `value` parameter
+        - If 'remove', removes complete row.
     value: (default = None)
-           If 'method' is 'value', set the threshold exceeding entry to this value
+        If `method` is 'value', set the threshold exceeding entry to this value
 
     Returns
     -------

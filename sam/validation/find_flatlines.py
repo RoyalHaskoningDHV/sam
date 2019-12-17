@@ -86,16 +86,21 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
             return np.array([])  # No match found
 
     def fit(self, data):
+        '''
+        Does nothing
+        '''
         return self
 
     def transform(self, data):
         '''
+        Transforms the data
+
         Parameters
         ----------
         data: pandas dataframe
             with index as increasing time and columns as features
 
-        Returns:
+        Returns
         -------
         data_r: pandas dataframe
             with flatlines replaced by nans

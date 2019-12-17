@@ -20,7 +20,7 @@ except ImportError:
 def keras_tilted_loss(y_true, y_pred, quantile=0.5):
     """
     Calculate tilted, or quantile loss in Keras. Given a quantile q, and an error e,
-    then tilted loss is defined as (1-q) * |e| if e < 0, and q * |e| if e > 0.
+    then tilted loss is defined as `(1-q) * |e|` if `e < 0`, and `q * |e|` if `e > 0`.
 
     This function is the same as the mean absolute error if q=0.5, which approximates the median.
     For a given value of q, the function that minimizes the tilted loss will be the q'th quantile
@@ -31,7 +31,7 @@ def keras_tilted_loss(y_true, y_pred, quantile=0.5):
     y_true: Theano/TensorFlow tensor.
         True labels.
     y_pred: Theano/TensorFlow tensor.
-        Predictions. Must be same shape as y_true
+        Predictions. Must be same shape as `y_true`
     quantile: float, optional (default=0.5)
         The quantile to use when computing tilted loss.
         Must be between 0 and 1 for tilted loss to be positive.
@@ -106,7 +106,7 @@ def keras_rmse(y_true, y_pred):
     y_true: Theano/TensorFlow tensor.
         True labels.
     y_pred: Theano/TensorFlow tensor.
-        Predictions. Must be same shape as y_true
+        Predictions. Must be same shape as `y_true`
 
     Examples
     --------

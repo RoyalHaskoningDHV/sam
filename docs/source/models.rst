@@ -6,15 +6,15 @@ Models
 
 This is the documentation for modeling functions.
 
-
 Keras templates
 ---------------------------
+.. _create-keras-quantile-mlp:
 .. autofunction:: sam.models.create_keras_quantile_mlp
 .. autofunction:: sam.models.create_keras_quantile_rnn
 
 SAM Quantile MLP Model
 ---------------------------
-.. autoclass:: sam.models.SamquantileMLP
+.. autoclass:: sam.models.SamQuantileMLP
     :members:
     :undoc-members:
     :show-inheritance:

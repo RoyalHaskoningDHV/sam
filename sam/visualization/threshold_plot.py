@@ -10,12 +10,12 @@ def plot_threshold_curve(y_true, y_score, range_pred=None):
 
     Parameters
     ----------
-    y_true : array_like, shape = (n_outputs,)
+    y_true: array_like, shape = (n_outputs,)
         The truth values. Must be either 0 or 1. If range_pred is provided, this refers
         to the incidents.
     y_score: array_like, shape = (n_outputs,)
         The prediction. Must be between 0 and 1
-    range_pred : tuple, optional (default = None)
+    range_pred: tuple, optional (default = None)
         If this is provided, make a precision/incident recall plot, using y_true as the
         incidents, and this range_pred.
 

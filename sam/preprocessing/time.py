@@ -5,7 +5,8 @@ logger = logging.getLogger(__name__)
 
 
 def label_dst(timestamps):
-    """Find possible conflicts due to daylight savings time, by
+    """
+    Find possible conflicts due to daylight savings time, by
     labeling timestamps. This converts a series of timestamps to
     a series of strings. The strings are either 'normal',
     'to_summertime', or 'to_wintertime'.
@@ -64,8 +65,9 @@ def label_dst(timestamps):
 
 
 def average_winter_time(data, tmpcol='tmp_UNID'):
-    """Solve duplicate timestamps in wintertime, by averaging them
-    Because the to_wintertime hour happens twice, there can be duplpicate timestamps
+    """
+    Solve duplicate timestamps in wintertime, by averaging them
+    Because the to_wintertime hour happens twice, there can be duplicate timestamps
     This function removes those duplicates by averaging the VALUE column
     All other columns are used as group-by columns
 

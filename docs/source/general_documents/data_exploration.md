@@ -42,13 +42,11 @@ Generates a rapport like pandas profiling.
 An interactive tool, more like BI so probably not that useful. Can also do some machine learning.
 
 ## SAM exploration tool
-To speed up inital analysis and help during conversations with domain exports at the client we created a simple (shiny) tool. It takes data from the database in the development enivorenment (see [Production platform][production_platform.html] for more components) in the long format as described in [the data storage section](data_storage.html). Right now it only takes data from a mongodb database. You would use the tool as follows:
+To speed up inital analysis and help during conversations with domain exports at the client we created a simple (shiny) tool. It takes data from the database in the development environment (see [Production platform](production_platform.html) for more components) in the long format as described in [the data storage section](data_storage.html). Right now it only takes data from a mongodb database. You would use the tool as follows:
 
-1. Load the data into the development environment
-2. Process the data to long-format and store it in the mongodb
-3. Load op the SAM-exploration tool (find the link on [the landing page](https://main-sam.ynformed.nl))
-4. Use the side menu to select the database and collection (your browser will remember this as default next time)
-5. Use the various views for insights into correlations, summary statistics etc.
+1. Process the data to long-format and store it as a csv, rds, or feather file.
+2. Load op the SAM-exploration tool: [Currenty on app-test](https://app-test.ynformed.nl/app/samexploration)
+3. Use the various views for insights into correlations, summary statistics etc.
 
 ### Tips
 

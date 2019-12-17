@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from sklearn.base import TransformerMixin, BaseEstimator
 import logging
@@ -8,17 +7,18 @@ logger = logging.getLogger(__name__)
 class RemoveExtremeValues(BaseEstimator, TransformerMixin):
     '''
     This transformer finds extreme values and sets them to nan in a few steps:
-    1. estimate upper and lower bounds from the data in the fit method by
-       computing median deviation above and below a running median
-    2. mark differences outside these bounds as nan in the transform method
 
-    This class can be passed to the plot function diagnostic_extreme_removal in
-    sam.visualization to create a visualization of the removal procedure.
+    - Estimate upper and lower bounds from the data in the fit method by
+      computing median deviation above and below a running median
+    - Mark differences outside these bounds as nan in the transform method
+
+    This class can be passed to the plot function (see :ref:`extreme-removal-plot`)
+    to create a visualization of the removal procedure.
     It is advisory to take a look at this diagnostic plot to see if your
-    rollingwindow parameter is sufficiently large to capture slow variations,
+    `rollingwindow` parameter is sufficiently large to capture slow variations,
     without removing local peaks that might be 'outliers'.
 
-    In addition, the default madthresh of 15 is relatively conservative. More
+    In addition, the default `madthresh` of 15 is relatively conservative. More
     liberal thresholds can be tried.
 
     Note that you only pass cols that are suited for extreme value detection.
@@ -83,7 +83,7 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
         self.rollingwindow = rollingwindow
         self.madthresh = madthresh
 
-    def compute_rolling(self, x):
+    def _compute_rolling(self, x):
         r = x.rolling(self.rollingwindow, min_periods=1, center=True).median()
         return r
 
@@ -103,14 +103,13 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
 
         self.thresh_high = {}
         self.thresh_low = {}
-        data_r = data.copy()
         for c in self.cols:
 
             # get data
             x = data.loc[:, c]
 
             # determine differenc
-            rolling = self.compute_rolling(x)
+            rolling = self._compute_rolling(x)
             diff = x.values - rolling
 
             # Define thresholds as number of median absolute deviations.
@@ -143,7 +142,7 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
             x = data.loc[:, c]
 
             # determine rolling and diff
-            rolling = self.compute_rolling(x)
+            rolling = self._compute_rolling(x)
             diff = x.values - rolling
 
             # as thresholds are computed in signed way, we can directly compare

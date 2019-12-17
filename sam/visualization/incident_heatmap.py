@@ -34,7 +34,7 @@ def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='i
         with the text lying horizontally. By default, rotate 30 degrees.
     datefmt: string, optional (default=None)
         Optionally, the format of the x-axis date labels. By default, use
-        %Y-%m-%dT%H:%M:%S%f
+        `%Y-%m-%dT%H:%M:%S%f`
     **kwargs:
         any arguments to pass to sns.heatmap()
 

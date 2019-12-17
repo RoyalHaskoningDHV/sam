@@ -6,12 +6,12 @@ from sklearn.metrics import precision_recall_curve
 
 def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
     """
-    Given y_pred, y_incidents and a prediction range, see what percentage of incidents in
-    y_incidents was positively predicted in y_pred, within window range_pred. Works for binary
-    classification only (predicting 1 means incident, predicting 0 means no incident)
+    Given `y_pred`, `y_incidents` and a prediction range, see what percentage of incidents in
+    `y_incidents` was positively predicted in `y_pred`, within window `range_pred`. Works for
+    binary classification only (predicting 1 means incident, predicting 0 means no incident)
 
     For use in a make_scorer, e.g.
-    make_scorer(incident_recall, y_incidents=df['incidents'], range_pred=(1,5))
+    `make_scorer(incident_recall, y_incidents=df['incidents'], range_pred=(1,5))`
 
     Parameters
     ----------
@@ -49,7 +49,7 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
 
 def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
     """
-    Wrapper around incident_recall_score, to make it an actual sklearn scorer.
+    Wrapper around `incident_recall_score`, to make it an actual sklearn scorer.
     This works by obtaining the 'incident' column from the data itself. This
     column name is configurable. This scorer does need the incident column
     to be present, which means by default it will be used in training the model.
@@ -135,17 +135,17 @@ def _merge_thresholds(left_t, right_t, left_val, right_val):
 
 def precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 0)):
     """
-    Analogous to sklearn.metrics.precision_recall_curve, but for incident recall and
-    precision.
+    Analogous to `sklearn.metrics.precision_recall_curve
+    <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html>`_,
+    but for incident recall and precision.
     Precision is what it seems: for every prediction you make, check if there
     really is an incident coming up or not. Precision is the percentage you get correct.
     Incident recall is as in incident_recall function: for every incident, check if you
     made at least a single positive prediction.
 
-    The calculation of the thresholds is done by calling sklearn.precision_recall_curve.
+    The calculation of the thresholds is done by calling `sklearn.precision_recall_curve`.
 
-    Given incidents and a prediction, as well as range,
-    returns precision, recall, thresholds.
+    Given incidents and a prediction, as well as range, returns precision, recall, thresholds.
 
     Parameters
     ----------

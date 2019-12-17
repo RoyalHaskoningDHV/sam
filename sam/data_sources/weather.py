@@ -33,9 +33,11 @@ knmy_stations = pd.DataFrame({
 
 
 def _haversine(stations_row, lat2, lon2):
-    """ Helper function to calculate the distance between a station and a (lat, lon) position
+    """
+    Helper function to calculate the distance between a station and a (lat, lon) position
     stations_row is a row of knmy_stations, which means it's a dataframe with shape (1, 3)
-    Credit for this solution goes to https://stackoverflow.com/a/19412565 """
+    `Credit for this solution goes to stackoverflow <https://stackoverflow.com/a/19412565>`_
+    """
     lat1, lon1 = math.radians(stations_row['latitude']), math.radians(stations_row['longitude'])
     lat2, lon2 = math.radians(lat2), math.radians(lon2)
     a = math.sin((lat2 - lat1) / 2)**2 + \
@@ -45,8 +47,10 @@ def _haversine(stations_row, lat2, lon2):
 
 
 def _try_parsing_date(text):
-    """ Helper function to try parsing text that either does or does not have a time
-    To make the functions below easier, since often time is optional in the apis"""
+    """
+    Helper function to try parsing text that either does or does not have a time
+    To make the functions below easier, since often time is optional in the apis
+    """
     for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d']:
         try:
             return datetime.datetime.strptime(text, fmt)
@@ -57,11 +61,12 @@ def _try_parsing_date(text):
 
 def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly',
               variables='default', find_nonan_station=False):
-    """Export historic variables from KNMI, either hourly or daily.
+    """
+    Export historic variables from KNMI, either hourly or daily.
     There are many weather stations in the Netherlands, but this function will select the station
     that is physically closest to the desired location, and use that station.
     knmi only has historic data. Usually, the most recent datapoint is about half a day prior to
-    the current time. If the start_date and/or end_date is after the most recent available
+    the current time. If the `start_date` and/or `end_date` is after the most recent available
     datapoint, any datapoints that are not available will not be included in the results, not
     even as missing data.
 
@@ -69,10 +74,10 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
     ----------
     start_date : str or datetime-like
         the start time of the period from which to export weather
-        if str, must be in the format %Y-%m-%d %H:%M:%S or %Y-%m-%d %H:%M:%S
+        if str, must be in the format `%Y-%m-%d %H:%M:%S` or `%Y-%m-%d`
     end_date : str or datetime-like
         the end time of the period from which to export weather
-        if str, must be in the format %Y-%m-%d %H:%M:%S or %Y-%m-%d %H:%M:%S
+        if str, must be in the format `%Y-%m-%d %H:%M:%S` or `%Y-%m-%d`
     latitude : float, optional (default=52.11)
         latitude of the location from which to export weather. By default, use location of weather
         station De Bilt
@@ -157,7 +162,7 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
     # if there are no stations without nans, raise exception:
     if si == len(stations):
         knmi_raw = first_knmi_data
-        raise RuntimeException(
+        raise RuntimeError(
             'Warning, no stations without nans found, ' +
             'returning requested station instead (including nans).')
 
@@ -273,24 +278,24 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
 
     By default, this function collects the best-known information for a single point, given by
     latitude and longitude in coordinate system EPSG:4326 (WGS84). This can be configured
-    using **kwargs, but this requires some knowledge of the underlying API.
+    using `**kwargs`, but this requires some knowledge of the underlying API.
 
-    The parameters agg=average, rasters=730d6675, srs=EPSG:4326m are given to the API, as well as
-    start, end, window given by start_date, end_date, freq. Lastly geom, which is
-    `POINT+(latitude+longitude)`.
-    Alternatively, a different geometry can be passed via the 'geom' argument in **kwargs.
-    A different coordinate system can be passed via the 'srs' argument in **kwargs.
-    This is a WKT string. For example: geom='POINT+(191601+500127)', srs='epsg:28992'.
+    The parameters `agg=average`, `rasters=730d6675`, `srs=EPSG:4326m` are given to the API, as
+    well as `start`, `end`, `window` given by `start_date`, `end_date`, `freq`. Lastly `geom`,
+    which is `POINT+(latitude+longitude)`.
+    Alternatively, a different geometry can be passed via the `geom` argument in `**kwargs`.
+    A different coordinate system can be passed via the `srs` argument in `**kwargs`.
+    This is a WKT string. For example: `geom='POINT+(191601+500127)', srs='epsg:28992'`.
     Exact information about the API specification and possible arguments is unfortunately unknown.
 
     Parameters
     ----------
     start_date: str or datetime-like
         the start time of the period from which to export weather
-        if str, must be in the format %Y-%m-%d or %Y-%m-%d %H:%M:%S
+        if str, must be in the format `%Y-%m-%d` or `%Y-%m-%d %H:%M:%S`
     end_date: str or datetime-like
         the end time of the period from which to export weather
-        if str, must be in the format %Y-%m-%d or %Y-%m-%d %H:%M:%S
+        if str, must be in the format `%Y-%m-%d` or `%Y-%m-%d %H:%M:%S`
     latitude: float, optional (default=52.11)
         latitude of the location from which to export weather. By default, use location of weather
         station De Bilt
@@ -308,8 +313,8 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
     Returns
     -------
     result: dataframe
-        Dataframe with column PRECIPITATION and column TIME.
-        PRECIPITATION is the precipitation in the last 5 minutes, in mm.
+        Dataframe with column `PRECIPITATION` and column `TIME`.
+        `PRECIPITATION` is the precipitation in the last 5 minutes, in mm.
 
     Examples
     --------

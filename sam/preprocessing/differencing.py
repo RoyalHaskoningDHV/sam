@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from sam.feature_engineering import BuildRollingFeatures
 
 
 def make_differenced_target(y, lags=1, newcol_prefix=None):
@@ -12,7 +11,7 @@ def make_differenced_target(y, lags=1, newcol_prefix=None):
     Also, it may be desirable to have either one or multiple targets. To preserve consistency,
     this function returns a dataframe either way.
 
-    This function creates a dataframe with columns 'TARGET_diff_x', where x are the lags,
+    This function creates a dataframe with columns 'TARGET_diff_x', where `x` are the lags,
     and TARGET is the name of the input series.
 
     Parameters
@@ -22,7 +21,7 @@ def make_differenced_target(y, lags=1, newcol_prefix=None):
         to work correctly.
     lags: array-like or int, optional (default=1)
         A list of integers, or a single integer describing what lags should be used to look in the
-        future. For example, if this is [1, 2, 3], the output will have three columns, performing
+        future. For example, if this is `[1, 2, 3]`, the output will have three columns, performing
         differencing on 1, 2, and 3 timesteps in the future.
         If this is a list, the output will be a dataframe. If this is a scalar, the output will
         be a series
@@ -32,13 +31,13 @@ def make_differenced_target(y, lags=1, newcol_prefix=None):
     Returns
     -------
     target: pd.DataFrame or pd.Series
-        A target with the same index as y, and columns equal to len(lags)
-        The values will be 'future values' of y but differenced.
+        A target with the same index as `y`, and columns equal to `len(lags)`
+        The values will be 'future values' of `y` but differenced.
         If we consider the index to be the 'timestamp', then the index will be the moment the
         prediction is made, not the moment the prediction is about. Therefore, the columns
         will be different future values with different lags.
         Any values that cannot be calculated (because there is no available future value) will be
-        set to np.nan.
+        set to `np.nan`.
 
     Examples
     --------
@@ -100,8 +99,8 @@ def inverse_differenced_target(predictions, y):
     Returns
     -------
     actual: pd.DataFrame
-        Dataframe containing un-differenced values, created by adding predictions to y on index.
-        The index of this output will be the union of the indexes of predictions and y.
+        Dataframe containing un-differenced values, created by adding predictions to `y` on index.
+        The index of this output will be the union of the indexes of predictions and `y`.
         The columns refer to the values/predictions made at a single point in time.
         For example, if the index is '18:00', and the predictions are made on differencing 1 hour,
         2 hour and 3 hours, then one row will contain the predictions made at 18:00,

@@ -9,7 +9,7 @@ def plot_lag_correlation(df, ylim=None):
         df: pandas dataframe (columns: LAG and columns to visualise)
             Dataframe containing the data that has to be visualized
 
-        ylim : list[min, max]
+        ylim: list[min, max]
             In order to customize the y-axis limit
 
         Returns

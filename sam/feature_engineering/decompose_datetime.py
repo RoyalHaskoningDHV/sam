@@ -80,7 +80,7 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
 
     Returns
     -------
-    result : dataframe
+    result: dataframe
         The original dataframe with extra columns containing time components
 
     Examples
@@ -149,9 +149,6 @@ def recode_cyclical_features(df, cols, remove_original=None, column='', remove_c
     Convert cyclical features (like day of week, hour of day) to
     continuous variables, so that sunday and monday are close together
     numerically.
-    See:
-    - https://www.kaggle.com/avanwyk/encoding-cyclical-features-for-deep-learning
-    - http://blog.davidkaleko.com/feature-engineering-cyclical-features.html
 
     IMPORTANT NOTE: This function requires a global maximum and minimum for the data. For example,
     for minutes, the global maximum and minimum are 0 and 60 respectively, even if your data never

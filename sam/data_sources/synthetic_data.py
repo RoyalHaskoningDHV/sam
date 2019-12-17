@@ -64,13 +64,13 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
     - For each month and day of the week, noise is generated according to monthnoise and daynoise
       These two sources of noise are added together
     - Noise as specified by the noise parameter is generated for each point
-    - The above three series are added together. The result is rescaled according to minmax_values
-    - Missing values are added according to cutoff_values and random_missing
+    - The above three series are added together. Rescale the result according to `minmax_values`
+    - Missing values are added according to `cutoff_values` and `random_missing`
     - The values are mutated according to negabs
 
-    The result is returned in a numpy array with the same length as the dates input.
+    The result is returned in a numpy array with the same length as the `dates` input.
     Due to the way the cubic splines are generated, there may be several dozen to a hundred data
-    points at the beginning and end that are nan. To fix this, choose a dates array that is a
+    points at the beginning and end that are `nan`. To fix this, choose a dates array that is a
     couple of days longer than what you really want. Then, at the end, filter the output to only
     the dates in the middle.
 
@@ -78,7 +78,7 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
     ----------
     dates: series of datetime, shape=(n_inputs,)
         The index of the time series that will be created. At least length 2.
-        Must be a pandas series, with a .dt attribute.
+        Must be a pandas series, with a `.dt` attribute.
     monthly: numeric, optional (default=0)
         The magnitude of the (random) monthly pattern. A random magnitude will be created for each
         month, with a cubic spline interpolating between months. The higher this value, the
@@ -93,14 +93,14 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
         the daily pattern
     monthnoise: tuple of (str, numeric), optional (default=(None, 0))
         The type and magnitude of the monthly noise. For each month, a different magnitude will be
-        uniformly drawn between 0 and monthnoise[1]. The type of the noise is given in
-        monthnoise[0] and is either 'normal', 'poisson', or other (no noise). This noise is added
+        uniformly drawn between 0 and `monthnoise[1]`. The type of the noise is given in
+        `monthnoise[0]` and is either 'normal', 'poisson', or other (no noise). This noise is added
         to all points,but the magnitude wil differ between the 12 different months.
     daynoise: tuple of (str, numeric), optional (default=(None, 0))
         The type and magnitude of the daily noise. For each day of the week, a different magnitude
-        will be drawn between 0 and daynoise[1]. The type of the noise is given in daynoise[0] and
-        is either 'normal', 'poisson', or other (no noise). This noise is added to all points, but
-        the magnitude wil differ between the 7 different days of the week.
+        will be drawn between 0 and `daynoise[1]`. The type of the noise is given in `daynoise[0]`
+        and is either 'normal', 'poisson', or other (no noise). This noise is added to all points,
+        but the magnitude wil differ between the 7 different days of the week.
     noise: dict, optional (default={})
         The types of noise that are added to every single point. The keys of this dictionary are
         'normal', 'poisson', or other (ignored)
@@ -110,8 +110,8 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
         The values will be linearly rescaled to always fall within these bounds.
         By default, no rescaling is done.
     cutoff_values: tuple, optional (default=None)
-        After rescaling, all the values that fall outside of these bounds will be set to nan.
-        By default, no cutoff is done, and no values will be set to nan
+        After rescaling, all the values that fall outside of these bounds will be set to `nan`.
+        By default, no cutoff is done, and no values will be set to `nan`.
     negabs: numeric, optional (default=None)
         This value is subtracted from all the output (after rescaling), and then the result will
         be the absolute value. This oddly-specific operation is useful in case you want a positive
@@ -122,8 +122,8 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
         series with a lot of missing values. The missing values will be completely randomly
         distributed with no pattern.
     seed: int or 1-d array_like, optional (default=None)
-        seed for random noise generation. Passed through to numpy.random.seed. By default, no call
-        to numpy.random.seed is made.
+        seed for random noise generation. Passed through to `numpy.random.seed`. By default, no
+        call to `numpy.random.seed` is made.
 
     Returns
     -------
@@ -208,11 +208,11 @@ def synthetic_date_range(start='2016-01-01', end='2017-01-01', freq='H',
     The algorithm:
 
     - Generate a regular pandas date_range with start, end, and frequency
-    - Delay each time by a uniformly chosen random number between 0 and max_delay, in seconds.
-    - Pick a proportion random_stop_freq of times randomly. Each of these times x_i
-      are deemed 'stoppages', and for each, a number between 1 and random_stop_max_length is
-      uniformly chosen, say k_i. Then, the 'stoppage', the k_i next points after x_i are deleted,
-      causing a hole in the times.
+    - Delay each time by a uniformly chosen random number between 0 and `max_delay`, in seconds.
+    - Pick a proportion `random_stop_freq` of times randomly. Each of these times `x_i`
+      are deemed 'stoppages', and for each, a number between 1 and `random_stop_max_length` is
+      uniformly chosen, say `k_i`. Then, the 'stoppage', the `k_i` next points after `x_i` are
+      deleted, causing a hole in the times.
     - Only the times strictly smaller than end are kept. This means end is an exclusive bound.
 
     Parameters
@@ -222,20 +222,20 @@ def synthetic_date_range(start='2016-01-01', end='2017-01-01', freq='H',
     end: str or datetime-like, optional (default='2017-01-01')
         Right bound for generating dates. Exclusive bound.
     freq: str or DateOffset, optional (default='H') (hourly)
-        Frequency strings can have multiples, e.g. ‘5H’. See here for a list of frequency aliases.
-        https://pandas.pydata.org/pandas-docs/stable/timeseries.html#timeseries-offset-aliases
+        Frequency strings can have multiples, e.g. '5H'. See `here for a list of frequency aliases.
+        <https://pandas.pydata.org/pandas-docs/stable/timeseries.html#timeseries-offset-aliases`_
     max_delay: numeric, optional (default=0)
-        Each time is delayed by a random number of seconds, chosen between 0 and max_delay
+        Each time is delayed by a random number of seconds, chosen between 0 and `max_delay`
     random_stop_freq: numeric, optional (default=0)
         Number between 0 and 1. This proportion of all times are deemed as starting points of
         'stoppages'. A stoppage means that a number of points are removed from the result.
     random_stop_max_length: numeric, optional (default=1)
-        Each stoppage will have a randomly generated length, between 1 and random_stop_max_length.
-        A stoppage of length k means that the first k points after the start of the stoppage are
-        deleted.
+        Each stoppage will have a randomly generated length, between 1 and
+        `random_stop_max_length`. A stoppage of length `k` means that the first `k` points after
+        the start of the stoppage are deleted.
     seed: int or 1-d array_like, optional (default=None)
-        seed for random noise generation. Passed through to numpy.random.seed. By default, no call
-        to numpy.random.seed is made.
+        seed for random noise generation. Passed through to `numpy.random.seed`. By default, no
+        call to `numpy.random.seed` is made.
 
     Returns
     -------

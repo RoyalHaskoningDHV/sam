@@ -14,8 +14,8 @@ def incident_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, m
     outlier.
 
     Then, we apply various checks and filters to it to create 'curves', or streaks of
-    connected outlies. These curves can have gaps, if max_gap > 0. In the end, only the curves that
-    satisfy conditions are kept. Curves that do not satisfy one of the conditions are ignored
+    connected outlies. These curves can have gaps, if `max_gap > 0`. In the end, only the curves
+    that satisfy conditions are kept. Curves that do not satisfy one of the conditions are ignored
     (essentially, the output will act as if they are not outliers at all).
 
     The output is an array of the same length as the number of rows as data, with each streak of
@@ -158,7 +158,7 @@ def incident_curves_information(data, under_conf_interval=True, return_aggregate
         If values lower than the interval count as outliers. If this is false, then only
         values higher than the interval are counted as outliers. false by default
     return_aggregated: boolean, optional (default=True)
-        Wether the information about the outliers should be aggregated by outlier_curve.
+        Wether the information about the outliers should be aggregated by OUTLIER_CURVE.
         The two options return different types of information.
     normal: string, optional (default='PREDICT')
         The name of the colomn in the data containing a 'normal' value for each row
@@ -184,7 +184,7 @@ def incident_curves_information(data, under_conf_interval=True, return_aggregate
         - OUTLIER_TYPE (string) 'positive' if the outlier is above the interval,
           and 'negative' if the outlier is below the interval
 
-        if return_aggregated, then it will return information about each outlier curve
+        if `return_aggregated`, then it will return information about each outlier curve
         The output will have the following columns:
 
         - index: OUTLIER_CURVE (numeric) The id of the curve. 0 is not included

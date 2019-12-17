@@ -36,17 +36,17 @@ def mean_absolute_scaled_error(y_true, y_pred, shift,
         Sample weights.
 
     multioutput : string in [‘raw_values’, ‘uniform_average’]
-        or array-like of shape (n_outputs) Defines aggregating of multiple output values.
+        or array-like of shape `(n_outputs)` Defines aggregating of multiple output values.
 
-        ‘raw_values’ :
+        'raw_values':
             Returns a full set of errors in case of multioutput input.
 
-        ‘uniform_average’ :
+        'uniform_average':
             Errors of all outputs are averaged with uniform weight.
 
     Returns
     -------
-    loss : float or ndarray of floats
+    loss: float or ndarray of floats
         MASE output is non-negative floating point. The best value is 0.0.
 
     Examples

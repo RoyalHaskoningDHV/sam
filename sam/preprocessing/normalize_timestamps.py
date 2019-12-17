@@ -28,14 +28,14 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
 
     Secondly, all timestamps are rounded to the required frequency. For example, if the frequency
     is 1 hour, we may want the timestamp 19:45:12 to be rounded to 20:00:00.
-    The method of rounding is ceiling by default, and is given by round_method.
+    The method of rounding is ceiling by default, and is given by `round_method`.
 
     Thirdly, any timestamps with multiple measurements are aggregated.
-    This is the last non-null value by default, and is given by aggregate_method.
+    This is the last non-null value by default, and is given by `aggregate_method`.
     Other options are 'mean', 'median', 'first', and other pandas aggregation functions.
 
     Fourthly, any timestamps with missing values are filled. By default, no filling is done,
-    and is given by fillna_method. The other options are backward filling and forward filling.
+    and is given by `fillna_method`. The other options are backward filling and forward filling.
     ('bfill' and 'ffill')
 
     Parameters
@@ -46,17 +46,18 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
     freq: str or DateOffset
         the frequency with which the time features are made
         frequencies can have multiples, e.g. "15 min" for 15 minutes
-        https://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases
+        `See here for options
+        <https://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases>`_
 
     start_time: str or datetime-like, optional (default = '')
         the start time of the period to create features over
-        if string, the format 'YYYY/MM/DD HH:mm:SS' will always work
-        Pandas also accepts other formats, or a datetime object
+        if string, the format `%Y-%m-%d %H:%M:%S` will always work
+        Pandas also accepts other formats, or a `datetime` object
 
     end_time: str or datetime-like, optional (default = '')
         the end time of the period to create features over
-        if string, the format 'YYYY/MM/DD HH:mm:SS' will always work
-        Pandas also accepts other formats, or a datetime object
+        if string, the format `%Y-%m-%d %H:%M:%S` will always work
+        Pandas also accepts other formats, or a `datetime` object
 
     round_method: string, optional (default = 'floor')
         How to group the times in bins. By default, rows are grouped by
@@ -69,7 +70,7 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
         - 'round': Group times by rounding to the nearest frequency
 
         Ceiling is the option that is the safest to prevent leakage: It will guarantee that a
-        value in the output will have a TIME that is not before the time that it
+        value in the output will have a `TIME` that is not before the time that it
         actually occurred.
 
     aggregate_method: function, string, dictionary, list of string/functions (default = 'last')
@@ -78,17 +79,19 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
         For example, when you have data per 5 minutes, but you're creating a
         an hourly frequency, the values need to be aggregated.
         Can be strings such as mean, sum, min, max, or a function.
-        https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.aggregate.html
+        `See also
+        <https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.aggregate.html>`_
 
     fillna_method: string, optional (default = None)
-        Method used to fill NA values, must follow pandas data frame fillna.
+        Method used to fill NA values, must be an option from `pd.DataFrame.fillna`.
         Options are: 'backfill', 'bfill', 'pad', 'ffill', None
-        https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.fillna.html
+        `See also
+        <https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.fillna.html>`_
 
     Returns
     -------
     complete_df: pandas dataframe,
-        shape (length(TIME) * length(unique IDs) * length(unique TYPEs, 4))
+        shape `(length(TIME) * length(unique IDs) * length(unique TYPEs, 4))`
         dataframe containing all possible combinations of timestamps and IDs and TYPEs
         with selected frequency, aggregate method and fillna method
 

@@ -22,3 +22,6 @@ Decompose datetime
 Cyclical features
 -----------------
 .. autofunction:: sam.feature_engineering.recode_cyclical_features
+.. seealso::
+   https://www.kaggle.com/avanwyk/encoding-cyclical-features-for-deep-learning
+   http://blog.davidkaleko.com/feature-engineering-cyclical-features.html

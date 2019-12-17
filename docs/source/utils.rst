@@ -12,7 +12,7 @@ dataframe_functions
 
 sklearn helpers
 ---------------
-.. autoclass:: sam.utils.FeatureTransformerWithNames
+.. autoclass:: sam.utils.FunctionTransformerWithNames
     :members:
     :undoc-members:
     :show-inheritance:

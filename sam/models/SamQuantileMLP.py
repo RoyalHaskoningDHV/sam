@@ -1,7 +1,6 @@
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.utils.validation import check_is_fitted
-from sklearn.preprocessing import FunctionTransformer
 
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import keras_joint_mse_tilted_loss
@@ -129,19 +128,26 @@ class SamQuantileMLP(BaseEstimator):
     rolling_window_size: array-like, optional (default=(5,))
         The window size to use for `BuildRollingFeatures`
     n_neurons: integer, optional (default=200)
-        The number of neurons to use in the model, see :ref:`create_keras_quantile_mlp`
+        The number of neurons to use in the model, see :ref:`create_keras_quantile_mlp
+        <create-keras-quantile-mlp>`
     n_layers: integer, optional (default=2)
-        The number of layers to use in the model, see :ref:`create_keras_quantile_mlp`
+        The number of layers to use in the model, see :ref:`create_keras_quantile_mlp
+        <create-keras-quantile-mlp>`
     batch_size: integer, optional (default=16)
-        The batch size to use in the model, see :ref:`create_keras_quantile_mlp`
+        The batch size to use in the model, see :ref:`create_keras_quantile_mlp
+        <create-keras-quantile-mlp>`
     epochs: integer, optional (default=20)
-        The number of epochs to use in the model, see :ref:`create_keras_quantile_mlp`
+        The number of epochs to use in the model, see :ref:`create_keras_quantile_mlp
+        <create-keras-quantile-mlp>`
     lr: integer, optional (default=0.001)
-        The learning rate to use in the model, see :ref:`create_keras_quantile_mlp`
+        The learning rate to use in the model, see :ref:`create_keras_quantile_mlp
+        <create-keras-quantile-mlp>`
     dropout: integer, optional (default=None)
-        The type of dropout to use in the model, see :ref:`create_keras_quantile_mlp`
+        The type of dropout to use in the model, see :ref:`create_keras_quantile_mlp
+        <create-keras-quantile-mlp>`
     momentum: integer, optional (default=None)
-        The type of momentum in the model, see :ref:`create_keras_quantile_mlp`
+        The type of momentum in the model, see :ref:`create_keras_quantile_mlp
+        <create-keras-quantile-mlp>`
     verbose: boolean, optional (default=1)
         The verbosity of fitting the keras model
 
@@ -151,9 +157,9 @@ class SamQuantileMLP(BaseEstimator):
         The transformer used on the raw data before prediction
     n_inputs_: integer
         The number of inputs used for the underlying neural network
-    n_outputs: integer
+    n_outputs_: integer
         The number of outputs (columns) from the model
-    prediction_cols: array of strings
+    prediction_cols_: array of strings
         The names of the output columns from the model.
     model_: Keras model
         The underlying keras model
@@ -164,7 +170,7 @@ class SamQuantileMLP(BaseEstimator):
     >>> from sam.data_sources import read_knmi
     >>> from sklearn.model_selection import train_test_split
     >>> from sklearn.metrics import mean_squared_error
-
+    >>>
     >>> # Prepare data
     >>> data = read_knmi('2018-02-01', '2019-10-01', latitude=52.11, longitude=5.18, freq='hourly',
     >>>                 variables=['FH', 'FF', 'FX', 'T', 'TD', 'SQ', 'Q', 'DR', 'RH', 'P',
@@ -172,7 +178,7 @@ class SamQuantileMLP(BaseEstimator):
     >>> y = data['T']
     >>> X = data.drop('T', axis=1)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
-
+    >>>
     >>> # We are predicting the weather 1 hour ahead. Since weather is highly autocorrelated, we
     >>> # expect this the persistence benchmark to score decently high, but also it should be
     >>> # easy to predict the weather 1 hour ahead, so the model should do even better.
@@ -181,23 +187,23 @@ class SamQuantileMLP(BaseEstimator):
     >>>                       time_components=['hour', 'month', 'weekday'],
     >>>                       time_cyclicals=['hour', 'month', 'weekday'],
     >>>                       rolling_window_size=[1,5,6])
-
+    >>>
     >>> # fit returns a keras history callback object, which can be used as normally
     >>> history = model.fit(X_train, y_train)
     >>> pred = model.predict(X_test, y_test).dropna()
-
+    >>>
     >>> actual = model.get_actual(y_test).dropna()
     >>> # Because of impossible to know values, some rows have to be dropped. After dropping
     >>> # them, make sure the indexes still match by dropping the same rows from each side
     >>> pred, actual = pred.reindex(actual.index).dropna(), actual.reindex(pred.index).dropna()
     >>> mean_squared_error(actual, pred.iloc[:, -1])  # last column contains mean prediction
     114.50628975834859
-
+    >>>
     >>> # Persistence corresponds to predicting the present, so use ytest
     >>> persistence_prediction = y_test.reindex(actual.index).dropna()
     >>> mean_squared_error(actual, persistence_prediction)
     149.35018919848642
-
+    >>>
     >>> # As we can see, the model performs significantly better than the persistence benchmark
     >>> # Mean benchmark, which does much worse:
     >>> mean_prediction = pd.Series(y_test.mean(), index = actual)
@@ -205,27 +211,10 @@ class SamQuantileMLP(BaseEstimator):
     2410.20138157309
     """
 
-    class FunctionTransformerWithNames(FunctionTransformer):
-        """
-        Utility class. Used in the default Feature Engineer.
-        Acts just like FunctionTransformer, but with `get_feature_names`
-
-        The feature engineer should have a `get_feature_names()` attribute. ColumnTransformers
-        have this by default, but only if all the substeps also have the attribute.
-        BuildRollingFeatures already has it, but the FunctionTransformer doesn't have it yet, so
-        we add it here.
-        """
-        def transform(self, X, y='deprecated'):
-            output = super().transform(X)
-            self._feature_names = list(output.columns.values)
-            return output
-
-        def get_feature_names(self):
-            return self._feature_names
-
     def get_feature_engineer(self):
         """
         Function that returns an sklearn transformer.
+
         This is a default, simple columntransformer that:
         - On the time col (if it was passed), does decompose_datetime and cyclicals
         - On the other columns, calculates lag/max/min/mean features for a given window size
@@ -312,6 +301,9 @@ class SamQuantileMLP(BaseEstimator):
         self.verbose = verbose
 
     def validate_data(self, X):
+        """
+        Void function that validates the data and raises an exception if anything is wrong
+        """
         if self.timecol is None:
             warnings.warn(("No timecolumn given. Make sure the data is"
                           "monospaced when given to this model!"), UserWarning)

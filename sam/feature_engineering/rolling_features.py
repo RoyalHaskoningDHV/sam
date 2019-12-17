@@ -107,41 +107,41 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     always be lagged, even if lookback is 0. This is because these functions inherently look
     at a previous cell, regardless of what the lookback is. All other functions will start
     by looking at the current cell if lookback is 0. (and will also look at previous cells
-    if window_size is greater than 1)
+    if `window_size` is greater than 1)
 
-    'ewm' looks at window_size a bit different: instead of a discrete number of points to
+    'ewm' looks at `window_size` a bit different: instead of a discrete number of points to
     look at, 'ewm' needs a parameter alpha between 0 and 1 instead.
 
     Parameters
     ----------
-    rolling_type : string, optional (default="mean")
+    rolling_type: string, optional (default="mean")
         The rolling function. Must be one of: 'median', 'skew', 'kurt', 'max', 'std', 'lag',
         'mean', 'diff', 'sum', 'var', 'min', 'numpos', 'ewm', 'fourier', 'cwt', 'trimmean'
-    lookback : number type, optional (default=1)
+    lookback: number type, optional (default=1)
         the features that are built will be shifted by this value
         If more than 0, this prevents leakage
-    window_size : array-like, shape = (n_outputs, ), optional (defaut=None)
+    window_size: array-like, shape = (n_outputs, ), optional (defaut=None)
         vector of values to shift. Ignored when rolling_type is ewm
         if integer, the window size is fixed, and the timestamps are assumed to be uniform.
         If string of timeoffset (for example '1H'), the input dataframe must have a DatetimeIndex.
         timeoffset is not supported for rolling_type 'lag', 'fourier', 'ewm', 'diff'!
-    deviation : str, optional (default=None)
+    deviation: str, optional (default=None)
         one of ['subtract', 'divide']. If this option is set, the resulting column will either
         have the original column subtracted, or will be divided by the original column. If None,
         just return the resulting column. This option is not allowed when rolling_type is 'cwt'
         or 'fourier', but it is allowed with all other rolling_types.
-    alpha : numeric, optional (default=0.5)
+    alpha: numeric, optional (default=0.5)
         if rolling_type is 'ewm', this is the parameter alpha used for weighing the samples.
         The current sample weighs alpha, the previous sample weighs alpha*(1-alpha), the
         sample before that weighs alpha*(1-alpha)^2, etcetera. Must be in (0, 1]
-    proportiontocut : numeric, optional (default=0.1)
+    proportiontocut: numeric, optional (default=0.1)
         if rolling_type is 'trimmean', this is the parameter used to trim values on both tails
         of the distribution. Must be in [0, 0.5). Value 0 results in the mean, close to 0.5
         appoaches the median.
-    width : numeric, optional (default=1)
+    width: numeric, optional (default=1)
         if rolling_type is 'cwt', the wavelet transform uses a ricker signal. This parameter
         defines the width of that signal
-    nfft_ncol : numeric, optional (default=10)
+    nfft_ncol: numeric, optional (default=10)
         if rolling_type is 'nfft', there needs to be a fixed number of columns as output, since
         this is unknown a-priori. This means the number of output-columns will be fixed. If
         nfft has more outputs, and additional outputs are discarded. If nfft has less outputs,
@@ -151,7 +151,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         returning. This is only useful when using a timeoffset for window_size, since that needs
         a datetimeindex. So this column can specify a time column. This column will not be
         feature-engineered, and will never be returned in the output!
-    keep_original : boolean, optional (default=True)
+    keep_original: boolean, optional (default=True)
         if the original columns should be kept or discarded
         True by default, which means the new columns are added to the old ones
 
@@ -293,8 +293,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : optional, is ignored
-        y : optional, is ignored
+        X: optional, is ignored
+        y: optional, is ignored
         """
 
         self._validate_params()
@@ -327,16 +327,16 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             return arr / original
 
     def transform(self, X):
-        """Transforms pandas dataframe X to apply rolling function
+        """Transforms pandas dataframe `X` to apply rolling function
 
         Parameters
         ----------
-        X : pandas dataframe, shape = (n_rows, n_features)
+        X: pandas dataframe, shape = `(n_rows, n_features)`
            the pandas dataframe that you want to apply rolling functions on
 
         Returns
         -------
-        result : pandas dataframe, shape = (n_rows, n_features * (n_outputs + 1))
+        result: pandas dataframe, shape = `(n_rows, n_features * (n_outputs + 1))`
             the pandas dataframe, appended with the new columns
         """
 

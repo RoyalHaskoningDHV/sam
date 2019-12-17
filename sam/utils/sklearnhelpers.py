@@ -37,10 +37,16 @@ class FunctionTransformerWithNames(FunctionTransformer):
                      kw_args=kw_args, inv_kw_args=inv_kw_args)
 
     def transform(self, X, y=None):
+        '''
+        Applies the function, and saves the output feature names
+        '''
         # y is completely ignored to be consistent with all versions of sklearn
         output = super(FunctionTransformerWithNames, self).transform(X)
         self._feature_names = list(output.columns.values)
         return output
 
     def get_feature_names(self):
+        '''
+        Returns the feature names saved during `transform`
+        '''
         return self._feature_names
