@@ -500,19 +500,22 @@ class SamQuantileMLP(BaseEstimator):
     def set_feature_names(self, X, X_transformed):
         """
         Default function for setting the feature names
-        """
-        return self.feature_engineer_.named_steps['columns'].get_feature_names()
 
-    def get_feature_names(self):
-        """
-        Function for obtaining feature names. More widely used than an attribute, and more
-        compatibly with the sklearn API
         For the default feature engineer, it outputs features like 'mean__Q#mean_1'
         Which is much easier to interpret if we remove the 'mean__'
         """
-        check_is_fitted(self, '_feature_names')
-        names = [colname.split('__')[1] for colname in self._feature_names]
+        names = self.feature_engineer_.named_steps['columns'].get_feature_names()
+        names = [colname.split('__')[1] for colname in names]
         return names
+
+    def get_feature_names(self):
+        """
+        Function for obtaining feature names. This can be used instead of the
+        attribute. More widely used than an attribute, and more
+        compatible with the sklearn API.
+        """
+        check_is_fitted(self, '_feature_names')
+        return self._feature_names
 
     def get_actual(self, y):
         """

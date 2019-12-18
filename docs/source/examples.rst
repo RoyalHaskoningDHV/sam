@@ -13,3 +13,7 @@ Minimum Viable Project
 Kafka client python
 -------------------
 :ref:`kafka_python`
+
+SamQuantileMLP Demo
+-------------------
+:ref:`samquantilemlpdemo`
