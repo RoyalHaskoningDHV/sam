@@ -1,5 +1,6 @@
 import os
 import sys
+import configparser
 from recommonmark.parser import CommonMarkParser
 sys.path.insert(0, os.path.abspath('../../'))
 
@@ -25,13 +26,17 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'sam'
-copyright = '2018-2019, Ynformed'
-author = 'Fenno, Loes, Rutger, Sebastiaan, Tim'
+copyright = '2018-2020, Ynformed'
+author = 'Fenno, Daan, Rutger, Arjan, Loes, Tim, Sebastiaan'
+
+config = configparser.ConfigParser()
+config.read('setup.cfg')
 
 # The short X.Y version
-version = '1.0'
+version = config['metadata']['major-version']
+
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = version + '.' + config['metadata']['major-version']
 
 
 # -- General configuration ---------------------------------------------------

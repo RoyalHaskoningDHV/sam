@@ -1,7 +1,13 @@
 from setuptools import setup, find_packages
+import configparser
+import os
+
+config = configparser.ConfigParser()
+config.read('setup.cfg')
+version = config['metadata']['major-version'] + '.' + config['metadata']['minor-version']
 
 setup(name='sam',
-      version='1.0.3',
+      version=version,
       description='Ynformed package for smart asset management',
       long_description=open('README.md').read(),
       url='https://dev.ynformed.nl/diffusion/78/',
