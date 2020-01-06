@@ -339,6 +339,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         # these are the final feature names
         self.timecols = [f for f in self.feature_names_full_ if 'TIME' in f]
         self.feature_names_ = [f for f in self.feature_names_full_ if 'TIME' not in f]
+        return self
 
     def transform(self, X):
         """

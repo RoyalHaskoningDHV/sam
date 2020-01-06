@@ -134,4 +134,8 @@ def inverse_differenced_target(predictions, y):
     >>> # At timestep 1, we predict the next two values will be 45 and 105
     >>> # At timestep 2, we predict the next two values will be 84 and unknown, etcetera.
     '''
-    return predictions.add(y, axis=0)
+    result = predictions.add(y, axis=0)
+    # Series lose their name on pd.Series.add, so put the name back
+    if isinstance(result, pd.Series):
+        result = result.rename(predictions.name)
+    return result

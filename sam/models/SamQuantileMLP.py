@@ -547,9 +547,8 @@ class SamQuantileMLP(BaseEstimator):
         """
         # This function only works if the estimator is fitted
         check_is_fitted(self, 'model_')
-        # quantile loss function
-        prediction = self.predict(X, y)
-        # We need a dataframe, regardless of if this function outputs a series or dataframe
+        # We need a dataframe, regardless of if these functions outputs a series or dataframe
+        prediction = pd.DataFrame(self.predict(X, y))
         actual = pd.DataFrame(self.get_actual(y))
 
         # actual usually has some missings at the end

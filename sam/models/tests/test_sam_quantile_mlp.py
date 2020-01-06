@@ -236,6 +236,44 @@ class TestSamQuantileMLP(unittest.TestCase):
         score = model.score(self.X_test, self.y_test)
         self.assertTrue(np.isscalar(score))
 
+    def test_single_target(self):
+        # Test single target. Same data as test_predict_future.
+
+        model = SamQuantileMLP(predict_ahead=1,
+                               use_y_as_feature=True,
+                               timecol='TIME',
+                               quantiles=[],
+                               epochs=2,
+                               time_components=['minute'],
+                               time_cyclicals=['minute'],
+                               rolling_window_size=[],
+                               n_neurons=1,
+                               n_layers=1,
+                               lr=0.3,
+                               verbose=0)
+
+        model.fit(self.X_train, self.y_train)
+        pred = model.predict(self.X_test, self.y_test)
+        actual = model.get_actual(self.y_test)
+
+        yname = self.y_test.name
+        # Same as with singleoutput, except in a dataframe this time
+        expected = pd.Series(self.y_test.shift(-1),
+                             name=yname + '_diff_1', index=self.y_test.index)
+        assert_series_equal(actual, expected)
+
+        self.assertEqual(model.prediction_cols_[0], pred.name)
+        self.assertEqual(pred.name, 'predict_lead_1_mean')
+
+        X_transformed = model.preprocess_before_predict(self.X_test, self.y_test)
+        # Should have the same number of columns as model.get_feature_names()
+        self.assertEqual(X_transformed.shape[1], len(model.get_feature_names()))
+
+        self.assertEqual(model.n_outputs_, 1)
+
+        score = model.score(self.X_test, self.y_test)
+        self.assertTrue(np.isscalar(score))
+
     def test_expected_failures(self):
 
         # For now, this usecase is not supported so will throw error
