@@ -7,8 +7,8 @@ def create_keras_quantile_mlp(n_input,
                               n_layers,
                               n_target=1,
                               quantiles=[],
-                              dropout=None,
-                              momentum=None,
+                              dropout=0.0,
+                              momentum=1.0,
                               hidden_activation='relu',
                               output_activation='linear',
                               lr=0.001):
@@ -20,7 +20,7 @@ def create_keras_quantile_mlp(n_input,
     ----------
     n_input: int
         Number of input nodes
-    n_neurons: int (default=None)
+    n_neurons: int
         Number of neurons hidden layer
     n_layers: int
         Number of hidden layers. 0 implies that the output is no additional layer
@@ -32,12 +32,14 @@ def create_keras_quantile_mlp(n_input,
     n_target: int, optional (default=1)
         Number of distinct outputs. Each will have their own mean and quantiles
         When fitting the model, this should be equal to the number of columns in y_train
-    dropout: float, optional (default=None)
+    dropout: float, optional (default=0.0)
         Rate parameter for dropout, value in (0,1)
-        default is None, which means that no batch dropout is applied
-    momentum: float, optional (default=None)
+        default is 0.0, which means that no batch dropout is applied
+    momentum: float, optional (default=1.0)
         Parameter for batch normalization, value in (0,1)
-        default is None, which means that no batch normalization is applied
+        default is 1.0, which means that no batch normalization is applied
+        Smaller values means stronger batch normalization, see keras documentation.
+        https://keras.io/layers/normalization/
     hidden_activation: str (default='relu')
         Activation function for hidden layers, for more explanation:
         https://keras.io/layers/core/
@@ -58,15 +60,18 @@ def create_keras_quantile_mlp(n_input,
     >>> n_input = x_train.shape[1]
     >>> n_neurons = 64
     >>> n_layers = 3
-    >>> dropout = 0.2
     >>> quantiles = [0.1, 0.5, 0.9]
-    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles, dropout)
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles)
     >>> model.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=16, epochs=20)
     """
     from tensorflow.keras.layers import Input, Dense, BatchNormalization, Dropout, Activation
     from tensorflow.keras.models import Model
     from tensorflow.keras.optimizers import Adam
 
+    if dropout is None:
+        dropout = 0.0
+    if momentum is None:
+        momentum = 1.0
     if len(quantiles) == 0:
         mse_tilted = 'mse'
     else:
@@ -81,18 +86,17 @@ def create_keras_quantile_mlp(n_input,
     # repeat adding the same type of layer
     for _ in range(n_layers):
         h = Dense(n_neurons)(h)
-        if momentum is not None:
+        if momentum < 1:
             h = BatchNormalization(momentum=momentum)(h)
         h = Activation(hidden_activation)(h)
-        if dropout is not None:
-            h = Dropout(rate=dropout)(h)
+        h = Dropout(rate=dropout)(h)
     out = Dense(n_out, activation=output_activation)(h)
 
     model = Model(inputs=input_layer, outputs=out)
     model.compile(loss=mse_tilted,
                   optimizer=Adam(lr=lr))
 
-    return(model)
+    return model
 
 
 def create_keras_quantile_rnn(input_shape,
@@ -100,10 +104,10 @@ def create_keras_quantile_rnn(input_shape,
                               n_layers=2,
                               quantiles=[],
                               n_target=1,
-                              layer_type='LSTM',
+                              layer_type='GRU',
                               dropout=0.0,
                               recurrent_dropout='dropout',
-                              hidden_activation='tanh',
+                              hidden_activation='relu',
                               output_activation='linear',
                               lr=0.001):
     """ Function to create a simple RNN (LSTM or GRU) with keras
@@ -113,28 +117,30 @@ def create_keras_quantile_rnn(input_shape,
     Parameters
     ----------
     input_shape: tuple,
-        shape of input X, (recurrent steps, number of features)
-    n_neurons: int (default=None)
+        shape of single input sample, (window, number of features)
+        where window is the parameter used in the preprocessing.RecurrentReshaper class
+    n_neurons: int (default=64)
         Number of neurons hidden layer
-    n_layers: int
+    n_layers: int (default=2)
         Number of hidden layers. 0 implies that the output is no additional layer
         between input and output.
     quantiles: list of floats (default=[])
         Quantiles to predict, values between 0 and 1,
-        default is [], which returns a regular mlp (single output)
+        default is [], which returns a regular rnn (single output)
         for mean squared error regression
     n_target: int, optional (default=1)
         Number of distinct outputs. Each will have their own mean and quantiles
         When fitting the model, this should be equal to the number of columns in y_train
-    layer_type: str
+    layer_type: str (default='GRU')
         Type of recurrent layer
         Options: 'LSTM' (long short-term memory) or 'GRU' (gated recurrent unit)
-    dropout: float, optional (default=None)
+    dropout: float, optional (default=0.0)
         Rate parameter for dropout, value in (0,1)
-        default is None, which means that no batch dropout is applied
+        default is 0.0, which means that no batch dropout is applied
     recurrent_dropout: float or str, optional (default='dropout')
-        Parameter for batch normalization, value in (0,1)
-        default is 'dropout', which means that recurrent dropout is the same as dropout
+        Rate parameter for dropout, value in (0,1)
+        default is 'dropout', which means that recurrent dropout is equal to
+        dropout parameter (dropout between layers)
     hidden_activation: str (default='relu')
         Activation function for hidden layers, for more explanation:
         https://keras.io/layers/core/
@@ -168,6 +174,8 @@ def create_keras_quantile_rnn(input_shape,
     from tensorflow.keras.models import Model
     from tensorflow.keras.optimizers import Adam
 
+    if dropout is None:
+        dropout = 0.0
     if len(quantiles) == 0:
         mse_tilted = 'mse'
     else:
@@ -175,15 +183,16 @@ def create_keras_quantile_rnn(input_shape,
             loss = keras_joint_mse_tilted_loss(y, f, quantiles, n_target)
             return(loss)
     # Recurrent layer is either LSTM or GRU
-    if layer_type == 'LSTM':
+    if layer_type.upper() == 'LSTM':
         RNN = LSTM
-    elif layer_type == 'GRU':
+    elif layer_type.upper() == 'GRU':
         RNN = GRU
     else:
         raise ValueError('Invalid layer_type, choose "LSTM" or "GRU"')
     if recurrent_dropout == 'dropout':
         recurrent_dropout = dropout
     n_out = n_target * (len(quantiles) + 1)  # one extra for mean regression
+
     input_layer = Input(input_shape)
     h = input_layer
     for i in range(n_layers):
@@ -198,4 +207,206 @@ def create_keras_quantile_rnn(input_shape,
     model = Model(inputs=input_layer, outputs=out)
     model.compile(loss=mse_tilted,
                   optimizer=Adam(lr=lr))
-    return(model)
+    return model
+
+
+def create_keras_autoencoder_mlp(n_input,
+                                 encoder_neurons=[64, 16],
+                                 layer_type='GRU',
+                                 dropout=0.0,
+                                 momentum=1.0,
+                                 hidden_activation='relu',
+                                 output_activation='linear',
+                                 lr=0.001):
+    """ Function to create a mlp autoencoder in keras
+    Optimizes the mean squared error to reconstruct input,
+    after passing input through bottleneck neural network.
+
+    Parameters
+    ----------
+    n_input: int
+        Number of input nodes
+    encoder_neurons: list (default=[64, 16])
+        List of integers, each representing the number of neurons per layer
+        within the encoder. Decoder is reversed version of encoder.
+        Last element is number of neurons in "representation" layer
+        Example:
+        If n_layers=[64, 12], number of features is 120,
+        the number of neurons per layer is [120, 64, 12, 64, 120].
+    layer_type: str (default='GRU')
+        Type of recurrent layer
+        Options: 'LSTM' (long short-term memory) or 'GRU' (gated recurrent unit)
+    dropout: float, optional (default=0.0)
+        Rate parameter for dropout, value in (0,1)
+        default is 0.0, which means that no batch dropout is applied
+    momentum: float, optional (default=1.0)
+        Parameter for batch normalization, value in (0,1)
+        default is 1.0, which means that no batch normalization is applied
+        Smaller values means stronger batch normalization, see keras documentation.
+        https://keras.io/layers/normalization/
+    hidden_activation: str (default='relu')
+        Activation function for hidden layers, for more explanation:
+        https://keras.io/layers/core/
+    output_activation: str (default='linear')
+        Activation function for output layers, for more explanation:
+        https://keras.io/layers/core/
+    lr: float (default=0.001)
+        Learning rate
+
+    Returns
+        keras model
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from sam.data_sources import synthetic_date_range, synthetic_timeseries
+    >>> from sam.preprocessing import RecurrentReshaper
+    >>> from sam.models import create_keras_autoencoder_rnn
+    >>> dates = pd.Series(synthetic_date_range().to_pydatetime())
+    >>> X = [synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=i) \
+    >>>    for i in range(100)]
+    >>> X = pd.DataFrame(X)
+    >>> model = create_keras_autoencoder_mlp(n_input=100)
+    >>> model.fit(X, X, batch_size=32, epochs=5)
+    """
+    from tensorflow.keras.layers import Input, Dense, BatchNormalization, Dropout, Activation
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.optimizers import Adam
+
+    if dropout is None:
+        dropout = 0.0
+    if momentum is None:
+        momentum = 1.0
+
+    input_layer = Input((n_input,))
+    # encoder
+    h = input_layer
+    # For each n_neuron value, add a dense layer to the model
+    n_neurons = encoder_neurons + encoder_neurons[:-1][::-1]
+    for n in range(n_neurons):
+        h = Dense(n)(h)
+        if momentum < 1:
+            h = BatchNormalization(momentum=momentum)(h)
+        h = Activation(hidden_activation)(h)
+        h = Dropout(rate=dropout)(h)
+    # output layer
+    out = Dense(n_input, activation=output_activation)(h)
+    # compile
+    model = Model(inputs=input_layer, outputs=out)
+    model.compile(loss="mse",
+                  optimizer=Adam(lr=lr))
+    return model
+
+
+def create_keras_autoencoder_rnn(input_shape,
+                                 encoder_neurons=[64, 16],
+                                 layer_type='GRU',
+                                 dropout=0.0,
+                                 recurrent_dropout=0.0,
+                                 hidden_activation='relu',
+                                 output_activation='linear',
+                                 lr=0.001):
+    """ Function to create a recurrent autoencoder in keras
+    Optimizes the mean squared error to reconstruct input,
+    after passing input through bottleneck neural network.
+    Reference:
+    https://towardsdatascience.com/lstm-autoencoder-for-anomaly-detection-e1f4f2ee7ccf
+    https://blog.keras.io/building-autoencoders-in-keras.html
+
+    Parameters
+    ----------
+    input_shape: tuple,
+        shape of single input sample, (recurrent steps, number of features)
+    encoder_neurons: list (default=[64, 16])
+        List of integers, each representing the number of neurons per layer
+        within the encoder. Decoder is reversed version of encoder.
+        Last element is number of neurons in "representation" layer
+        Example:
+        If n_layers=[64, 12], number of features is 120,
+        the number of neurons per layer is [120, 64, 12, 64, 120].
+    layer_type: str (default='GRU')
+        Type of recurrent layer
+        Options: 'LSTM' (long short-term memory) or 'GRU' (gated recurrent unit)
+    dropout: float, optional (default=0.0)
+        Rate parameter for dropout, value in (0,1)
+        default is 0.0, which means that no batch dropout is applied
+    recurrent_dropout: float or str, optional (default='dropout')
+        Rate parameter for dropout, value in (0,1)
+        default is 'dropout', which means that recurrent dropout is equal to
+        dropout parameter (dropout between layers)
+    hidden_activation: str (default='relu')
+        Activation function for hidden layers, for more explanation:
+        https://keras.io/layers/core/
+    output_activation: str (default='linear')
+        Activation function for output layers, for more explanation:
+        https://keras.io/layers/core/
+    lr: float (default=0.001)
+        Learning rate
+
+    Returns
+        keras model
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from sam.data_sources import synthetic_date_range, synthetic_timeseries
+    >>> from sam.preprocessing import RecurrentReshaper
+    >>> from sam.models import create_keras_autoencoder_rnn
+    >>> dates = pd.Series(synthetic_date_range().to_pydatetime())
+    >>> y = synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=2)
+    >>> X = pd.DataFrame(y)
+    >>> X_3d = RecurrentReshaper(window=24, lookback=1).fit_transform(X)
+    >>> X_3d = X_3d[24:]
+    >>> input_shape = X_3d.shape[1:]
+    >>> model = create_keras_autoencoder_rnn(input_shape)
+    >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5)
+    """
+    from tensorflow.keras.layers import Input, Dropout, \
+        RepeatVector, TimeDistributed, Dense, LSTM, GRU
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.optimizers import Adam
+
+    if dropout is None:
+        dropout = 0.0
+    lookback = input_shape[0]
+    n_features = input_shape[1]
+    if layer_type.upper() == 'LSTM':
+        RNN = LSTM
+    elif layer_type.upper() == 'GRU':
+        RNN = GRU
+    else:
+        raise ValueError('layer_type should be "LSTM" or "GRU"')
+
+    input_layer = Input(input_shape)
+    # encoder
+    h = input_layer
+    # For each n_neuron value, add an rnn layer to the model
+    n_layers = len(encoder_neurons)
+    for i in range(n_layers - 1):
+        h = RNN(encoder_neurons[i],
+                activation=hidden_activation,
+                dropout=dropout,
+                recurrent_dropout=recurrent_dropout,
+                return_sequences=True)(h)
+    # Last layer of encoder: only return last value of the LSTM output sequence
+    h = RNN(encoder_neurons[-1],
+            activation=hidden_activation,
+            dropout=dropout,
+            recurrent_dropout=recurrent_dropout,
+            return_sequences=False)(h)
+    # decoder
+    # repeat 1d representation to feed to an rnn layer
+    h = RepeatVector(lookback)(h)
+    # Reverse layers to create symmetric model
+    for i in range(n_layers - 1, 0, -1):
+        h = RNN(encoder_neurons[i],
+                activation=hidden_activation,
+                dropout=dropout,
+                recurrent_dropout=recurrent_dropout,
+                return_sequences=True)(h)
+    out = TimeDistributed(Dense(n_features, activation=output_activation))(h)
+    # compile
+    model = Model(inputs=input_layer, outputs=out)
+    model.compile(loss="mse",
+                  optimizer=Adam(lr=lr))
+    return model

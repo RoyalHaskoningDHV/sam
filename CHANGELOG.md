@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 2.0.1
+
+### New functions
+- New function: `sam.models.create_keras_autoencoder_mlp` function that returns keras MLP for unsupervised anomaly detection
+- New function: `sam.models.create_keras_autoencoder_rnn` function that returns keras RNN for unsupervised anomaly detection
+- Change `sam.models.create_keras_quantile_mlp`: supports momentum of 1.0 for no batch 
+normalization. Value of None is still supported.
+- Change`sam.models.create_keras_quantile.rnn`: supports lower case layer types 'lstm' and 'gru'
+
 ## Version 2.0.0
 
 A lot changed in version 2.0.0. Only changes compared to 1.0.3 are listed here.
