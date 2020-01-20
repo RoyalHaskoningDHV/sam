@@ -45,3 +45,9 @@ Extreme value removal plot
 .. autofunction:: sam.visualization.diagnostic_extreme_removal
 
 .. image:: general_documents/images/extreme_values_example_testset.png
+
+Quantile Regression plot
+---------------------------
+.. autofunction:: sam.visualization.quantile_plot
+
+.. image:: general_documents/images/quantile_plot.png

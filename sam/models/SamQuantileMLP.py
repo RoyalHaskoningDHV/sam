@@ -83,8 +83,6 @@ class SamQuantileMLP(BaseEstimator):
     """
     This is an example class for how the SAM skeleton can work. This is not the final/only model,
     there are some notes:
-    - First, this model only predicts a single target (plus quantiles). For example, we can
-    predict 4 timesteps into the future, with mean/5%/95% percentiles. But not 4 and 5 timesteps.
     - There is no validation yet. Therefore, the input data must already be sorted and monospaced
     - The feature engineering is very simple, we just calculate lag/max/min/mean for a given window
       size, as well as minute/hour/month/weekday if there is a time column
@@ -121,15 +119,23 @@ class SamQuantileMLP(BaseEstimator):
         Whether or not to use y as a feature for predicting. If predict_ahead=0, this must be False
         Due to time limitations, for now, this option has to be True, unless predict_ahead is 0.
         Potentially in the future, this option can also be False when predict_ahead is not 0.s
-    timeecol: string, optional (default=None)
+    timecol: string, optional (default=None)
         If not None, the column to use for constructing time features. For now,
         creating features from a DateTimeIndex is not supported yet.
-    time_components: array-like, optional (default=('minute', 'hour', 'month', 'weekday'))
+    y_scaler: object, optional (default=None)
+        Should be an sklearn-type transformer that has a transform and inverse_transform method.
+        E.g.: StandardScaler() or PowerTransformer()
+    time_components: array-like, optional (default=('minute', 'hour', 'day', 'weekday'))
         The timefeatures to create. See :ref:`decompose_datetime`.
-    time_cyclicals: array-like, optional (default=('minute', 'hour', 'month', 'weekday'))
-        The cyclical timefeatures to create. See :ref:`decompose_datetime`.
+    time_cyclicals: array-like, optional (default=('minute', 'hour', 'day'))
+        The cyclical timefeatures to create. See :ref:`decompose    _datetime`.
+    time_onehots: array-like, optional (default=('weekday'))
+        The onehot timefeatures to create. See :ref:`decompose_datetime`.
     rolling_window_size: array-like, optional (default=(5,))
         The window size to use for `BuildRollingFeatures`
+    rolling_features: array-like, optional (default=('mean'))
+        The rolling functions to generate in the default feature engineering function.
+        Values should be interpretable by BuildRollingFeatures.
     n_neurons: integer, optional (default=200)
         The number of neurons to use in the model, see :ref:`create_keras_quantile_mlp
         <create-keras-quantile-mlp>`
@@ -227,7 +233,9 @@ class SamQuantileMLP(BaseEstimator):
         def time_transformer(dates):
             return decompose_datetime(dates, self.timecol,
                                       components=self.time_components,
-                                      cyclicals=self.time_cyclicals, keep_original=False)
+                                      cyclicals=self.time_cyclicals,
+                                      onehots=self.time_onehots,
+                                      keep_original=False)
 
         def identity(x):
             return x
@@ -280,8 +288,10 @@ class SamQuantileMLP(BaseEstimator):
                  quantiles=(),
                  use_y_as_feature=True,
                  timecol=None,
-                 time_components=('minute', 'hour', 'month', 'weekday'),
-                 time_cyclicals=('minute', 'hour', 'month', 'weekday'),
+                 y_scaler=None,
+                 time_components=['minute', 'hour', 'day', 'weekday'],
+                 time_cyclicals=['minute', 'hour', 'day'],
+                 time_onehots=['weekday'],
                  rolling_window_size=(12,),
                  rolling_features=['mean'],
                  n_neurons=200,
@@ -297,8 +307,10 @@ class SamQuantileMLP(BaseEstimator):
         self.quantiles = quantiles
         self.use_y_as_feature = use_y_as_feature
         self.timecol = timecol
+        self.y_scaler = y_scaler
         self.time_components = time_components
         self.time_cyclicals = time_cyclicals
+        self.time_onehots = time_onehots
         self.rolling_features = rolling_features
         self.rolling_window_size = rolling_window_size
         self.n_neurons = n_neurons
@@ -316,7 +328,7 @@ class SamQuantileMLP(BaseEstimator):
         """
         if self.timecol is None:
             warnings.warn(("No timecolumn given. Make sure the data is"
-                          "monospaced when given to this model!"), UserWarning)
+                           "monospaced when given to this model!"), UserWarning)
         else:
             monospaced = X[self.timecol].diff()[1:].unique().size == 1
             if not monospaced:
@@ -354,15 +366,22 @@ class SamQuantileMLP(BaseEstimator):
             raise ValueError("For training, X and y must have an identical index")
 
         if not self.use_y_as_feature and self.predict_ahead != [0]:
-            raise ValueError("For now, use_y_as_feature must be true, unless predict_ahead is 0")
+            raise ValueError("For now, use_y_as_feature must be true unless predict_ahead is 0")
+
+        if self.predict_ahead == [0] and self.use_y_as_feature:
+            raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
 
         self.validate_data(X)
+
+        if self.y_scaler is not None:
+            y = pd.Series(self.y_scaler.fit_transform(y.values.reshape(-1, 1)).ravel(),
+                          index=y.index)
 
         if self.use_y_as_feature:
             X = X.assign(y_=y.copy())
 
         # Create the actual target
-        if self.use_y_as_feature:
+        if (self.use_y_as_feature) and (self.predict_ahead != [0]):
             target = make_differenced_target(y, self.predict_ahead)
         else:
             # Dataframe with 1 column. Will use y's index and name
@@ -378,6 +397,7 @@ class SamQuantileMLP(BaseEstimator):
         X_transformed = self.feature_engineer_.fit_transform(X)
         # Now we have fitted the feature engineer, we can set the feature names
         self._feature_names = self.set_feature_names(X, X_transformed)
+
         # Now feature names are set, we can start using self.get_feature_names()
         X_transformed = pd.DataFrame(X_transformed,
                                      columns=self.get_feature_names(),
@@ -411,11 +431,16 @@ class SamQuantileMLP(BaseEstimator):
         # Create validation data:
         if validation_data is not None:
             X_val, y_val = validation_data
+
+            if self.y_scaler is not None:
+                y_val = pd.Series(self.y_scaler.transform(y_val.values.reshape(-1, 1)).ravel(),
+                                  index=y_val.index)
+
             # This does not affect training: it only calls transform, not fit
             X_val_transformed = self.preprocess_before_predict(X_val, y_val)
             X_val_transformed = pd.DataFrame(X_val_transformed,
                                              columns=self.get_feature_names(), index=X_val.index)
-            if self.use_y_as_feature:
+            if (self.use_y_as_feature) and (self.predict_ahead != [0]):
                 y_val_transformed = make_differenced_target(y_val, self.predict_ahead)
             else:
                 # Dataframe with 1 column. Will use y's index and name
@@ -495,6 +520,19 @@ class SamQuantileMLP(BaseEstimator):
             # just return a series. Easier to work with.
             prediction = prediction.iloc[:, 0]
 
+            if self.y_scaler is not None:
+                prediction = pd.Series(self.y_scaler.inverse_transform(
+                    prediction.values).ravel(), index=prediction.index)
+
+        else:
+            if self.y_scaler is not None:
+                inv_pred = np.zeros_like(prediction)
+                for i in range(prediction.shape[1]):
+                    inv_pred[:, i] = self.y_scaler.inverse_transform(
+                        prediction.iloc[:, i].values.reshape(-1, 1)).ravel()
+                prediction = pd.DataFrame(
+                    inv_pred, columns=prediction.columns, index=prediction.index)
+
         return prediction
 
     def set_feature_names(self, X, X_transformed):
@@ -539,6 +577,7 @@ class SamQuantileMLP(BaseEstimator):
             actual = inverse_differenced_target(target, y)
         else:
             actual = y.copy()
+
         return actual
 
     def score(self, X, y):
@@ -724,7 +763,7 @@ class SamQuantileMLP(BaseEstimator):
         if self.use_y_as_feature:
             y_target = make_differenced_target(y, self.predict_ahead).iloc[:, 0]
         else:
-            y_target = y.copy().iloc[:, 0]
+            y_target = y.copy()
 
         # Remove rows with missings in either of the two arrays
         missings = np.isnan(y_target) | np.isnan(X_transformed).any(axis=1)

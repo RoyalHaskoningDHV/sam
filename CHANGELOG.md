@@ -1,11 +1,25 @@
 # Changelog
 
+## Version 2.0.2
+
+### New functions
+- New function: `sam.visualization.quantile_plot` function creates an (interactive) plot of SamQuantileMLP output
+
+### Changes
+- `sam.feature_engineering.decompose_datetime` now has an new argument 'onehots' that converts time variables to one-hot-encoded
+- `sam.feature_engineering.BuildRollingFeatures`: now as an argument 'add_lookback_to_colname'
+- `sam.models.SamQuantileMLP`: now has argument 'time_onehots', default time variables adjusted accordingly
+- `sam.models.SamQuantileMLP`: now has argument 'y_scaler'
+
+### Bugfixes
+- `sam.models.SamQuantileMLP`: setting use_y_as_feature to True would give error if predict ahead was 0.
+
 ## Version 2.0.1
 
 ### New functions
 - New function: `sam.models.create_keras_autoencoder_mlp` function that returns keras MLP for unsupervised anomaly detection
 - New function: `sam.models.create_keras_autoencoder_rnn` function that returns keras RNN for unsupervised anomaly detection
-- Change `sam.models.create_keras_quantile_mlp`: supports momentum of 1.0 for no batch 
+- Change `sam.models.create_keras_quantile_mlp`: supports momentum of 1.0 for no batch
 normalization. Value of None is still supported.
 - Change`sam.models.create_keras_quantile.rnn`: supports lower case layer types 'lstm' and 'gru'
 
@@ -24,7 +38,7 @@ For more details about any function, check the documentation.
 - `sam.preprocessing.make_differenced_target` and `sam.preprocessing.inverse_differenced_target` allow for differencing a timeseries
 - `sam.models.SamQuantileMLP` standard model for fitting wide-format timeseries data with an MLP
 - `sam.models.create_keras_quantile_rnn` function that returns a keras RNN model that can predict means and quantiles
-- Functions for benchmarking a model on some standard data (in sam format): `sam.models.preprocess_data_for_benchmarking`, 
+- Functions for benchmarking a model on some standard data (in sam format): `sam.models.preprocess_data_for_benchmarking`,
   `sam.models.benchmark_model`, `sam.models.plot_score_dicts`, `sam.models.benchmark_wrapper`
 - `sam.feature_engineering.AutomaticRollingEngineering` transformer that calculates rolling features in a smart way
 

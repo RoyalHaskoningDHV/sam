@@ -5,9 +5,10 @@ import os
 import unittest
 import pytest
 from pandas.testing import assert_series_equal, assert_frame_equal
+from numpy.testing import assert_array_equal
 from sklearn.metrics import mean_absolute_error
-
 from sam.models import SamQuantileMLP
+from sam.visualization import sam_quantile_plot
 
 # If tensorflow is not available, skip these unittests
 skipkeras = False
@@ -43,6 +44,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         # Now start setting the RNG so we get reproducible results
         random.seed(42)
         np.random.seed(42)
+        tf.set_random_seed(42)
         os.environ['PYTHONHASHSEED'] = '0'
 
         # Force tensorflow to run single-threaded, for further determinism
@@ -78,6 +80,7 @@ class TestSamQuantileMLP(unittest.TestCase):
                                epochs=30,
                                time_components=['minute'],
                                time_cyclicals=['minute'],
+                               time_onehots=[],
                                rolling_window_size=[],
                                n_neurons=1,
                                n_layers=1,
@@ -168,6 +171,7 @@ class TestSamQuantileMLP(unittest.TestCase):
                                epochs=20,
                                time_components=[],
                                time_cyclicals=[],
+                               time_onehots=[],
                                rolling_window_size=[1],
                                n_neurons=8,
                                n_layers=1,
@@ -202,6 +206,7 @@ class TestSamQuantileMLP(unittest.TestCase):
                                epochs=30,
                                time_components=['minute'],
                                time_cyclicals=['minute'],
+                               time_onehots=[],
                                rolling_window_size=[],
                                n_neurons=1,
                                n_layers=1,
@@ -246,6 +251,7 @@ class TestSamQuantileMLP(unittest.TestCase):
                                epochs=2,
                                time_components=['minute'],
                                time_cyclicals=['minute'],
+                               time_onehots=[],
                                rolling_window_size=[],
                                n_neurons=1,
                                n_layers=1,
@@ -293,13 +299,102 @@ class TestSamQuantileMLP(unittest.TestCase):
         y.index = range(1, self.n_rows + 1)
 
         # Index of X and y don't match
-        model = SamQuantileMLP(predict_ahead=1, timecol='TIME')
+        model = SamQuantileMLP(predict_ahead=1, time_onehots=[], timecol='TIME')
         self.assertRaises(ValueError, model.fit, self.X, y)
 
         # Make the time not monospaced
         X = self.X.copy()
         X['TIME'] = pd.to_datetime(np.random.randint(0, 1000, 100), unit='m')
         self.assertRaises(ValueError, model.fit, X, self.y)
+
+    @pytest.mark.mpl_image_compare(tolerance=30)
+    def test_quantile_plot(self):
+
+        # make simple sine wave x
+        X = pd.DataFrame({
+            'TIME': pd.to_datetime(np.array(range(self.n_rows)), unit='m'),
+            'x': np.sin(np.arange(self.n_rows))
+        })
+
+        # y depends on x
+        y = 17 * X['x'] + 34 + np.random.randn(self.n_rows)*10
+        # add single outlier
+        y[90] += y.mean()*3
+
+        X_train, X_test = X[:self.train_size], X[self.train_size:]
+        y_train, y_test = y[:self.train_size], y[self.train_size:]
+
+        model = SamQuantileMLP(predict_ahead=0,
+                               use_y_as_feature=False,
+                               timecol='TIME',
+                               quantiles=[0.001, 0.023, 0.159, 0.841, 0.977, 0.999],
+                               epochs=15,
+                               time_components=['minute', 'hour'],
+                               time_cyclicals=['minute', 'hour'],
+                               time_onehots=[],
+                               n_neurons=64,
+                               n_layers=1,
+                               lr=0.1,
+                               verbose=0)
+
+        model.fit(X_train, y_train)
+        pred = model.predict(X_test, y_test)
+        actual = model.get_actual(y_test)
+
+        f = sam_quantile_plot(
+            actual,
+            pred,
+            predict_ahead=0,
+            outlier_min_q=3,
+            score=model.score(X_test, y_test))
+
+        return f
+
+    def test_yscaler(self):
+
+        from sklearn.preprocessing import StandardScaler
+        import copy
+
+        # try for single and multicol output, and with and without y_as_feature
+        for use_y_as_feature in [True, False]:
+
+            if use_y_as_feature:
+                predict_ahead = 1
+            else:
+                predict_ahead = 0
+
+            for qs in [[], [0.25, 0.75]]:
+
+                model = SamQuantileMLP(predict_ahead=predict_ahead,
+                                       use_y_as_feature=use_y_as_feature,
+                                       timecol='TIME',
+                                       quantiles=qs,
+                                       epochs=2,
+                                       time_components=['minute'],
+                                       time_cyclicals=['minute'],
+                                       time_onehots=[],
+                                       rolling_window_size=[],
+                                       n_neurons=1,
+                                       n_layers=1,
+                                       lr=0.3,
+                                       verbose=0)
+
+                model_with_scaling = copy.copy(model)
+                model_with_scaling.y_scaler = StandardScaler()
+
+                # hard to test output differences (as predict reverses y_scaling)
+                # however, we can test whether the prediction returned the same shapes
+
+                model.fit(self.X_train, self.y_train, validation_data=(self.X_test, self.y_test))
+                pred = model.predict(self.X_test, self.y_test)
+                actual = model.get_actual(self.y_test)
+
+                model_with_scaling.fit(self.X_train, self.y_train)
+                pred_with_scaling = model_with_scaling.predict(self.X_test, self.y_test)
+                actual_with_scaling = model_with_scaling.get_actual(self.y_test)
+
+                assert_array_equal(pred_with_scaling.shape, pred.shape)
+                assert_array_equal(actual_with_scaling.shape, actual.shape)
 
 
 if __name__ == '__main__':

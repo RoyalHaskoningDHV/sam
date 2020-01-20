@@ -200,6 +200,48 @@ class TestBuildTimeFeatures(unittest.TestCase):
         })
         assert_frame_equal(result, expected)
 
+    def test_recode_onehot_datetime(self):
+
+        # Test with the default datetime features instead of custom min/max
+        time1 = '2019/03/11 00:00:00'
+        time2 = '2019/03/11 18:00:00'
+        freq = '6h'
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({'TIME': daterange, 'OTHER': 1})
+
+        result = decompose_datetime(test_dataframe, components=['weekday'],
+                                    onehots=['weekday'])
+
+        expected = pd.DataFrame({
+            'TIME': test_dataframe['TIME'],
+            'OTHER': test_dataframe['OTHER'],
+            'TIME_weekday_0': [1, 1, 1, 1],
+            'TIME_weekday_1': [0, 0, 0, 0],
+            'TIME_weekday_2': [0, 0, 0, 0],
+            'TIME_weekday_3': [0, 0, 0, 0],
+            'TIME_weekday_4': [0, 0, 0, 0],
+            'TIME_weekday_5': [0, 0, 0, 0],
+            'TIME_weekday_6': [0, 0, 0, 0],
+        })
+
+        assert_frame_equal(result, expected)
+
+    def test_recode_onehot_datetime(self):
+
+        # Test with the default datetime features instead of custom min/max
+        time1 = '2019/03/11 00:00:00'
+        time2 = '2019/03/11 18:00:00'
+        freq = '6h'
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({'TIME': daterange, 'OTHER': 1})
+
+        result = decompose_datetime(test_dataframe, components=['day', 'hour', 'week'],
+                                    onehots=['day', 'hour', 'week'])
+
+        # there should be 31 days, 24 hours and 53 weeks, so 108 columns generated
+        # plus the TIME and OTHER columns should make 110
+        assert_array_equal([result.shape[1]], [110])
+
     def test_min_higher_than_max(self):
         test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
         self.assertRaises(ValueError, recode_cyclical_features, test_dataframe, ["TIME"],

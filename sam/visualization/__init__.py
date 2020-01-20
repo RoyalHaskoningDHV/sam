@@ -6,6 +6,7 @@ from .diagnostic_flatline_removal import diagnostic_flatline_removal
 from .deprecated import make_precision_recall_curve, make_threshold_plot, \
     make_incident_heatmap
 from .extreme_removal_plot import diagnostic_extreme_removal
+from .quantile_plot import sam_quantile_plot
 
 from . import precision_recall
 from . import threshold_plot

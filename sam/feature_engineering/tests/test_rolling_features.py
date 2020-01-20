@@ -252,6 +252,21 @@ class TestRollingFeatures(unittest.TestCase):
         expected = ['X', 'X#lag_1', 'X#lag_2', 'X#lag_3']
         self.assertEqual(result, expected)
 
+    def test_get_feature_names_with_lookback(self):
+        roller = BuildRollingFeatures('lag', lookback=0, window_size=[1, 2, 3],
+                                      add_lookback_to_colname=True)
+        _ = roller.fit_transform(self.X)
+        result = roller.get_feature_names()
+        expected = ['X', 'X#lag_1_lookback_0', 'X#lag_2_lookback_0', 'X#lag_3_lookback_0']
+        self.assertEqual(result, expected)
+
+        roller = BuildRollingFeatures('lag', lookback=2, window_size=[1, 2, 3],
+                                      add_lookback_to_colname=True)
+        _ = roller.fit_transform(self.X)
+        result = roller.get_feature_names()
+        expected = ['X', 'X#lag_1_lookback_2', 'X#lag_2_lookback_2', 'X#lag_3_lookback_2']
+        self.assertEqual(result, expected)
+
     def test_datetimeindex(self):
         roller = BuildRollingFeatures('sum', lookback=1, window_size=['61min', '3H'])
         result = roller.fit_transform(self.X_times)
@@ -260,7 +275,7 @@ class TestRollingFeatures(unittest.TestCase):
             "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0],
             "X#sum_3H": [np.nan, 10, 22, 37, 24, 9, 9]
         }, columns=["X", "X#sum_61min", "X#sum_3H"],
-           index=pd.DatetimeIndex(self.times))
+            index=pd.DatetimeIndex(self.times))
 
         assert_frame_equal(result, expected)
 
@@ -286,7 +301,7 @@ class TestRollingFeatures(unittest.TestCase):
             "X": [10, 12, 15, 9, 0, 0, 1],
             "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0]
         }, columns=["X", "X#sum_61min"],
-           index=pd.DatetimeIndex(self.times))
+            index=pd.DatetimeIndex(self.times))
 
         assert_frame_equal(result, expected)
 

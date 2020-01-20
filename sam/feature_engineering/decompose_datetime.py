@@ -33,9 +33,9 @@ def get_maxes_from_strings(cyclicals):
     return [lookup[c] for c in cyclicals]
 
 
-def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_original=None,
-                       remove_categorical=True, keep_original=True, cyclical_maxes=None,
-                       cyclical_mins=0):
+def decompose_datetime(df, column='TIME', components=[], cyclicals=[], onehots=[],
+                       remove_original=None, remove_categorical=True, keep_original=True,
+                       cyclical_maxes=None, cyclical_mins=0):
     """
     Decomposes a time column to one or more components suitable as features.
 
@@ -63,6 +63,11 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
         Cyclicals are variables that do not inncrease linearly, but wrap around.
         such as days of the week and hours of the day.
         Format is identical to components input.
+    onehots: list
+        Newly created .dt time variables (like hour, month) you want to convert
+        to one-hot-encoded variables. This is suitable when you think that variables do not
+        vary smoothly with time (e.g. sunday and monday are quite different).
+        This list must be mutually exclusive from cyclicals (i.e. non-overlapping).
     remove_original: bool, optional (default=None)
         Deprecated. Will be removed in a future release. Please use remove_categorical instead.
     remove_categorical: bool, optional (default=True)
@@ -104,6 +109,9 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
         warnings.warn(msg, DeprecationWarning)
         remove_categorical = remove_original
 
+    assert np.all([c not in cyclicals for c in onehots]), \
+        'cyclicals and onehots are not mutually exclusive'
+
     if keep_original:
         result = df.copy()
     else:
@@ -139,6 +147,12 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], remove_or
                                           cyclical_maxes=cyclical_maxes,
                                           cyclical_mins=cyclical_mins,
                                           keep_original=True)
+    if onehots != []:
+        result = recode_onehot_features(result, onehots, column=column,
+                                        remove_categorical=remove_categorical,
+                                        onehot_maxes=cyclical_maxes,
+                                        onehot_mins=cyclical_mins,
+                                        keep_original=True)
 
     return(result)
 
@@ -251,6 +265,111 @@ def recode_cyclical_features(df, cols, remove_original=None, column='', remove_c
         # convert cyclical to 2 variables that are offset:
         new_df[col+'_sin'] = np.sin(norm_feature)
         new_df[col+'_cos'] = np.cos(norm_feature)
+
+        # drop the original. if keep_original is False, this is unneeded: it was already removed
+        if remove_categorical and keep_original:
+            new_df = new_df.drop(col, axis=1)
+
+    # log changes
+    log_new_columns(new_df, df)
+    log_dataframe_characteristics(new_df, logging.DEBUG)
+
+    return new_df
+
+
+def recode_onehot_features(df, cols, column='', remove_categorical=True, keep_original=True,
+                           onehot_maxes=None, onehot_mins=0):
+    """
+    Convert time features (like day of week, hour of day) to onehot variables (1 or 0 for each
+    unique value).
+
+    IMPORTANT NOTE: This function requires a global maximum and minimum for the data. For example,
+    for minutes, the global maximum and minimum are 0 and 60 respectively, even if your data never
+    reaches these global minimums/maximums explicitly. Make sure these variables will all be added
+    in your onehot columns, otherwise your columns in train and test set could be unmatching.
+
+    If you only use cyclical pandas timefeatures, nothing needs to be done. For these features,
+    the minimum/maximum will be chosen automatically. These are: ['day', 'dayofweek', 'weekday',
+    'dayofyear', 'hour', 'microsecond', 'minute', 'month', 'quarter', 'second', 'week']
+
+    For any other scenario, global minimums/maximums will need to be passed in the parameters
+    `cyclical_maxes` and `cyclical_mins`. Minimums are set to 0 by default, meaning that
+    only the maxes need to be chosen as the value that is `equivalent` to 0.
+
+    Parameters
+    ----------
+    df: pandas dataframe
+        Dataframe in which the columns to convert should be present.
+    cols: list of strings
+        The suffixes column names to convert to onehot variables.
+        These suffixes will be added to the `column` argument to get the actual column names, with
+        a '_' in between.
+    column: string, optional (default='')
+        name of original time column in df (e.g. TIME)
+        By default, assume the columns in cols literally refer to column names in the data
+    remove_categorical: bool, optional (default=True)
+        whether to keep the original time features (i.e. day)
+    keep_original: bool, optional (default=True)
+        whether to keep the original columns from the dataframe. If this is False, then the
+        returned dataframe will only contain newly generated columns, and none of the original
+        ones. If `remove_categorical` is False, the categoricals will be kept, regardles of
+        this argument.
+    onehot_maxes: array-like, optional (default=None)
+        The maximums that your data can reach. By default, None means that only
+        standard pandas timefeatures will be encoded.
+    onehot_mins: array-like, optional (default=0)
+        The minimums that your data can reach. By default, 0 is used, which is
+        applicable for all pandas timefeatures.
+
+    Returns
+    -------
+    new_df: pandas dataframe
+        The input dataframe with cols removed, and replaced by the converted features.
+    """
+
+    # add underscore to column if not empty
+    if not column == '':
+        column = column + '_'
+
+    # test inputs
+    assert isinstance(df, pd.DataFrame), 'df should be pandas dataframe'
+    assert isinstance(cols, list), 'cols should be a list of columns to convert'
+    assert isinstance(remove_categorical, bool)
+
+    if onehot_maxes is None:
+        onehot_maxes = get_maxes_from_strings(cols)
+
+    if np.isscalar(onehot_mins):
+        onehot_mins = [onehot_mins] * len(onehot_maxes)
+
+    # save copy of original dataframe
+    if keep_original:
+        new_df = df.copy()
+
+    # We don't want to keep the original columns, but we want to keep the categoricals
+    elif not remove_categorical:
+        new_df = df.copy()[[column + col for col in cols]]
+    else:
+        new_df = pd.DataFrame(index=df.index)
+
+    logging.debug("onehot converting time columns: %s" % (cols))
+
+    for onehot_min, onehot_max, col in zip(onehot_mins, onehot_maxes, cols):
+
+        col = column + col
+
+        # test whether column is in dataframe
+        assert col in df.columns, '%s is not in input dataframe' % col
+
+        # get the onehot encoded dummies
+        dummies = pd.get_dummies(df[col], prefix=col).astype(int)
+
+        # fill in the weekdays not in the dataset
+        for i in range(onehot_min, onehot_max):
+            if not '%s_%d' % (col, i) in dummies.columns:
+                dummies['%s_%d' % (col, i)] = 0
+        dummies_sorted = dummies[np.sort(dummies.columns)]
+        new_df = new_df.join(dummies_sorted)
 
         # drop the original. if keep_original is False, this is unneeded: it was already removed
         if remove_categorical and keep_original:

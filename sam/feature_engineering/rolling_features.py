@@ -154,6 +154,10 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     keep_original: boolean, optional (default=True)
         if the original columns should be kept or discarded
         True by default, which means the new columns are added to the old ones
+    add_lookback_to_colname: bool, optional (default=False)
+        Whether to add lookback to the newly generated column names.
+        if False, column names will be like: DEBIET#mean_2
+        if True, column names will be like: DEBIET#mean_2_lookback_0
 
     Examples
     --------
@@ -270,7 +274,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
     def __init__(self, rolling_type="mean", lookback=1, window_size=None, deviation=None,
                  alpha=0.5, width=1, nfft_ncol=10, proportiontocut=0.1, timecol=None,
-                 keep_original=True):
+                 keep_original=True, add_lookback_to_colname=False):
 
         self.window_size = window_size
         self.lookback = lookback
@@ -282,6 +286,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         self.proportiontocut = proportiontocut
         self.keep_original = keep_original
         self.timecol = timecol
+        self.add_lookback_to_colname = add_lookback_to_colname
         logger.debug("Initialized rolling generator. rolling_type={}, lookback={}, "
                      "window_size={}, deviation={}, alpha={}, proportiontocut={}, width={}, "
                      "keep_original={}, timecol={}".
@@ -310,7 +315,8 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                 self.window_size_ = [self.window_size_]
             self.suffix_ = [self.rolling_type + "_" + str(window_size)
                             for window_size in self.window_size_]
-
+            if self.add_lookback_to_colname:
+                self.suffix_ = [s + "_lookback_" + str(self.lookback) for s in self.suffix_]
         self.rolling_fun_ = self._get_rolling_fun(self.rolling_type)
         logger.debug("Done fitting transformer. window size: {}, suffix: {}".
                      format(self.window_size_, self.suffix_))
