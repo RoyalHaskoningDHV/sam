@@ -109,6 +109,9 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
         self.invalids = {}
         data_r = data.copy()
 
+        if self.cols is None:
+            self.cols = data.columns
+
         for col in self.cols:
 
             these_data = data.loc[:, col]
