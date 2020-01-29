@@ -5,7 +5,7 @@ import numpy as np
 def sam_quantile_plot(
         y_true,
         y_hat,
-        score=None,
+        title=None,
         y_title='',
         data_prop=None,
         y_range=None,
@@ -35,8 +35,8 @@ def sam_quantile_plot(
         and for each quantile: `predict_lead_x_q_y` where x is the predict_ahead, and
         y is the quantile. So e.g.:
         `['predict_lead_0_q_0.25, predict_lead_0_q_0.75, predict_lead_mean']`
-    score: float (default=None)
-        Metric to plot as title.
+    title: string (default=None)
+        Title for the plot.
     y_title: string (default='')
         Title to put along the yaxis (ylabel).
     data_prop: int (default=None)
@@ -193,8 +193,8 @@ def sam_quantile_plot(
 
     if not interactive:
 
-        if score is not None:
-            plt.title('model error: %.3f' % score)
+        if title is not None:
+            plt.title(title)
         plt.legend(loc='best')
         plt.ylabel(y_title)
         sns.despine(offset=10)
@@ -204,8 +204,8 @@ def sam_quantile_plot(
             plt.xlim(date_range)
 
     else:
-        if score is not None:
-            fig.layout.update(title='model error: %.3f' % score)
+        if title is not None:
+            fig.layout.update(title=title)
         if y_range is not None:
             fig.layout.update(yaxis_range=y_range)
         if date_range is not None:

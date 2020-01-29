@@ -345,8 +345,7 @@ class TestSamQuantileMLP(unittest.TestCase):
             actual,
             pred,
             predict_ahead=0,
-            outlier_min_q=3,
-            score=model.score(X_test, y_test))
+            outlier_min_q=3)
 
         return f
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.0.3
+
+### Changes
+- `sam.visualization.quantile_plot` 'score' argument changed to 'title' to enhance generalizability
+
 ## Version 2.0.2
 
 ### New functions
