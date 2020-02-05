@@ -391,6 +391,7 @@ class SamQuantileMLP(BaseEstimator):
 
         # buildrollingfeatures
         self.rolling_cols_ = [col for col in X if col != self.timecol]
+
         self.feature_engineer_ = self.get_feature_engineer()
 
         # Apply feature engineering
@@ -716,7 +717,9 @@ class SamQuantileMLP(BaseEstimator):
         -------
         score_decreases: Pandas dataframe,  shape (n_iter x n_features)
             The score decreases when leaving out each feature per iteration. The higher, the more
-            important each feature is considered by the model.
+            important each feature is considered by the model. Negative values indicate positive
+            contribution to model performance (i.e. negative score decrease means that removing
+            this feature will increase the metric, which is a bad thing with RMSE)
 
         Examples
         --------

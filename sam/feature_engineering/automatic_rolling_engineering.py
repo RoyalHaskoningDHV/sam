@@ -46,17 +46,22 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         number of cross-validated tries to attempt for each parameter combination
     passthrough: bool (default=True)
         whether to pass original features in the transform method or not
-    add_time_features: list (default=[])
-        A list of pandas datetime properties, such as ['minute', 'hour', 'dayofweek', 'week']
-        These features will be added to the X dataframe in cyclical format, before finding the best
-        fitting rollings.
-        The rationale here is that if cyclicals are not added, the rolling engineering
+    cyclicals: list (default=[])
+        A list of pandas datetime properties, such as ['minute', 'hour', 'dayofweek', 'week'],
+        that will be converted to cyclicals.
+        The rationale here is that if time features are not added, the rolling engineering
         will find values for instance of 1 day ago to predict well, while actually this is simply
         a recurring daily pattern that can be captured by time features.
         Note that if timefeatures are added, they are not added in the transform method. Therefore,
         you will have to add them yourself during subsequent model building stages.
-        TODO: cyclical features wont work well with a linear model, so find a solution for this
-        (see T937)
+    onehots: list (default=[])
+        A list of pandas datetime properties, such as ['minute', 'hour', 'dayofweek', 'week'],
+        that will be converted using onehot encoding.
+        The rationale here is that if time features are not added, the rolling engineering
+        will find values for instance of 1 day ago to predict well, while actually this is simply
+        a recurring daily pattern that can be captured by time features.
+        Note that if timefeatures are added, they are not added in the transform method. Therefore,
+        you will have to add them yourself during subsequent model building stages.
 
     Attributes
     ----------
@@ -94,7 +99,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
     >>> # do the feature selection, first try without adding timefeatures
     >>> ARE = AutomaticRollingEngineering(
-    >>>     window_sizes=[randint(1,24)], window_types=['mean', 'lag'], add_time_features=[])
+    >>>     window_sizes=[randint(1,24)], rolling_types=['mean', 'lag'])
+    >>> ARE.fit(X_train, y_train)
 
     >>> # check some diagnostics, note: results may vary as it is a random search
     >>> r2_base, r2_rollings, yhat_base, yhat_roll = ARE.compute_diagnostics(
@@ -121,7 +127,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                  cv=3,
                  estimator_type='lin',
                  passthrough=True,
-                 add_time_features=[]):
+                 cyclicals=[],
+                 onehots=[]):
 
         self.window_sizes = window_sizes
         self.rolling_types = rolling_types
@@ -129,7 +136,9 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         self.cv = cv
         self.estimator_type = estimator_type
         self.passthrough = passthrough
-        self.add_time_features = add_time_features
+        self.add_time_features = cyclicals + onehots
+        self.cyclicals = cyclicals
+        self.onehots = onehots
 
     def _setup_estimator(self):
         if self.estimator_type == 'rf':
@@ -138,7 +147,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             estimator = LinearRegression()
         return estimator
 
-    def _setup_pipeline(self, original_features, cyclicals):
+    def _setup_pipeline(self, original_features, time_features):
         """
         Create the pipeline that is later fitted. Includes:
         - BuildRollingFeatures
@@ -155,7 +164,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         class UnitTransformer(BaseEstimator, TransformerMixin):
             """
             This transformer does nothing but pass on the features
-            This is required to pass on the cyclical features without changing them
+            This is required to pass on the time features without changing them
             (the Columntransformer passthrough option does not preserve feature names)
             """
 
@@ -173,8 +182,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             def transform(self, X):
                 return X
 
-        for cyc_feature in cyclicals:
-            rolls.append((cyc_feature, UnitTransformer(), [cyc_feature]))
+        for time_feature in time_features:
+            rolls.append((time_feature, UnitTransformer(), [time_feature]))
 
         pipeline = Pipeline(steps=[
             ('rollpipe', ColumnTransformer(rolls, n_jobs=-1)),
@@ -220,9 +229,9 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         assert self.n_iter_per_param > 0, 'n_iter_per_param must be greater than 0'
         assert self.cv > 1, 'cv must be greater than 1'
 
-    def _add_time_cyclicals(self, X):
+    def _add_time_features(self, X):
         """
-        This function adds the cyclical timefeatures given in 'components' to X.
+        This function adds the timefeatures given in 'components' to X.
 
         Parameters
         ----------
@@ -234,23 +243,23 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         Returns
         -------
         X: pandas dataframe
-            original X dataframe with the cyclical features added
+            original X dataframe with the time features added
         """
 
         if len(self.add_time_features) > 0:
             times_df = pd.DataFrame({'TIME': X.index})
-            time_cyclicals = decompose_datetime(
+            time_features = decompose_datetime(
                 times_df, components=self.add_time_features,
-                cyclicals=self.add_time_features, keep_original=True)
-            time_cyclicals = time_cyclicals.set_index('TIME', drop=True)
+                onehots=self.onehots, cyclicals=self.cyclicals, keep_original=True)
+            time_features = time_features.set_index('TIME', drop=True)
 
             # remove columns that are always identical (i.e. at higher res than data is in)
-            for col in time_cyclicals.columns:
-                if len(time_cyclicals[col].unique()) == 1:
-                    time_cyclicals = time_cyclicals.drop(col, axis=1)
+            for col in time_features.columns:
+                if len(time_features[col].unique()) == 1:
+                    time_features = time_features.drop(col, axis=1)
 
-            X = X.join(time_cyclicals)
-            timecols = time_cyclicals.columns
+            X = X.join(time_features)
+            timecols = time_features.columns
         else:
             timecols = []
 
@@ -269,16 +278,16 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             with shape [n_samples]
         """
 
-        # save feature names here before adding cyclicals
+        # save feature names here before adding timefeatures
         original_features = X.columns
 
-        # add time cyclicals
-        X, cyclicals = self._add_time_cyclicals(X)
+        # add time time features
+        X, timefeatures = self._add_time_features(X)
 
         self._validate_params(np.shape(X))
 
         # setup pipeline
-        pipeline = self._setup_pipeline(original_features, cyclicals)
+        pipeline = self._setup_pipeline(original_features, timefeatures)
         param_grid = self._setup_rolling_gridsearch_params(original_features)
 
         n_iter = self.n_iter_per_param * len(self.window_sizes) * len(self.rolling_types)
@@ -359,8 +368,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         check_is_fitted(self, 'feature_names_')
 
-        # we need to add time cyclicals for the transformer to work
-        X, cyclicals = self._add_time_cyclicals(X)
+        # we need to add time time features for the transformer to work
+        X, timefeatures = self._add_time_features(X)
 
         # create the rolling features
         X_new = self._transformer.transform(X)
@@ -416,8 +425,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         check_is_fitted(self, 'feature_names_')
 
         # setup base estimation
-        X_train_base, _ = self._add_time_cyclicals(X_train)
-        X_test_base, _ = self._add_time_cyclicals(X_test)
+        X_train_base, _ = self._add_time_features(X_train)
+        X_test_base, _ = self._add_time_features(X_test)
 
         base_model = self._setup_estimator()
         base_model = base_model.fit(X_train_base, y_train)
@@ -426,8 +435,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         # and now with rolling features
         X_train_rolling = self.transform(X_train)
         X_test_rolling = self.transform(X_test)
-        X_train_rolling, _ = self._add_time_cyclicals(X_train_rolling)
-        X_test_rolling, _ = self._add_time_cyclicals(X_test_rolling)
+        X_train_rolling, _ = self._add_time_features(X_train_rolling)
+        X_test_rolling, _ = self._add_time_features(X_test_rolling)
 
         imputer = SimpleImputer()  # required as nans are created in rolling features
         X_train_rolling = imputer.fit_transform(X_train_rolling)

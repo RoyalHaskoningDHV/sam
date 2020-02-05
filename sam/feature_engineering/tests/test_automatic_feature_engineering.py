@@ -26,7 +26,11 @@ class TestAutomaticRollingEngineering(unittest.TestCase):
                      0.,  0.,  0.,  0.,  0.,  0.,  0.,  8., 31., 53., 34., 26., 13.,
                      8.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]
 
-        # let's predict temperature 12 hours ahead
+        time1 = '2019/03/11 00:00:00'
+        time2 = '2019/04/11 00:00:00'
+        data.index = pd.date_range(time1, time2, periods=data.shape[0])
+
+        # let's predict temperature 12 values ahead
         target = 'T'
         fut = 12
         y = data[target].shift(-fut).iloc[:-fut]
@@ -38,16 +42,22 @@ class TestAutomaticRollingEngineering(unittest.TestCase):
             window_sizes=[[8]],
             rolling_types=['lag'],
             n_iter_per_param=1,
-            cv=2,
-            add_time_features=[])
-
-        self.ARE.fit(self.X_train, y_train)
+            cv=2).fit(self.X_train, y_train)
 
         self.r2_base, self.r2_rollings, base_model, roll_model = \
             self.ARE.compute_diagnostics(self.X_train, self.X_test, y_train, y_test)
 
         self.X_train_rolling = self.ARE.transform(self.X_train)
         self.X_test_rolling = self.ARE.transform(self.X_test)
+
+        # also fit second one with time features
+        self.ARE2 = AutomaticRollingEngineering(
+            window_sizes=[[8]],
+            rolling_types=['lag'],
+            n_iter_per_param=1,
+            onehots=['weekday'],
+            cyclicals=['secondofday'],
+            cv=2).fit(self.X_train, y_train)
 
     def test_r2s(self):
         assert_almost_equal(self.r2_base, -1.1744610463988145)
@@ -65,6 +75,19 @@ class TestAutomaticRollingEngineering(unittest.TestCase):
     def test_output_indices(self):
         assert_array_equal(self.X_train.index, self.X_train_rolling.index)
         assert_array_equal(self.X_test.index, self.X_test_rolling.index)
+
+    def test_feature_names(self):
+        assert_array_equal(
+            self.ARE.feature_importances_.feature_name.unique(),
+            ['T', 'Q#lag_8', 'T#lag_8', 'Q'])
+
+    def test_feature_names_with_timefeatures(self):
+        assert_array_equal(
+            self.ARE2.feature_importances_.feature_name.unique(),
+            ['TIME_weekday_0', 'TIME_weekday_1', 'TIME_weekday_6',
+             'TIME_secondofday_cos', 'T', 'Q#lag_8', 'Q', 'T#lag_8',
+             'TIME_secondofday_sin', 'TIME_weekday_2', 'TIME_weekday_5',
+             'TIME_weekday_4', 'TIME_weekday_3'])
 
 
 if __name__ == '__main__':

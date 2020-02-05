@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.0.5
+
+### Changes
+- `sam.feature_engineering.automatic_rolling_engineering` now has new argument 'onehots'. The argument 'add_time_features' is now removed, as 'cyclicals' and 'onehots' now together make up both timefeatures
+
 ## Version 2.0.4
 
 ### Changes
