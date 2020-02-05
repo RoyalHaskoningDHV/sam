@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.0.4
+
+### Changes
+- `sam.feature_engineering.decompose_datetime` 'components' argument now support 'secondofday'
+
 ## Version 2.0.3
 
 ### Changes

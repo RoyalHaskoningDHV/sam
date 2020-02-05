@@ -24,7 +24,8 @@ def get_maxes_from_strings(cyclicals):
         "month": 12,
         "quarter": 4,
         "second": 60,
-        "week": 53
+        "week": 53,
+        "secondofday": 86400
     }
     for c in cyclicals:
         if c not in lookup:
@@ -57,6 +58,8 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], onehots=[
     components: list
         List of components to extract from datatime column. All default pandas dt components are
         supported, and some custom functions will be implemented in the future.
+        Only implemented function so far is 'secondofday',
+        which is - wait for it - second of the day.
     cyclicals: list
         Newly created .dt time variables (like hour, month) you want to convert
         to cyclicals using sine and cosine transformations.
@@ -123,15 +126,20 @@ def decompose_datetime(df, column='TIME', components=[], cyclicals=[], onehots=[
     # We should check first if the column has a compatible type
     pandas_functions = [f for f in dir(df[column].dt) if not f.startswith('_')]
 
-    custom_functions = []
+    custom_functions = ['secondofday']
     # Iterate the requested components
     for component in components:
         # Check if this is a default pandas functionality
         if component in pandas_functions:
             result[column + '_' + component] = getattr(df[column].dt, component)
         elif component in custom_functions:
-            # Here we will apply custom functions
-            pass
+            if component == 'secondofday':
+                sec_in_min = 60
+                sec_in_hour = sec_in_min*60
+                result[column + '_' + component] =\
+                    df['TIME'].dt.hour * sec_in_hour +\
+                    df['TIME'].dt.minute * sec_in_min +\
+                    df['TIME'].dt.second
         else:
             raise NotImplementedError("Component %s not implemented" % component)
 

@@ -247,6 +247,21 @@ class TestBuildTimeFeatures(unittest.TestCase):
         self.assertRaises(ValueError, recode_cyclical_features, test_dataframe, ["TIME"],
                           cyclical_mins=[1], cyclical_maxes=[0])
 
+    def test_components(self):
+        time1 = '2019/05/11 00:00:00'
+        time2 = '2019/05/11 18:00:00'
+        freq = '6h'
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({'TIME': daterange, 'OTHER': 1})
+
+        result = decompose_datetime(test_dataframe, components=[
+                                    'day', 'hour', 'week', 'secondofday'])
+
+        assert_array_equal(result['TIME_day'], [11, 11, 11, 11])
+        assert_array_equal(result['TIME_hour'], [0, 6, 12, 18])
+        assert_array_equal(result['TIME_week'], [19, 19, 19, 19])
+        assert_array_equal(result['TIME_secondofday'], [0, 21600, 43200, 64800])
+
 
 if __name__ == '__main__':
     unittest.main()
