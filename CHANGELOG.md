@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.0.6
+
+### New functions
+- New function: `sam.metrics.train_mean_r2` that evaluates r2 based on the train set mean
+- New function: `sam.visualization.performance_evaluation_fixed_predict_ahead` that evaluates model performance with certain predict ahead.
+
 ## Version 2.0.5
 
 ### Changes
