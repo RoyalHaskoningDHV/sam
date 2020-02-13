@@ -24,6 +24,9 @@ def train_mean_r2(true, predicted, train_mean):
         Custom R2 with training mean
     """
 
+    assert len(true.shape) == 1, 'true argument must be 1 dimensional'
+    assert len(predicted.shape) == 1, 'predicted argument must be 1 dimensional'
+
     num = np.sum((true - predicted)**2)
     denom = np.sum((true - train_mean)**2)
 

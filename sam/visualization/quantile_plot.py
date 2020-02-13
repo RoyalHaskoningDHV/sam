@@ -224,12 +224,16 @@ def sam_quantile_plot(
         sns.despine(offset=10)
         if y_range is not None:
             plt.ylim(y_range)
+        if date_range is not None:
+            plt.xlim(date_range)
 
     else:
         if title is not None:
             fig.layout.update(title=title)
         if y_range is not None:
             fig.layout.update(yaxis_range=y_range)
+        if date_range is not None:
+            fig.layout.update(xaxis_range=date_range)
 
         fig.layout.update(
             yaxis_title=y_title,
