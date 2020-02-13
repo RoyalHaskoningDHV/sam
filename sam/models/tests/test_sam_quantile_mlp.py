@@ -349,6 +349,51 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         return f
 
+    @pytest.mark.mpl_image_compare(tolerance=30)
+    def test_quantile_plot_custom_outliers(self):
+
+        # make simple sine wave x
+        X = pd.DataFrame({
+            'TIME': pd.to_datetime(np.array(range(self.n_rows)), unit='m'),
+            'x': np.sin(np.arange(self.n_rows))
+        })
+
+        # y depends on x
+        y = 17 * X['x'] + 34 + np.random.randn(self.n_rows)*10
+        # add single outlier
+        y[90] += y.mean()*3
+
+        X_train, X_test = X[:self.train_size], X[self.train_size:]
+        y_train, y_test = y[:self.train_size], y[self.train_size:]
+
+        model = SamQuantileMLP(predict_ahead=0,
+                               use_y_as_feature=False,
+                               timecol='TIME',
+                               quantiles=[0.001, 0.023, 0.159, 0.841, 0.977, 0.999],
+                               epochs=15,
+                               time_components=['minute', 'hour'],
+                               time_cyclicals=['minute', 'hour'],
+                               time_onehots=[],
+                               n_neurons=64,
+                               n_layers=1,
+                               lr=0.1,
+                               verbose=0)
+
+        model.fit(X_train, y_train)
+        pred = model.predict(X_test, y_test)
+        actual = model.get_actual(y_test)
+
+        # custom outliers
+        outliers = y_test > model.predict(X_test, y_test)['predict_lead_0_mean']
+
+        f = sam_quantile_plot(
+            actual,
+            pred,
+            predict_ahead=0,
+            outliers=outliers)
+
+        return f
+
     def test_yscaler(self):
 
         from sklearn.preprocessing import StandardScaler

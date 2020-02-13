@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.0.7
+
+### Changes
+- `sam.visualization.quantile_plot`: now accepts custom outliers with 'outlier' argument
+
+### Bugfixes
+- `sam.visualization.quantile_plot`: now correctly shifts y_hat with predict_ahead
+
 ## Version 2.0.6
 
 ### New functions

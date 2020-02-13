@@ -14,7 +14,8 @@ def sam_quantile_plot(
         outlier_min_q=None,
         predict_ahead=0,
         res=None,
-        interactive=False):
+        interactive=False,
+        outliers=None):
     """
     Uses the output from SamQuantileMLPs predict function to create a quantile prediction plot.
     It plots the actual data, the prediction, and the quantiles as shaded regions.
@@ -55,6 +56,7 @@ def sam_quantile_plot(
         If 3 quantiles are used in the fit procedure, this can be either 1, 2, or 3.
         In this situation, if outlier_min_q is set to 3, all true values that fall outside of the
         third quantile are highlighted in the plot.
+        Cannot be used in conjunction with `outliers`.
     predict_ahead: int (default=0)
         Number of samples ago that prediction was made.
         Should be one that was included in the SamQuantileMLP fit procedure.
@@ -65,26 +67,46 @@ def sam_quantile_plot(
         Returns a matplotlib figure if False, otherwise returns a plotly figure/
         (Click here) <https://plot.ly/python/getting-started/>`_ to see how to install plotly
         and how to display figures inline in jupyter notebooks or lab.
+    outliers: array-like (default=None)
+        Alternatively to the outlier_min_q argument, you can pass a boolean array of outliers here.
+        This allows the user to specify their own rules that determine whether a sample is an
+        outlier or not. Should be same length as y_hat, and should either have same index,
+        or no index at all (np array) or list.
+        Cannot be used in conjunction with `outlier_min_q`.
 
     Returns
     ------
     fig: matplotlib figure
     """
+
+    assert not (outlier_min_q is not None and outliers is not None),\
+        'outlier_min_q and outliers cannot be used simultaneously'
+
     import seaborn as sns
     if interactive:
         import plotly.graph_objs as go
         from plotly.offline import plot
 
+    # apply date range to data to speed up the rest
+    if date_range is not None:
+        y_true = y_true[date_range[0]:date_range[1]]
+        y_hat = y_hat[date_range[0]:date_range[1]]
+
+    # resample to desired resolution
     if res is not None:
         y_true = y_true.resample(res).mean()
         y_hat = y_hat.resample(res).mean()
 
     # some bookkeeping before we start plotting
-    these_cols = [c for c in y_hat.columns if 'predict_lead_%d' % predict_ahead in c]
+    these_cols = [c for c in y_hat.columns if 'predict_lead_%d_' % predict_ahead in c]
 
     # figure out how to sort the columns
     col_order = np.argsort([float(c.split('_')[-1]) for c in these_cols if '_q_' in c])
 
+    # shift prediction back to match y_true
+    y_hat = y_hat.shift(predict_ahead)
+
+    # determine number of quantiles
     n_quants = int((len(these_cols)-1)/2)
 
     # setup plotly figure
@@ -160,25 +182,27 @@ def sam_quantile_plot(
             line_color='black',
             name='true'))
 
-    # now determine and plot outliers
-    if outlier_min_q is not None:
+    # now plot outliers
+    if outlier_min_q is not None or outliers is not None:
 
-        valid_low = y_hat[these_cols[col_order[n_quants-1-(outlier_min_q-1)]]]
-        valid_high = y_hat[these_cols[col_order[n_quants+(outlier_min_q-1)]]]
-        invalids = (y_true > valid_high) | (y_true < valid_low)
+        # if outliers is not passed, determine them through use of outlier_min_q
+        if outlier_min_q is not None and outliers is None:
+            valid_low = y_hat[these_cols[col_order[n_quants-1-(outlier_min_q-1)]]]
+            valid_high = y_hat[these_cols[col_order[n_quants+(outlier_min_q-1)]]]
+            outliers = (y_true > valid_high) | (y_true < valid_low)
 
         if not interactive:
             plt.plot(
-                y_true[invalids].index,
-                y_true[invalids],
+                y_true[outliers].index,
+                y_true[outliers],
                 'o',
                 ms=5,
                 color='r',
                 label='outlier')
         else:
             fig.add_trace(go.Scatter(
-                x=y_true[invalids].index,
-                y=y_true[invalids],
+                x=y_true[outliers].index,
+                y=y_true[outliers],
                 mode='markers',
                 marker={'color': 'red'},
                 name='outlier'))
@@ -200,16 +224,12 @@ def sam_quantile_plot(
         sns.despine(offset=10)
         if y_range is not None:
             plt.ylim(y_range)
-        if date_range is not None:
-            plt.xlim(date_range)
 
     else:
         if title is not None:
             fig.layout.update(title=title)
         if y_range is not None:
             fig.layout.update(yaxis_range=y_range)
-        if date_range is not None:
-            fig.layout.update(xaxis_range=date_range)
 
         fig.layout.update(
             yaxis_title=y_title,
