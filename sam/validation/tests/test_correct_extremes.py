@@ -26,3 +26,7 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
 
         self.assertAllNaN(data_corrected.iloc[25])
         self.assertAllNotNaN(data_corrected.drop([25], axis=0))
+
+
+if __name__ == '__main__':
+    unittest.main()

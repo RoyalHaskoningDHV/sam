@@ -1,5 +1,6 @@
 from sklearn.pipeline import Pipeline
 from sam.validation import RemoveExtremeValues, RemoveFlatlines
+from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
 from sklearn import __version__ as sklearn_version  # For testing if IterativeImputer is available
@@ -125,7 +126,7 @@ def create_validation_pipe(
                                    n_nearest_features=n_nearest_features)
         else:
             IMP = SimpleImputer(strategy=impute_method)
-        estimators.append(['impute', IMP])
+        estimators.append(['impute', ColumnTransformer([('imputer', IMP, cols)])])
 
     pipe = Pipeline(estimators)
 

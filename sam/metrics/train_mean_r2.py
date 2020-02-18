@@ -27,8 +27,8 @@ def train_mean_r2(true, predicted, train_mean):
     assert len(true.shape) == 1, 'true argument must be 1 dimensional'
     assert len(predicted.shape) == 1, 'predicted argument must be 1 dimensional'
 
-    num = np.sum((true - predicted)**2)
-    denom = np.sum((true - train_mean)**2)
+    num = np.nansum((true - predicted)**2)
+    denom = np.nansum((true - train_mean)**2)
 
     r2 = 1 - (num / denom)
 

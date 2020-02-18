@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.0.8
+
+### Bugfixes
+- `sam.validation.create_validation_pipe`: the imputation part is now correctly applied only to the `cols` columns in the df
+- `sam.metrics.train_mean_r2`: now only adds non-nan values in np.arrays (previously would return nan R2)
+
 ## Version 2.0.7
 
 ### Changes

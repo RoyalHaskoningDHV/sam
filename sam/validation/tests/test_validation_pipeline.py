@@ -12,8 +12,8 @@ class TestValidationPipeline(unittest.TestCase, NumericAssertions):
         # create some data
         np.random.seed(10)
         base = np.random.randn(100)
-        X_train = pd.DataFrame(np.tile(base, (3, 3)).T)
-        X_test = pd.DataFrame(np.tile(base, (3, 1)).T)
+        X_train = pd.DataFrame(np.tile(base, (3, 3)).T, columns=['1', '2', '3'])
+        X_test = pd.DataFrame(np.tile(base, (3, 1)).T, columns=['1', '2', '3'])
         y_test = pd.Series(base, name='target')
         y_train = pd.Series(np.tile(base, 3).T, name='target')
 
@@ -49,3 +49,7 @@ class TestValidationPipeline(unittest.TestCase, NumericAssertions):
         self.assertAllNotNaN(y_train)
         self.assertAllNotNaN(X_train)
         self.assertAllNotNaN(X_test)
+
+
+if __name__ == '__main__':
+    unittest.main()

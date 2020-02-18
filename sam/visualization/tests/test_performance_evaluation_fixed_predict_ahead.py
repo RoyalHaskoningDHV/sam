@@ -24,7 +24,7 @@ class TestPerformanceEvaluation(unittest.TestCase):
         # split in train and test sets
         times = pd.date_range('1/1/2011', periods=N, freq='5 min')
         data = pd.Series(data, index=times)
-        model = pd.Series(model, index=times)
+        model = pd.DataFrame(model, columns=['predict_lead_0_mean'], index=times)
 
         train_prop = 0.7
         y_hat_test = model[int(N*train_prop):]
@@ -40,8 +40,8 @@ class TestPerformanceEvaluation(unittest.TestCase):
     def test_performance_evaluation_fixed_predict_ahead_r2_df(self):
 
         expected_df = pd.DataFrame({
-            'R2': [0.65665438, 0.69360554, 0.86141524, 0.86620223, 0.96705164, 0.9538957,
-                   0.99956558, 0.99094014, 0.99935338, 0.96709305],
+            'R2': [65.6654375, 69.3605544, 86.1415235, 86.6202232, 96.7051635, 95.3895701,
+                   99.9565576, 99.0940139, 99.93533776274832, 96.70930510331821],
             'dataset': ['train', 'test', 'train', 'test', 'train', 'test', 'train', 'test',
                         'train', 'test'],
             'resolution': ['native', 'native', '15min', '15min', '1H', '1H', '1D', '1D', '1W',

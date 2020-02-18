@@ -98,16 +98,16 @@ def sam_quantile_plot(
         y_hat = y_hat.resample(res).mean()
 
     # some bookkeeping before we start plotting
-    these_cols = [c for c in y_hat.columns if 'predict_lead_%d_' % predict_ahead in c]
+    these_cols = [c for c in y_hat.columns if 'predict_lead_%d_q_' % predict_ahead in c]
 
     # figure out how to sort the columns
-    col_order = np.argsort([float(c.split('_')[-1]) for c in these_cols if '_q_' in c])
+    col_order = np.argsort([float(c.split('_')[-1]) for c in these_cols])
 
     # shift prediction back to match y_true
     y_hat = y_hat.shift(predict_ahead)
 
     # determine number of quantiles
-    n_quants = int((len(these_cols)-1)/2)
+    n_quants = int((len(these_cols))/2)
 
     # setup plotly figure
     if interactive:
