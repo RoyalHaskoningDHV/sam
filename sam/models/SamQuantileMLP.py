@@ -6,7 +6,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
-from sam.metrics import keras_joint_mse_tilted_loss
+from sam.metrics import keras_joint_mse_tilted_loss, R2Evaluation
 from sam.models import create_keras_quantile_mlp
 from sam.preprocessing import make_differenced_target, inverse_differenced_target
 from sam.utils import FunctionTransformerWithNames
@@ -157,8 +157,11 @@ class SamQuantileMLP(BaseEstimator):
     momentum: integer, optional (default=None)
         The type of momentum in the model, see :ref:`create_keras_quantile_mlp
         <create-keras-quantile-mlp>`
-    verbose: boolean, optional (default=1)
-        The verbosity of fitting the keras model
+    verbose: integer, optional (default=1)
+        The verbosity of fitting the keras model. Can be either 0, 1 or 2.
+    r2_callback_report: boolean (default=False)
+        Whether to add train and validation r2 to each epoch as a callback.
+        This also changes self.verbose to 2 to prevent log print mess up.
 
     Attributes
     ----------
@@ -301,8 +304,10 @@ class SamQuantileMLP(BaseEstimator):
                  lr=0.001,
                  dropout=None,
                  momentum=None,
-                 verbose=True
+                 verbose=1,
+                 r2_callback_report=False
                  ):
+
         self.predict_ahead = predict_ahead
         self.quantiles = quantiles
         self.use_y_as_feature = use_y_as_feature
@@ -321,6 +326,7 @@ class SamQuantileMLP(BaseEstimator):
         self.momentum = momentum
         self.dropout = dropout
         self.verbose = verbose
+        self.r2_callback_report = r2_callback_report
 
     def validate_data(self, X):
         """
@@ -338,7 +344,7 @@ class SamQuantileMLP(BaseEstimator):
         enough_data = \
             len(self.rolling_window_size) == 0 or X.shape[0] > max(self.rolling_window_size)
         if not enough_data:
-            warnings.warn("Not enough data given to caluclate rolling features. "
+            warnings.warn("Not enough data given to calculate rolling features. "
                           "Output will be entirely missing values.", UserWarning)
 
     def fit(self, X, y, validation_data=None, **fit_kwargs):
@@ -371,23 +377,26 @@ class SamQuantileMLP(BaseEstimator):
         if self.predict_ahead == [0] and self.use_y_as_feature:
             raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
 
+        if len(np.unique(self.predict_ahead)) != len(self.predict_ahead):
+            raise ValueError("predict_ahead contains double values")
+
         self.validate_data(X)
 
         if self.y_scaler is not None:
             y = pd.Series(self.y_scaler.fit_transform(y.values.reshape(-1, 1)).ravel(),
-                          index=y.index)
+                          index=y.index, name=y.name)
 
         if self.use_y_as_feature:
             X = X.assign(y_=y.copy())
 
         # Create the actual target
         if (self.use_y_as_feature) and (self.predict_ahead != [0]):
-            target = make_differenced_target(y, self.predict_ahead)
+            y_transformed = make_differenced_target(y, self.predict_ahead)
         else:
             # Dataframe with 1 column. Will use y's index and name
-            target = pd.DataFrame(y.copy())
+            y_transformed = pd.DataFrame(y.copy())
         # Index where target is nan, cannot be trained on.
-        targetnanrows = target.isna().any(axis=1)
+        targetnanrows = y_transformed.isna().any(axis=1)
 
         # buildrollingfeatures
         self.rolling_cols_ = [col for col in X if col != self.timecol]
@@ -396,6 +405,7 @@ class SamQuantileMLP(BaseEstimator):
 
         # Apply feature engineering
         X_transformed = self.feature_engineer_.fit_transform(X)
+
         # Now we have fitted the feature engineer, we can set the feature names
         self._feature_names = self.set_feature_names(X, X_transformed)
 
@@ -403,6 +413,7 @@ class SamQuantileMLP(BaseEstimator):
         X_transformed = pd.DataFrame(X_transformed,
                                      columns=self.get_feature_names(),
                                      index=X.index)
+
         self.n_inputs_ = len(self.get_feature_names())
 
         # Create output column names. In this model, our outputs are assumed to have the
@@ -418,10 +429,10 @@ class SamQuantileMLP(BaseEstimator):
         # Remove the first n rows because they are nan anyway because of rolling features
         if len(self.rolling_window_size) > 0:
             X_transformed = X_transformed.iloc[max(self.rolling_window_size):]
-            target = target.iloc[max(self.rolling_window_size):]
+            y_transformed = y_transformed.iloc[max(self.rolling_window_size):]
         # Filter rows where the target is unknown
         X_transformed = X_transformed.loc[~targetnanrows]
-        target = target.loc[~targetnanrows]
+        y_transformed = y_transformed.loc[~targetnanrows]
 
         # TODO imputing the data, Daan knows many methods
         assert X_transformed.isna().sum().sum() == 0, \
@@ -435,7 +446,7 @@ class SamQuantileMLP(BaseEstimator):
 
             if self.y_scaler is not None:
                 y_val = pd.Series(self.y_scaler.transform(y_val.values.reshape(-1, 1)).ravel(),
-                                  index=y_val.index)
+                                  index=y_val.index, name=y_val.name)
 
             # This does not affect training: it only calls transform, not fit
             X_val_transformed = self.preprocess_before_predict(X_val, y_val)
@@ -461,8 +472,35 @@ class SamQuantileMLP(BaseEstimator):
             # Until here
             validation_data = (X_val_transformed, y_val_transformed)
 
+        if self.r2_callback_report:
+
+            all_data = {
+                'X_train': X_transformed,
+                'y_train': y_transformed}
+
+            if validation_data is not None:
+                all_data['X_val'] = X_val_transformed
+                all_data['y_val'] = y_val_transformed
+
+            # append to the callbacks argument
+            if 'callbacks' in fit_kwargs.keys():
+                # early stopping should be last callback to work properly
+                fit_kwargs['callbacks'] = [R2Evaluation(
+                    all_data, self.prediction_cols_, self.predict_ahead)] + fit_kwargs['callbacks']
+            else:
+                fit_kwargs['callbacks'] = [R2Evaluation(
+                    all_data, self.prediction_cols_,  self.predict_ahead)]
+
+            # Keras verbosity can be in [0, 1, 2].
+            # If verbose is 1, this means that the user wants to display messages.
+            # However, keras printing messes up with custom callbacks and verbose == 1,
+            # see: https://github.com/keras-team/keras/issues/2354
+            # The only solution for now is to set verbose to 2 when using custom callbacks.
+            if self.verbose == 1:
+                self.verbose = 2
+
         # Fit model
-        history = self.model_.fit(X_transformed, target, batch_size=self.batch_size,
+        history = self.model_.fit(X_transformed, y_transformed, batch_size=self.batch_size,
                                   epochs=self.epochs, verbose=self.verbose,
                                   validation_data=validation_data, **fit_kwargs)
         return history
@@ -523,7 +561,7 @@ class SamQuantileMLP(BaseEstimator):
 
             if self.y_scaler is not None:
                 prediction = pd.Series(self.y_scaler.inverse_transform(
-                    prediction.values).ravel(), index=prediction.index)
+                    prediction.values).ravel(), index=prediction.index, name=prediction.name)
 
         else:
             if self.y_scaler is not None:
@@ -743,6 +781,7 @@ class SamQuantileMLP(BaseEstimator):
         """
         # Model must be fitted for this method
         check_is_fitted(self, 'model_')
+
         if len(self.predict_ahead) > 1:
             raise NotImplementedError("This method is currently not implemented "
                                       "for multiple targets")

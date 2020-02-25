@@ -50,11 +50,11 @@ class TestPerformanceEvaluation(unittest.TestCase):
 
         assert_frame_equal(expected_df, self.r2_df)
 
-    @pytest.mark.mpl_image_compare(tolerance=20)
+    @pytest.mark.mpl_image_compare(tolerance=30)
     def test_performance_evaluation_fixed_predict_ahead_bar_fig(self):
         return self.bar_fig
 
-    @pytest.mark.mpl_image_compare(tolerance=20)
+    @pytest.mark.mpl_image_compare(tolerance=30)
     def test_performance_evaluation_fixed_predict_ahead_scatter_fig(self):
         return self.scatter_fig
 

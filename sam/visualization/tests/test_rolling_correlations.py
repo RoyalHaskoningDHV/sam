@@ -7,7 +7,7 @@ from sam.visualization import plot_lag_correlation
 
 class TestRollingCorrelations(unittest.TestCase):
 
-    @pytest.mark.mpl_image_compare(tolerance=20)
+    @pytest.mark.mpl_image_compare(tolerance=30)
     def test_rolling_correlations(self):
 
         X = pd.DataFrame({

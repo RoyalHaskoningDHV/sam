@@ -42,14 +42,14 @@ class TestExtremeDiagnosticPlot(unittest.TestCase):
 
         _ = self.REV.fit(self.train_df)
 
-    @pytest.mark.mpl_image_compare(tolerance=20)
+    @pytest.mark.mpl_image_compare(tolerance=30)
     def test_extreme_values_removal_trainset(self):
 
         _ = self.REV.transform(self.train_df)
         fig = diagnostic_extreme_removal(self.REV, self.train_df, 'values')
         return fig
 
-    @pytest.mark.mpl_image_compare(tolerance=20)
+    @pytest.mark.mpl_image_compare(tolerance=30)
     def test_extreme_values_removal_testset(self):
 
         _ = self.REV.transform(self.test_df)

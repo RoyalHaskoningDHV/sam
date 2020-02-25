@@ -37,6 +37,17 @@ class TestTrainMeanR2(unittest.TestCase):
         assert_array_almost_equal(keras_r2s, [0.962522, 0.894608, 0.734713])
         assert_array_almost_equal(custom_r2s, [0.987602, 0.989454, 0.870157])
 
+    def test_train_mean_r2_shapes(self):
+
+        # the function cannot handle data with multiple dimensions. It does however ravel
+        # empty dimensions (x, 1).
+        self.assertRaises(AssertionError, train_mean_r2, np.random.random(
+            size=(12, 2)), np.random.random(size=(12, 2)), 0)
+        self.assertRaises(AssertionError, train_mean_r2, np.random.random(
+            size=(12, 1)), np.random.random(size=(12, 2)), 0)
+        self.assertRaises(AssertionError, train_mean_r2, np.random.random(
+            size=(12, 2)), np.random.random(size=(12, 1)), 0)
+
 
 if __name__ == '__main__':
     unittest.main()

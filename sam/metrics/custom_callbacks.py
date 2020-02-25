@@ -1,0 +1,85 @@
+from tensorflow.keras.callbacks import Callback
+from sam.metrics import train_mean_r2
+import pandas as pd
+import numpy as np
+
+
+class R2Evaluation(Callback):
+
+    def __init__(self, all_data, prediction_cols, predict_ahead):
+        """
+        Custom keras callback that computes r2 compared to the training mean.
+        Computing R2 at every batch and then averaging biases r2 estimates.
+        Implemeting r2 as a metric is therefore not valid, as this is evaluated every batch.
+        We therefore implemented it as a callback, which is only evaluated at the end of each
+        epoch.
+
+        NOTE! this should only be used with SamQuantileMLP models, not any custom keras model.
+        NOTE2: this function returns r2 with the keras_model.predict function. This means that
+            if values are differences in SamQuantileMLP, it returns r2 for the differenced values.
+            This can deviate from r2 computed over un-differenced values.
+
+        Parameters
+        ----------
+        all_data: dict
+            Dictionary that should include X_train and y_train at least. If validation set is
+            present should also include X_val and y_val. The training sets individually should
+            be numpy arrays, and should be the same as are input to the model for training.
+        prediction_cols: list
+            List of columns that accompany a model.predict call
+        predict_ahead: integer
+            The predict ahead used in the SamQuantileMLP
+
+        """
+        self.all_data = all_data
+        self.prediction_cols = prediction_cols
+        self.predict_ahead = predict_ahead
+
+    def on_epoch_end(self, epoch, logs={}):
+
+        val = 'X_val' in self.all_data.keys()
+
+        y_hat_train = pd.DataFrame(
+            data=self.model.predict(self.all_data['X_train']),
+            index=self.all_data['X_train'].index,
+            columns=self.prediction_cols)
+
+        if val:
+            y_hat_val = pd.DataFrame(
+                data=self.model.predict(self.all_data['X_val']),
+                index=self.all_data['X_val'].index,
+                columns=self.prediction_cols)
+
+        r2s = []
+        r2s_val = []
+        for p in self.predict_ahead:
+
+            # only add the predict ahead if it is not only 0 (otherwise not added)
+            thiscol = '_'.join(self.all_data['y_train'].columns[0].split('_')[:2])
+            if not self.predict_ahead == [0]:
+                thiscol += '_%d' % p
+
+            these_y_train = self.all_data['y_train'].loc[:, thiscol].values
+            these_y_hat_train = y_hat_train['predict_lead_%d_mean' % p].values
+            train_mean = these_y_train.mean()
+
+            if val:
+                these_y_val = self.all_data['y_val'].loc[:, thiscol].values
+                these_y_hat_val = y_hat_val['predict_lead_%d_mean' % p].values
+
+            r2s.append(train_mean_r2(these_y_train,  these_y_hat_train, train_mean))
+
+            if val:
+                r2s_val.append(train_mean_r2(
+                    these_y_val,  these_y_hat_val, train_mean))
+
+        r2 = np.mean(r2s)
+        logs['r2'] = r2
+        if val:
+            r2_val = np.mean(r2s_val)
+            logs['val_r2'] = r2_val
+
+        if val:
+            print("r2: {:.6f} - val_r2: {:.6f}".format(r2, r2_val))
+        else:
+            print("r2: {:.6f}".format(r2))

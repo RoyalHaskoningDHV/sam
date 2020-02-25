@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 2.0.9
+
+### Bugfixes
+- `sam.models.SamQuantileMLP`: When using y_scaler, name of rescaled y-series is set correctly.
+
+### Changes
+- `sam.models.SamQuantileMLP`: Now accepts a keyword argument `r2_callback_report` to add the new custom r2 callback.
+
+### New functions
+- `sam.metrics.custom_callbacks`: Added a custom callback that computes r2 with `sam.metrics.train_mean_r2` for each epoch
+
 ## Version 2.0.8
 
 ### Bugfixes

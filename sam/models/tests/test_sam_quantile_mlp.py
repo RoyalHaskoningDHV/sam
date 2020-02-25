@@ -152,6 +152,33 @@ class TestSamQuantileMLP(unittest.TestCase):
         output = model.summary()
         self.assertIsNone(output)
 
+    def test_r2_callback(self):
+
+        model = SamQuantileMLP(predict_ahead=2,
+                               use_y_as_feature=True,
+                               timecol='TIME',
+                               quantiles=[0.3, 0.7],
+                               epochs=2,
+                               time_components=['minute'],
+                               time_cyclicals=['minute'],
+                               time_onehots=[],
+                               rolling_window_size=[],
+                               n_neurons=1,
+                               n_layers=1,
+                               lr=0.3,
+                               verbose=0,
+                               r2_callback_report=True)
+
+        history = model.fit(self.X_train, self.y_train)
+
+        self.assertTrue('r2' in history.history.keys())
+        self.assertTrue('val_r2' not in history.history.keys())
+
+        history = model.fit(self.X_train, self.y_train, validation_data=(self.X_test, self.y_test))
+
+        self.assertTrue('r2' in history.history.keys())
+        self.assertTrue('val_r2' in history.history.keys())
+
     def test_predict_present(self):
 
         # Add a generous amount of noise to y, because we don't need to model to fit perfectly for

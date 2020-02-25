@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 
 def train_mean_r2(true, predicted, train_mean):
@@ -24,12 +25,19 @@ def train_mean_r2(true, predicted, train_mean):
         Custom R2 with training mean
     """
 
-    assert len(true.shape) == 1, 'true argument must be 1 dimensional'
-    assert len(predicted.shape) == 1, 'predicted argument must be 1 dimensional'
+    if len(true.shape) > 1:
+        true_ravel = np.ravel(true)
+        assert true_ravel.size == true.shape[0], 'true argument must be 1 dimensional'
+        true = true_ravel
+    if len(predicted.shape) > 1:
+        predicted_ravel = np.ravel(predicted)
+        assert predicted_ravel.size == predicted.shape[0],\
+            'predicted argument must be 1 dimensional'
+        predicted = predicted_ravel
 
     num = np.nansum((true - predicted)**2)
     denom = np.nansum((true - train_mean)**2)
 
-    r2 = 1 - (num / denom)
+    r2 = 1 - (num / (denom+sys.float_info.epsilon))
 
     return r2
