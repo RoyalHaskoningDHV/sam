@@ -87,6 +87,9 @@ def sam_quantile_plot(
         import plotly.graph_objs as go
         from plotly.offline import plot
 
+    # shift prediction back to match y_true
+    y_hat = y_hat.shift(predict_ahead)
+
     # apply date range to data to speed up the rest
     if date_range is not None:
         y_true = y_true[date_range[0]:date_range[1]]
@@ -102,9 +105,6 @@ def sam_quantile_plot(
 
     # figure out how to sort the columns
     col_order = np.argsort([float(c.split('_')[-1]) for c in these_cols])
-
-    # shift prediction back to match y_true
-    y_hat = y_hat.shift(predict_ahead)
 
     # determine number of quantiles
     n_quants = int((len(these_cols))/2)
@@ -134,9 +134,11 @@ def sam_quantile_plot(
 
         else:
 
+            y_hat_dropna = y_hat.dropna()
+
             fig.add_trace(go.Scatter(
-                x=y_hat.index,
-                y=y_hat[highcol],
+                x=y_hat_dropna.index,
+                y=y_hat_dropna[highcol],
                 fill=None,
                 mode='lines',
                 line={'width': 0.1},
@@ -146,8 +148,8 @@ def sam_quantile_plot(
                 legendgroup='%.3f CI' % this_ci))
 
             fig.add_trace(go.Scatter(
-                x=y_hat.index,
-                y=y_hat[lowcol],
+                x=y_hat_dropna.index,
+                y=y_hat_dropna[lowcol],
                 fill='tonexty',
                 mode='lines',
                 line={'width': 0.1},
