@@ -10,7 +10,7 @@ from sklearn.metrics import r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.base import BaseEstimator, TransformerMixin, clone
 from sklearn.utils.validation import check_is_fitted
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, BayesianRidge
 # other
 import pandas as pd
 import numpy as np
@@ -38,7 +38,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         rolling_types to try for BuildRollingFeatures.
         Note: cannot be 'ewm'.
     estimator_type: str (default='lin')
-        type of estimator to determine rolling importance. Can one of: ['rf', 'lin']
+        type of estimator to determine rolling importance. Can one of: ['rf', 'lin', 'bayeslin']
     n_iter_per_param: int (default=25)
         number of random values to try for each parameter. The total number of iterations is
         given by n_iter_per_param * len(window_sizes) * len(rolling_types)
@@ -145,6 +145,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             estimator = RandomForestRegressor(n_estimators=100, min_samples_split=5)
         elif self.estimator_type == 'lin':
             estimator = LinearRegression()
+        elif self.estimator_type == 'bayeslin':
+            estimator = BayesianRidge()
         return estimator
 
     def _setup_pipeline(self, original_features, time_features):
@@ -253,10 +255,10 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                 onehots=self.onehots, cyclicals=self.cyclicals, keep_original=True)
             time_features = time_features.set_index('TIME', drop=True)
 
-            # remove columns that are always identical (i.e. at higher res than data is in)
-            for col in time_features.columns:
-                if len(time_features[col].unique()) == 1:
-                    time_features = time_features.drop(col, axis=1)
+            # some columns can be constant (i.e. higher res than data is in). However, removing
+            # all constant columns will also remove one-hot-encoded features that are not
+            # currently in the dataset (like week_52 if you only have partial year data).
+            # So, we simply leave all constant features in there.
 
             X = X.join(time_features)
             timecols = time_features.columns
