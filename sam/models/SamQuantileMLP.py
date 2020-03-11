@@ -726,7 +726,8 @@ class SamQuantileMLP(BaseEstimator):
         print_fn(self.get_feature_names())
         self.model_.summary(print_fn=print_fn)
 
-    def quantile_feature_importances(self, X, y, score=None, n_iter=5):
+    def quantile_feature_importances(self, X, y, score=None, n_iter=5,
+                                     sum_time_components=False):
         """
         Computes feature importances based on the quantile loss function.
         This function uses `ELI5's 'get_score_importances (link)
@@ -750,6 +751,9 @@ class SamQuantileMLP(BaseEstimator):
         n_iter: int, optional (default=5)
              Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
              this parameter may provide more stablitity at the cost of a longer runtime
+        sum_time_components: bool, optional (default=False)
+             if set to true, sums feature importances of the different subfeatures of each time
+             component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
 
         Returns
         -------
@@ -816,6 +820,13 @@ class SamQuantileMLP(BaseEstimator):
         _, score_decreases = get_score_importances(score, X_transformed, y_target, n_iter=n_iter)
 
         decreases_df = pd.DataFrame(score_decreases, columns=self.get_feature_names())
+
+        if sum_time_components:
+            for component in self.time_components:
+                these_cols = [c for c in decreases_df.columns if c.startswith(
+                    '%s_%s_' % (self.timecol, component))]
+                decreases_df[component] = decreases_df[these_cols].sum(axis=1)
+                decreases_df = decreases_df.drop(these_cols, axis=1)
 
         return decreases_df
 

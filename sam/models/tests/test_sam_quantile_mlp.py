@@ -132,6 +132,14 @@ class TestSamQuantileMLP(unittest.TestCase):
                          model.get_feature_names())
         self.assertEqual(feature_importances.shape, (2, 4))
 
+        # now do the same for summarizing time features.
+        # the model includes minute as a cyclical, so we should have only 1 minute feature here:
+        feature_importances = model.quantile_feature_importances(
+          self.X_test, self.y_test, n_iter=2, sum_time_components=True)
+        self.assertEqual(feature_importances.columns.tolist(),
+                         ['x', 'y_', 'minute'])
+        self.assertEqual(feature_importances.shape, (2, 3))
+
         # test shap values
         explainer = model.get_explainer(self.X_test, self.y_test)
         shap_values = explainer.shap_values(self.X_test[0:10], self.y_test[0:10])

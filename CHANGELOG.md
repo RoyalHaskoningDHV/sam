@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 2.0.10
+
+### New functions
+- `sam.models.SamQuantileMLP.quantile_feature_importances`: now has argument sum_time_components that summarizes feature importances for different features generated for a single component (i.e. in onehot encoding).
+
+### Changes
+- `sam.featurew_engineering.automatic_rolling_engineering`: `estimator_type` argument can now also be 'bayeslin', which should be used if one hot components are used
+
+### Bugfixes
+- `sam.featurew_engineering.automatic_rolling_engineering`: constant features are no longer deleted (broke one hot features)
+
 ## Version 2.0.9
 
 ### Bugfixes
