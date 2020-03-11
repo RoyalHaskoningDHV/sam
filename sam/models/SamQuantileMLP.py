@@ -629,6 +629,18 @@ class SamQuantileMLP(BaseEstimator):
         prediction = pd.DataFrame(self.predict(X, y))
         actual = pd.DataFrame(self.get_actual(y))
 
+        # scale these predictions back to get a score that is in same units as keras loss
+        if self.y_scaler is not None:
+            pred_scaled = np.zeros_like(prediction)
+            for i in range(prediction.shape[1]):
+                pred_scaled[:, i] = self.y_scaler.transform(
+                    prediction.iloc[:, i].values.reshape(-1, 1)).ravel()
+            prediction = pd.DataFrame(
+                pred_scaled, columns=prediction.columns, index=prediction.index)
+
+            actual = pd.DataFrame(self.y_scaler.transform(
+                actual.values).ravel(), index=actual.index, columns=actual.columns)
+
         # actual usually has some missings at the end
         # prediction usually has some missings at the beginning
         # We ignore the rows with missings

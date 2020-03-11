@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.0.11
+
+### Bugfixes
+- `sam.models.SamQuantileMLP.score`: if using y_scaler, now scales actual and prediction to equalize score to keras loss
+
 ## Version 2.0.10
 
 ### New functions
