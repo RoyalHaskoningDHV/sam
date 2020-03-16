@@ -164,6 +164,7 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         model = SamQuantileMLP(predict_ahead=2,
                                use_y_as_feature=True,
+                               use_diff_of_y=False,
                                timecol='TIME',
                                quantiles=[0.3, 0.7],
                                epochs=2,
@@ -201,6 +202,7 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         model = SamQuantileMLP(predict_ahead=0,
                                use_y_as_feature=False,
+                               use_diff_of_y=False,
                                timecol=None,
                                quantiles=(0.05, 0.95),
                                epochs=20,
@@ -276,6 +278,52 @@ class TestSamQuantileMLP(unittest.TestCase):
         score = model.score(self.X_test, self.y_test)
         self.assertTrue(np.isscalar(score))
 
+    def test_multioutput_undifferenced(self):
+        # Test multioutput without differencing the target y. Same data as test_predict_future.
+
+        model = SamQuantileMLP(predict_ahead=[1, 2, 3],
+                               use_y_as_feature=True,
+                               use_diff_of_y=False,
+                               timecol='TIME',
+                               quantiles=[0.3, 0.7],
+                               epochs=30,
+                               time_components=['minute'],
+                               time_cyclicals=['minute'],
+                               time_onehots=[],
+                               rolling_window_size=[],
+                               n_neurons=1,
+                               n_layers=1,
+                               lr=0.3,
+                               verbose=0)
+
+        model.fit(self.X_train, self.y_train)
+        pred = model.predict(self.X_test, self.y_test)
+        actual = model.get_actual(self.y_test)
+
+        yname = self.y_test.name
+        # Same as with singleoutput, except in a dataframe this time
+        expected = pd.DataFrame({
+            yname + '_lead_1': self.y_test.shift(-1),
+            yname + '_lead_2': self.y_test.shift(-2),
+            yname + '_lead_3': self.y_test.shift(-3)
+        }, index=self.y_test.index)
+        assert_frame_equal(actual, expected)
+
+        self.assertEqual(model.prediction_cols_, pred.columns.tolist())
+        self.assertEqual(pred.columns.tolist(),
+                         ['predict_lead_1_q_0.3', 'predict_lead_2_q_0.3', 'predict_lead_3_q_0.3',
+                          'predict_lead_1_q_0.7', 'predict_lead_2_q_0.7', 'predict_lead_3_q_0.7',
+                          'predict_lead_1_mean', 'predict_lead_2_mean', 'predict_lead_3_mean'])
+
+        X_transformed = model.preprocess_before_predict(self.X_test, self.y_test)
+        # Should have the same number of columns as model.get_feature_names()
+        self.assertEqual(X_transformed.shape[1], len(model.get_feature_names()))
+
+        self.assertEqual(model.n_outputs_, 9)
+
+        score = model.score(self.X_test, self.y_test)
+        self.assertTrue(np.isscalar(score))
+
     def test_single_target(self):
         # Test single target. Same data as test_predict_future.
 
@@ -317,10 +365,6 @@ class TestSamQuantileMLP(unittest.TestCase):
 
     def test_expected_failures(self):
 
-        # For now, this usecase is not supported so will throw error
-        model = SamQuantileMLP(predict_ahead=1, use_y_as_feature=False, timecol='TIME')
-        self.assertRaises(ValueError, model.fit, self.X, self.y)
-
         # No negative values allowed
         model = SamQuantileMLP(predict_ahead=-1, use_y_as_feature=True, timecol='TIME')
         self.assertRaises(ValueError, model.fit, self.X, self.y)
@@ -361,6 +405,7 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         model = SamQuantileMLP(predict_ahead=0,
                                use_y_as_feature=False,
+                               use_diff_of_y=False,
                                timecol='TIME',
                                quantiles=[0.001, 0.023, 0.159, 0.841, 0.977, 0.999],
                                epochs=15,
@@ -403,6 +448,7 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         model = SamQuantileMLP(predict_ahead=0,
                                use_y_as_feature=False,
+                               use_diff_of_y=False,
                                timecol='TIME',
                                quantiles=[0.001, 0.023, 0.159, 0.841, 0.977, 0.999],
                                epochs=15,
@@ -446,6 +492,7 @@ class TestSamQuantileMLP(unittest.TestCase):
 
                 model = SamQuantileMLP(predict_ahead=predict_ahead,
                                        use_y_as_feature=use_y_as_feature,
+                                       use_diff_of_y=False,
                                        timecol='TIME',
                                        quantiles=qs,
                                        epochs=2,

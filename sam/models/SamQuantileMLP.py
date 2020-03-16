@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import keras_joint_mse_tilted_loss, R2Evaluation
 from sam.models import create_keras_quantile_mlp
+from sam.preprocessing import make_shifted_target
 from sam.preprocessing import make_differenced_target, inverse_differenced_target
 from sam.utils import FunctionTransformerWithNames
 
@@ -290,6 +291,7 @@ class SamQuantileMLP(BaseEstimator):
                  predict_ahead=1,
                  quantiles=(),
                  use_y_as_feature=True,
+                 use_diff_of_y=True,
                  timecol=None,
                  y_scaler=None,
                  time_components=['minute', 'hour', 'day', 'weekday'],
@@ -311,6 +313,7 @@ class SamQuantileMLP(BaseEstimator):
         self.predict_ahead = predict_ahead
         self.quantiles = quantiles
         self.use_y_as_feature = use_y_as_feature
+        self.use_diff_of_y = use_diff_of_y
         self.timecol = timecol
         self.y_scaler = y_scaler
         self.time_components = time_components
@@ -371,8 +374,8 @@ class SamQuantileMLP(BaseEstimator):
         if not y.index.equals(X.index):
             raise ValueError("For training, X and y must have an identical index")
 
-        if not self.use_y_as_feature and self.predict_ahead != [0]:
-            raise ValueError("For now, use_y_as_feature must be true unless predict_ahead is 0")
+        if self.predict_ahead == [0] and self.use_diff_of_y:
+            raise ValueError("use_diff_of_y must be false when predict_ahead is 0")
 
         if self.predict_ahead == [0] and self.use_y_as_feature:
             raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
@@ -390,8 +393,8 @@ class SamQuantileMLP(BaseEstimator):
             X = X.assign(y_=y.copy())
 
         # Create the actual target
-        if (self.use_y_as_feature) and (self.predict_ahead != [0]):
-            y_transformed = make_differenced_target(y, self.predict_ahead)
+        if (self.predict_ahead != [0]):
+            y_transformed = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
         else:
             # Dataframe with 1 column. Will use y's index and name
             y_transformed = pd.DataFrame(y.copy())
@@ -452,8 +455,9 @@ class SamQuantileMLP(BaseEstimator):
             X_val_transformed = self.preprocess_before_predict(X_val, y_val)
             X_val_transformed = pd.DataFrame(X_val_transformed,
                                              columns=self.get_feature_names(), index=X_val.index)
-            if (self.use_y_as_feature) and (self.predict_ahead != [0]):
-                y_val_transformed = make_differenced_target(y_val, self.predict_ahead)
+            if (self.predict_ahead != [0]):
+                y_val_transformed = make_shifted_target(
+                    y_val, self.use_diff_of_y, self.predict_ahead)
             else:
                 # Dataframe with 1 column. Will use y's index and name
                 y_val_transformed = pd.DataFrame(y_val.copy())
@@ -529,8 +533,8 @@ class SamQuantileMLP(BaseEstimator):
         Important! This is different from sklearn/tensorflow API...
         We need y during prediction for two reasons:
         1) a lagged version is used for feature engineering
-        2) The underlying model predicts a differenced number, and we want to output the 'real'
-           prediction, so we need y to undo the differencing
+        2) The underlying model can predict a differenced number, and then we want to output the
+           'real' prediction, so we need y to undo the differencing
         Keep in mind that prediction will work if you are predicting the future. e.g. you have
         data from 00:00-12:00, and are predicting 4 hours into the future, it will predict what
         the value will be at 4:00-16:00
@@ -550,8 +554,8 @@ class SamQuantileMLP(BaseEstimator):
         prediction = pd.DataFrame(prediction,
                                   columns=self.prediction_cols_,
                                   index=X.index)
-        # This parameter decides if we did differencing or not, so undo it if we used it
-        if self.use_y_as_feature:
+        # If we performed differencing, we undo it here
+        if self.use_diff_of_y:
             prediction = inverse_differenced_target(prediction, y)
 
         if prediction.shape[1] == 1:
@@ -611,9 +615,10 @@ class SamQuantileMLP(BaseEstimator):
         else:
             pred = self.predict_ahead
 
-        if self.use_y_as_feature:
-            target = make_differenced_target(y, pred)
-            actual = inverse_differenced_target(target, y)
+        if (self.predict_ahead != [0]):
+            actual = make_shifted_target(y, self.use_diff_of_y, pred)
+            if (self.use_diff_of_y):
+                actual = inverse_differenced_target(actual, y)
         else:
             actual = y.copy()
 
@@ -818,8 +823,10 @@ class SamQuantileMLP(BaseEstimator):
                 return loss
 
         X_transformed = self.preprocess_before_predict(X, y)
-        if self.use_y_as_feature:
-            y_target = make_differenced_target(y, self.predict_ahead).iloc[:, 0]
+
+        if (self.predict_ahead != [0]):
+            y_target = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead).iloc[:, 0]
+
         else:
             y_target = y.copy()
 

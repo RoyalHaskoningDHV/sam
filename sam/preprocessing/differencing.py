@@ -1,5 +1,100 @@
 import pandas as pd
 import numpy as np
+import warnings
+
+
+def make_shifted_target(y, use_diff_of_y=False, lags=1, newcol_prefix=None):
+    '''
+    Creates a target dataframe by performing shifting on a series
+
+    Given some features, it may be desirable to predict future values of the target.
+    Also, it may be desirable to have either one or multiple targets. To preserve consistency,
+    this function returns a dataframe either way.
+
+    This function creates a dataframe with columns 'TARGET_lead_x', where `x` are the lags,
+    and TARGET is the name of the input series.
+
+    Parameters
+    ----------
+    y: pd.Series
+        A series containing the target data. Must be monospaced in time, for the shifting
+        to work correctly.
+    use_diff_of_y: boolean, optional (default=False)
+        A boolean option that decides if the difference between the target now
+        and the shifted target is calculated and returned, or just the shifted target itself.
+    lags: array-like or int, optional (default=1)
+        A list of integers, or a single integer describing what lags should be used to look in the
+        future. For example, if this is `[1, 2, 3]`, the output will have three columns, performing
+        shifting on 1, 2, and 3 timesteps in the future.
+        If this is a list, the output will be a dataframe. If this is a scalar, the output will
+        be a series
+    newcol_prefix: str, optional (default=None)
+        The prefix that the output columns will have. If not given, `y.name` is used instead.
+
+    Returns
+    -------
+    target: pd.DataFrame or pd.Series
+        A target with the same index as `y`, and columns equal to `len(lags)`
+        The values will be 'future values' of `y`.
+        If we consider the index to be the 'timestamp', then the index will be the moment the
+        prediction is made, not the moment the prediction is about. Therefore, the columns
+        will be the future values with different lags.
+        Any values that cannot be calculated (because there is no available future value) will be
+        set to `np.nan`.
+
+    Examples
+    --------
+    >>> df = pd.DataFrame({
+    >>>     'X': [18, 19, 20, 21],
+    >>>     'y': [10, 20, 50, 100]
+    >>> })
+    >>> make_shifted_target(df['y'], use_diff_of_y = False, lags=1)
+        y_lead_1
+    0 	20.0
+    1 	50.0
+    2 	100.0
+    3 	NaN
+
+    --------
+    >>> df = pd.DataFrame({
+    >>>     'X': [18, 19, 20, 21],
+    >>>     'y': [10, 20, 50, 100]
+    >>> })
+    >>> make_shifted_target(df['y'], use_diff_of_y = True, lags=1)
+        y_diff_1
+    0 	10.0
+    1 	30.0
+    2 	50.0
+    3 	NaN
+    '''
+    if newcol_prefix is None:
+        newcol_prefix = y.name
+
+    if np.isscalar(lags):
+        series_output = True
+        lags = [lags]
+    else:
+        series_output = False
+
+    for lag in lags:
+        if lag < 1:
+            raise ValueError("All lags must be larger than 0")
+        if lag % 1 != 0:
+            raise ValueError("All lags must be integers")
+
+    # Lagging to the future means negative lags
+    if (use_diff_of_y):
+        result = pd.concat([-1 * y.diff(-1 * lag) for lag in lags], axis=1)
+        names = ['{}_diff_{}'.format(newcol_prefix, lag) for lag in lags]
+    else:
+        result = pd.concat([y.shift(-1 * lag) for lag in lags], axis=1)
+        names = ['{}_lead_{}'.format(newcol_prefix, lag) for lag in lags]
+
+    result.columns = names
+    if series_output:
+        result = result.iloc[:, 0]
+
+    return result
 
 
 def make_differenced_target(y, lags=1, newcol_prefix=None):
@@ -52,29 +147,10 @@ def make_differenced_target(y, lags=1, newcol_prefix=None):
     2 	50.0
     3 	NaN
     '''
-    if newcol_prefix is None:
-        newcol_prefix = y.name
+    warnings.warn("make_differenced_target will be deprecated and replaced by make_shifted_target",
+                  PendingDeprecationWarning)
 
-    if np.isscalar(lags):
-        series_output = True
-        lags = [lags]
-    else:
-        series_output = False
-
-    for lag in lags:
-        if lag < 1:
-            raise ValueError("All lags must be larger than 0")
-        if lag % 1 != 0:
-            raise ValueError("All lags must be integers")
-
-    # When looking at the future, the diffs should negative, so we need to multiply by -1
-    # Also, lagging to the future means negative lags
-    result = pd.concat([-1 * y.diff(-1 * lag) for lag in lags], axis=1)
-
-    names = ['{}_diff_{}'.format(newcol_prefix, lag) for lag in lags]
-    result.columns = names
-    if series_output:
-        result = result.iloc[:, 0]
+    result = make_shifted_target(y=y, use_diff_of_y=True, lags=lags, newcol_prefix=newcol_prefix)
 
     return result
 
