@@ -122,8 +122,11 @@ def create_validation_pipe(
             # This is a experimental feature in sklearn, only import when needed
             from sklearn.experimental import enable_iterative_imputer  # noqa:F401
             from sklearn.impute import IterativeImputer
-            IMP = IterativeImputer(estimator=LinearRegression(), verbose=2,
-                                   n_nearest_features=n_nearest_features)
+            IMP = IterativeImputer(estimator=LinearRegression(),
+                                   verbose=2,
+                                   n_nearest_features=n_nearest_features,
+                                   max_iter=max_iter,
+                                   random_state=42)
         else:
             IMP = SimpleImputer(strategy=impute_method)
         estimators.append(['impute', ColumnTransformer([('imputer', IMP, cols)])])
