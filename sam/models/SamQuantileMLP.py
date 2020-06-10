@@ -398,6 +398,7 @@ class SamQuantileMLP(BaseEstimator):
         else:
             # Dataframe with 1 column. Will use y's index and name
             y_transformed = pd.DataFrame(y.copy())
+
         # Index where target is nan, cannot be trained on.
         targetnanrows = y_transformed.isna().any(axis=1)
 
@@ -446,6 +447,8 @@ class SamQuantileMLP(BaseEstimator):
         # Create validation data:
         if validation_data is not None:
             X_val, y_val = validation_data
+
+            self.validate_data(X_val)
 
             if self.y_scaler is not None:
                 y_val = pd.Series(self.y_scaler.transform(y_val.values.reshape(-1, 1)).ravel(),
@@ -522,6 +525,7 @@ class SamQuantileMLP(BaseEstimator):
             "For predicting, X and y must have an identical index"
         if self.use_y_as_feature:
             X = X.assign(y_=y.copy())
+
         X_transformed = self.feature_engineer_.transform(X)
         if dropna:
             X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]

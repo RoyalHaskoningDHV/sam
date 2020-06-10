@@ -67,6 +67,7 @@ def make_shifted_target(y, use_diff_of_y=False, lags=1, newcol_prefix=None):
     2 	50.0
     3 	NaN
     '''
+
     if newcol_prefix is None:
         newcol_prefix = y.name
 

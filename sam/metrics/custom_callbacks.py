@@ -54,10 +54,12 @@ class R2Evaluation(Callback):
         r2s_val = []
         for p in self.predict_ahead:
 
-            # only add the predict ahead if it is not only 0 (otherwise not added)
-            thiscol = '_'.join(self.all_data['y_train'].columns[0].split('_')[:2])
-            if not self.predict_ahead == [0]:
-                thiscol += '_%d' % p
+            if len(self.predict_ahead) > 1:
+                # only add the predict ahead if needed
+                thiscol = '_'.join(self.all_data['y_train'].columns[0].split('_')[:-2])
+                thiscol += '_lead_%d' % p
+            else:
+                thiscol = self.all_data['y_train'].columns[0]
 
             these_y_train = self.all_data['y_train'].loc[:, thiscol].values
             these_y_hat_train = y_hat_train['predict_lead_%d_mean' % p].values
