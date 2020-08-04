@@ -527,7 +527,7 @@ class SamQuantileMLP(BaseEstimator):
             X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
         return X_transformed
 
-    def predict(self, X, y=None):
+    def predict(self, X, y=None, return_data=False):
         """
         Make a prediction, and optionally undo differencing
         Important! This is different from sklearn/tensorflow API...
@@ -576,7 +576,10 @@ class SamQuantileMLP(BaseEstimator):
                 prediction = pd.DataFrame(
                     inv_pred, columns=prediction.columns, index=prediction.index)
 
-        return prediction
+        if return_data:
+            return prediction, X_transformed
+        else:
+            return prediction
 
     def set_feature_names(self, X, X_transformed):
         """
