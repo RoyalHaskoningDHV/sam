@@ -527,7 +527,7 @@ class SamQuantileMLP(BaseEstimator):
             X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
         return X_transformed
 
-    def predict(self, X, y=None):
+    def predict(self, X, y=None, return_data=False):
         """
         Make a prediction, and optionally undo differencing
         Important! This is different from sklearn/tensorflow API...
@@ -538,6 +538,9 @@ class SamQuantileMLP(BaseEstimator):
         Keep in mind that prediction will work if you are predicting the future. e.g. you have
         data from 00:00-12:00, and are predicting 4 hours into the future, it will predict what
         the value will be at 4:00-16:00
+
+        The parameter return_data (boolean) decides whether to return only the prediction, or
+        to return both the prediction and the transformed input (X) dataframe.
         """
         assert self.predict_ahead == 0 or y is not None, \
             "When predict_ahead > 0, y is needed for prediction"
@@ -576,7 +579,10 @@ class SamQuantileMLP(BaseEstimator):
                 prediction = pd.DataFrame(
                     inv_pred, columns=prediction.columns, index=prediction.index)
 
-        return prediction
+        if return_data:
+            return prediction, X_transformed
+        else:
+            return prediction
 
     def set_feature_names(self, X, X_transformed):
         """
