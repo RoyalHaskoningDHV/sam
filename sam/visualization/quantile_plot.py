@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 def sam_quantile_plot(
@@ -10,12 +11,14 @@ def sam_quantile_plot(
         data_prop=None,
         y_range=None,
         date_range=None,
-        colors=['#2453bd', '#7497e3', '#c3d0eb'],
+        colors=['#2453bd', '#7497e3', '#c3d0eb', '#d1d8e8'],
         outlier_min_q=None,
         predict_ahead=0,
         res=None,
         interactive=False,
-        outliers=None):
+        outliers=None,
+        outlier_window=1,
+        outlier_limit=1):
     """
     Uses the output from SamQuantileMLPs predict function to create a quantile prediction plot.
     It plots the actual data, the prediction, and the quantiles as shaded regions.
@@ -73,6 +76,10 @@ def sam_quantile_plot(
         outlier or not. Should be same length as y_hat, and should either have same index,
         or no index at all (np array) or list.
         Cannot be used in conjunction with `outlier_min_q`.
+    outlier_window: int (default=1)
+        the window size in which at least `outlier_limit` should be outside of `outlier_min_q`
+    outlier_limit: int (default=1)
+        the minimum number of outliers within outlier_window to be outside of `outlier_min_q`
 
     Returns
     ------
@@ -189,9 +196,14 @@ def sam_quantile_plot(
 
         # if outliers is not passed, determine them through use of outlier_min_q
         if outlier_min_q is not None and outliers is None:
+
             valid_low = y_hat[these_cols[col_order[n_quants-1-(outlier_min_q-1)]]]
             valid_high = y_hat[these_cols[col_order[n_quants+(outlier_min_q-1)]]]
             outliers = (y_true > valid_high) | (y_true < valid_low)
+            outliers = outliers.astype(int)
+            k = np.ones(outlier_window)
+            outliers = (np.convolve(
+                outliers, k, mode='full')[:len(outliers)] >= outlier_limit).astype(bool)
 
         if not interactive:
             plt.plot(
@@ -227,7 +239,7 @@ def sam_quantile_plot(
         if y_range is not None:
             plt.ylim(y_range)
         if date_range is not None:
-            plt.xlim(date_range)
+            plt.xlim(pd.to_datetime(date_range))
 
     else:
         if title is not None:
