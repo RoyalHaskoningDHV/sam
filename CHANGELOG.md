@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.0.14
+
+### New functions
+- `sam.visualisation.sam_quantile_plot`: Options to set `outlier_window` and `outlier_limit`, to only plot anomalies when at least `outlier_limit` anomalies are counted within the `outlier window` 
+
+### Bugfixes
+- Bugfix in `sam.metrics.custom_callbacks`
+
 ## Version 2.0.11
 
 ### Bugfixes
