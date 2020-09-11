@@ -19,7 +19,7 @@ setup(name='sam',
       install_requires=['pandas>=0.23', 'numpy>=1.13', 'scikit-learn>=0.20'],
       extras_require={
           'all': ['knmy', 'matplotlib', 'nfft', 'pymongo', 'requests', 'scipy', 'seaborn',
-                  'tensorflow']
+                  'tensorflow', 'eli5', 'shap']
       },
       tests_require=['pytest', 'pytest-cov', 'pytest-mpl']
       )
