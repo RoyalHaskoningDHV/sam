@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.0.15
+
+### Development changes
+- Added `run-linting.yml`  to run pycodestyle in devops pipelines
+- Added `run-unittest.yml` to run pytest in devops pipelines
+- Removed `.arcconfig` (old arcanist unit test configuration)
+- Removed `.arclint` (old arcanist lint configuration)
+
 ## Version 2.0.14
 
 ### New functions

@@ -1,9 +1,0 @@
-{
-  "linters": {
-    "pep8linter": {
-      "type": "pep8",
-	  "include": "(\\.py$)",
-	  "exclude": "(^docs/)"
-    }
-  }
-}
