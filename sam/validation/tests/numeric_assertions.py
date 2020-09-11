@@ -19,7 +19,7 @@ class NumericAssertions:
         try:
             if not np.all(np.isnan(value)):
                 self.fail(self._formatMessage(msg, standardMsg))
-        except BaseException:
+        except Exception:
             self.fail(self._formatMessage(msg, standardMsg))
 
     def assertAllNotNaN(self, value, msg=None):
@@ -30,5 +30,5 @@ class NumericAssertions:
         try:
             if np.all(~np.isnan(value)):
                 self.fail(self._formatMessage(msg, standardMsg))
-        except BaseException:
+        except Exception:
             pass
