@@ -11,5 +11,8 @@ steps:
 
 - script: |
     python -m pip install pycodestyle
+  displayName: 'Install pycodestyle'
+
+- script: |
     pycodestyle .
   displayName: 'Run pep8 test'
