@@ -2,6 +2,11 @@
 
 ## Version 2.0.15
 
+### Bugfixes
+- Fixed failing unit tests by removing tensorflow v1 code
+- Fixed QuantileMLP, where the target would stay an integer, which fails with our custom loss functions
+- Updated optional dependencies to everything we use
+
 ### Development changes
 - Added `run-linting.yml`  to run pycodestyle in devops pipelines
 - Added `run-unittest.yml` to run pytest in devops pipelines
