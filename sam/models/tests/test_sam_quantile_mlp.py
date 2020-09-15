@@ -40,12 +40,6 @@ class TestSamQuantileMLP(unittest.TestCase):
         self.X_train, self.X_test = self.X[:self.train_size], self.X[self.train_size:]
         self.y_train, self.y_test = self.y[:self.train_size], self.y[self.train_size:]
 
-        # Force tensorflow to run single-threaded, for further determinism
-        # This needs to be done immediately after loading tensorflow
-        # Right now other tests come before this one, thats why its commented.
-        # tf.config.threading.set_intra_op_parallelism_threads(1)
-        # tf.config.threading.set_inter_op_parallelism_threads(1)
-
         # Now start setting the RNG so we get reproducible results
         random.seed(42)
         np.random.seed(42)
