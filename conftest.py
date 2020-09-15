@@ -15,6 +15,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 def pytest_configure(config):
     matplotlib.use('Agg')
 
+
 # Tensorflow is an optional dependency
 try:
     import tensorflow as tf
