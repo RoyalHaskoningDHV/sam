@@ -1,0 +1,18 @@
+# Pipeline to lint python files
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.7'
+    addToPath: true
+    architecture: 'x64'
+
+- script: |
+    python -m pip install pycodestyle
+  displayName: 'Install pycodestyle'
+
+- script: |
+    pycodestyle .
+  displayName: 'Run pep8 test'

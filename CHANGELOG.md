@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 2.0.15
+
+### Bugfixes
+- Fixed failing unit tests by removing tensorflow v1 code
+- Fixed QuantileMLP, where the target would stay an integer, which fails with our custom loss functions
+- Updated optional dependencies to everything we use
+- With the latest pandas version a UTC to string conversio has been fixed. Removed our fix, upped the pandas version
+- Updated scikit-learn to at least 0.21, which is required for the iterative imputer
+
+### Development changes
+- Added `run-linting.yml`  to run pycodestyle in devops pipelines
+- Added `run-unittest.yml` to run pytest in devops pipelines
+- Removed `.arcconfig` (old arcanist unit test configuration)
+- Removed `.arclint` (old arcanist lint configuration)
+
 ## Version 2.0.14
 
 ### New functions

@@ -14,7 +14,6 @@ from sam.visualization import sam_quantile_plot
 skipkeras = False
 try:
     import tensorflow as tf
-    from keras import backend as K
 except ImportError:
     skipkeras = True
 
@@ -44,19 +43,8 @@ class TestSamQuantileMLP(unittest.TestCase):
         # Now start setting the RNG so we get reproducible results
         random.seed(42)
         np.random.seed(42)
-        tf.set_random_seed(42)
+        tf.random.set_seed(42)
         os.environ['PYTHONHASHSEED'] = '0'
-
-        # Force tensorflow to run single-threaded, for further determinism
-        session_conf = tf.ConfigProto(intra_op_parallelism_threads=1,
-                                      inter_op_parallelism_threads=1)
-
-        tf.set_random_seed(42)
-        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-
-        # For now, don't change the session since it makes one of the unit tests (shap)
-        # fail. I'm not sure exactly why
-        # K.set_session(sess)
 
     def test_predict_future(self):
         # We will fit quantiles but don't test them

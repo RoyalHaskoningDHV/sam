@@ -178,9 +178,6 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
                        )
          ])
 
-    # cartesian product converts to UTC string, so we need to convert back
-    time = pd.to_datetime(time).tz_localize('UTC').tz_convert(timezone)
-
     complete_df = pd.DataFrame(dict(TIME=time, ID=ids, TYPE=types), columns=['TIME', 'ID', 'TYPE'])
     complete_df['TIME'] = complete_df['TIME'].dt.floor(freq)
 

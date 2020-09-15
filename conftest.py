@@ -14,3 +14,14 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 # after it has been chosen already.
 def pytest_configure(config):
     matplotlib.use('Agg')
+
+
+# Tensorflow is an optional dependency
+try:
+    import tensorflow as tf
+    # Force tensorflow to run single-threaded, for further determinism
+    # This needs to be done immediately after loading tensorflow
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+except ImportError:
+    pass
