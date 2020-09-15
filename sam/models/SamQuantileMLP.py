@@ -397,7 +397,7 @@ class SamQuantileMLP(BaseEstimator):
             y_transformed = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
         else:
             # Dataframe with 1 column. Will use y's index and name
-            y_transformed = pd.DataFrame(y.copy())
+            y_transformed = pd.DataFrame(y.copy()).astype(float)
 
         # Index where target is nan, cannot be trained on.
         targetnanrows = y_transformed.isna().any(axis=1)
@@ -463,7 +463,7 @@ class SamQuantileMLP(BaseEstimator):
                     y_val, self.use_diff_of_y, self.predict_ahead)
             else:
                 # Dataframe with 1 column. Will use y's index and name
-                y_val_transformed = pd.DataFrame(y_val.copy())
+                y_val_transformed = pd.DataFrame(y_val.copy()).astype(float)
 
             # The lines below are only to deal with nans in the validation set
             # These should eventually be replaced by Arjans/Fennos function for removing nan rows
@@ -630,7 +630,7 @@ class SamQuantileMLP(BaseEstimator):
             if (self.use_diff_of_y):
                 actual = inverse_differenced_target(actual, y)
         else:
-            actual = y.copy()
+            actual = y.copy().astype(float)
 
         return actual
 
@@ -838,7 +838,7 @@ class SamQuantileMLP(BaseEstimator):
             y_target = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead).iloc[:, 0]
 
         else:
-            y_target = y.copy()
+            y_target = y.copy().astype(float)
 
         # Remove rows with missings in either of the two arrays
         missings = np.isnan(y_target) | np.isnan(X_transformed).any(axis=1)
