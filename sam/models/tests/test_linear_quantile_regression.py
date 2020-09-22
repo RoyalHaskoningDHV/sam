@@ -28,7 +28,7 @@ class TestLinearQuantileRegression(unittest.TestCase):
         np.random.seed(42)
         os.environ['PYTHONHASHSEED'] = '0'
 
-        self.y = 42 * self.X['x1'] + 13 + np.random.uniform(low=-10, high=10, size=1000)
+        self.y = 42 + self.X['x1'] * 13 + np.random.uniform(low=-10, high=10, size=1000)
 
     def test_simpel_linear_quantile_regression(self):
 
