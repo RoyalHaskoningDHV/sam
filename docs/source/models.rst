@@ -6,6 +6,13 @@ Models
 
 This is the documentation for modeling functions.
 
+Linear Quantile Regression
+---------------------------
+.. autoclass:: sam.models.LinearQuantileRegression
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Keras templates
 ---------------------------
 .. _create-keras-quantile-mlp:
