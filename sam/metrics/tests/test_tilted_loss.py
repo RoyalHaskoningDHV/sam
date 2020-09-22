@@ -14,6 +14,5 @@ class TestTiltedLoss(unittest.TestCase):
         assert_almost_equal(tilted_loss(y_true, y_pred, 0.5), 0.05)
         assert_almost_equal(tilted_loss(y_true, y_pred, 0.9), 0.042)
 
-
 if __name__ == '__main__':
     unittest.main()
