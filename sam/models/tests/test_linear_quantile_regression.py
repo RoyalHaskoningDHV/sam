@@ -36,5 +36,9 @@ class TestLinearQuantileRegression(unittest.TestCase):
 
         model.fit(self.X, self.y)
 
-        self.assertAlmostEqual(model.model_result_.params.x1 / 13, 1, places=1)
-        self.assertAlmostEqual(model.model_result_.params.const / 42, 1, places=1)
+        assert_almost_equal(model.model_result_.params.x1 / 13, 1, decimal=1)
+        assert_almost_equal(model.model_result_.params.const / 42, 1, decimal=1)
+
+
+if __name__ == '__main__':
+    unittest.main()
