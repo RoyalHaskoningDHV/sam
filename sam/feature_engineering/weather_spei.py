@@ -8,22 +8,27 @@ from sklearn.base import BaseEstimator, TransformerMixin
 class SPEITransformer(BaseEstimator, TransformerMixin):
     """ Standardized Precipitation (and Evaporation) Index
 
-    Computation of standardized metric that measures relative drought / precipitation shortage.
+    Computation of standardized metric that measures relative drought
+    or precipitation shortage.
 
-    SP(E)I is a metric computed per day. Therefore daily weather data is required as input. This class
-    assumes that the data contains precipitation columns 'RH' and optionally evaporation column 'EV24'.
+    SP(E)I is a metric computed per day. Therefore daily weather data
+    is required as input. This class assumes that the data contains
+    precipitation columns 'RH' and optionally evaporation column 'EV24'.
     These namings are KNMI standards.
 
-    The method computes a rolling average over the precipitation (and evaporation).
-    Based on historic data (at least 30 years) the mean and standard deviation of the rolling average
-    are computed. The daily rolling average is then transformed to a Z-score, by dividing by the corresponding
-    mean and standard deviation.
+    The method computes a rolling average over the precipitation (and
+    evaporation). Based on historic data (at least 30 years) the mean
+    and standard deviation of the rolling average are computed. The
+    daily rolling average is then transformed to a Z-score, by dividing
+    by the corresponding mean and standard deviation.
 
-    Smoothing can be applied to make the model more robust, and able to compute the SP(E)I for leap year days.
-    If ``smoothing=False``, the transform method can return NA's
+    Smoothing can be applied to make the model more robust, and able to
+    compute the SP(E)I for leap year days. If ``smoothing=False``, the
+    transform method can return NA's
 
-    The resulting score describes how dry the weather is. A very low score (smaller than -2) indicates
-    extremely dry weather. A high score (above 2) indicates very wet weather.
+    The resulting score describes how dry the weather is. A very low score
+    (smaller than -2) indicates extremely dry weather. A high score (above 2)
+    indicates very wet weather.
 
     See:
     http://www.droogtemonitor.nl/index.php/over-de-droogte-monitor/theorie
@@ -39,13 +44,13 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
     smoothing: boolean, default=True
         Whether to use smoothing on the estimated mean and std for each day of
         the year. Smoothing causes less sensitivity, especially for the std.
-        Use the ``plot`` method to visualize the estimated mean and std  
+        Use the ``plot`` method to visualize the estimated mean and std
 
     Examples
     ----------
     >>> from sam.data_sources import read_knmi
     >>> from sam.feature_engineering import SPEITransformer
-    >>> knmi_data = read_knmi(start_date='1960-01-01', end_date='2020-01-01', \
+    >>> knmi_data = read_knmi(start_date='1960-01-01', end_date='2020-01-01',
     >>>     variables=['RH', 'EV24'], freq='daily').set_index('TIME').dropna()
     >>> knmi_data['RH'] = knmi_data['RH'].divide(10).clip(0)
     >>> knmi_data['EV24'] = knmi_data['EV24'].divide(10)
@@ -136,10 +141,10 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
     def fit(self, X):
         """ Fit function
         Does nothing, but is required for a transformer.
-        This function wil not change the SP(E)I model. The SP(E)I should be configured with
-        the ``configure`` method.
-        In this way, the ``SPEITransfomer`` can be used within a sklearn pipeline,
-        without requiring > 30 years of data.
+        This function wil not change the SP(E)I model. The SP(E)I
+        should be configured with the ``configure`` method.
+        In this way, the ``SPEITransfomer`` can be used within a
+        sklearn pipeline, without requiring > 30 years of data.
         """
         return self
 
@@ -164,14 +169,15 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             how='left'
         )
         results.index = target.index
-        results[self.metric_name] = (results[self.metric_name] - results['mean']) / results['std']
+        results[self.metric_name] = (results[self.metric_name] -
+            results['mean']) / results['std']
 
         return results[[self.metric_name]]
 
     def plot(self):
         """ Plot model
-        Visualisation of the configured model. This function shows the estimated
-        mean and standard deviation per day of the year.
+        Visualisation of the configured model. This function shows the
+        estimated mean and standard deviation per day of the year.
         """
         self.check_configured()
         import matplotlib.pyplot as plt
