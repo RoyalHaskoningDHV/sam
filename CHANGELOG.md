@@ -3,7 +3,7 @@
 ## Version 2.0.18
 
 ### New functions
-- `sam.validation.flatline` does not support `window="auto"` option, for which the maximum flatline window is estimated in the `fit` method
+- `sam.validation.flatline`: Now accepts `window="auto"` option, for which the maximum flatline window is estimated in the `fit` method
 
 ## Version 2.0.15
 
