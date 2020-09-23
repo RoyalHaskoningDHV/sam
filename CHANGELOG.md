@@ -1,5 +1,6 @@
 # Changelog
 
+<<<<<<< HEAD
 ## Version 2.0.19
 
 ### New features
@@ -12,6 +13,14 @@
 - `sam.models.SamQuantileMLP`: Now stores the input columns (before featurebuilding) which can be accessed by `get_input_cols()`
 
 
+=======
+## Version 2.0.18
+
+### New functions
+- `sam.metrics.tilted_loss`: A tilted loss function that works with numpy / pandas 
+- `sam.models.LinearQuantileRegression`: sklearn style wrapper for quantile regression using statsmodels
+
+>>>>>>> readme and changelog
 ## Version 2.0.17
 
 ### Changes
