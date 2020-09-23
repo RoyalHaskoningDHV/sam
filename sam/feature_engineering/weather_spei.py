@@ -18,7 +18,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
 
     The method computes a rolling average over the precipitation (and
     evaporation). Based on historic data (at least 30 years) the mean
-    and standard deviation of the rolling average are computed across years. 
+    and standard deviation of the rolling average are computed across years.
     The daily rolling average is then transformed to a Z-score, by dividing
     by the corresponding mean and standard deviation.
 
@@ -43,10 +43,10 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         Window size to compute the rolling precipitation or precip-evap sum
     smoothing: boolean, default=True
         Whether to use smoothing on the estimated mean and std for each day of
-        the year. 
+        the year.
         When ``smoothing=True``, a centered rolling median of five steps is
         applied to the models estimated mean and standard deviations per day.
-        The model definition will therefore be more robust. 
+        The model definition will therefore be more robust.
         Smoothing causes less sensitivity, especially for the std.
         Use the ``plot`` method to visualize the estimated mean and std
     min_years: int, default=30
@@ -130,7 +130,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
                              f'{self.min_years} years. '
                              f'Please provide more data for configuration')
 
-        # Each day should at least have data for 50% 
+        # Each day should at least have data for 50%
         # of all years in the data, otherwise estimated mean and std
         # are set to nan. This removes leap year days
         self.model.loc[
@@ -183,7 +183,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             how='left'
         )
         results.index = target.index
-        results[self.metric_name] = (results[self.metric_name] -
+        results[self.metric_name] = (results[self.metric_name] - \
             results['mean']) / results['std']
 
         return results[[self.metric_name]]
