@@ -11,6 +11,8 @@ class TestLinearQuantileRegression(unittest.TestCase):
 
     def setUp(self):
         # We are deliberately creating an extremely easy regression problem here
+        # The output y is a linear combination of the input + some uniform noise
+        # The model should fit a 50% quantile almost perfectly
         # This is because we just want to see if the model works at all.
 
         self.n_rows = 100
