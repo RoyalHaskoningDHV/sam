@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.0.18
+
+### New functions
+- `sam.metrics.tilted_loss`: A tilted loss function that works with numpy / pandas 
+- `sam.models.LinearQuantileRegression`: sklearn style wrapper for quantile regression using statsmodels
+
 ## Version 2.0.17
 
 ### Changes
