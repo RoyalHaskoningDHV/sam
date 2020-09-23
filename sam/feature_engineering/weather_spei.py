@@ -18,8 +18,8 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
 
     The method computes a rolling average over the precipitation (and
     evaporation). Based on historic data (at least 30 years) the mean
-    and standard deviation of the rolling average are computed. The
-    daily rolling average is then transformed to a Z-score, by dividing
+    and standard deviation of the rolling average are computed across years. 
+    The daily rolling average is then transformed to a Z-score, by dividing
     by the corresponding mean and standard deviation.
 
     Smoothing can be applied to make the model more robust, and able to
@@ -39,12 +39,20 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         The type of KPI to compute
         "SPI" computes the Standardized Precipitation Index
         "SPEI" computed the Standardized Precipitation Evaporation Index
-    window: str or int
+    window: str or int, default='30D'
         Window size to compute the rolling precipitation or precip-evap sum
     smoothing: boolean, default=True
         Whether to use smoothing on the estimated mean and std for each day of
-        the year. Smoothing causes less sensitivity, especially for the std.
+        the year. 
+        When ``smoothing=True``, a centered rolling median of five steps is
+        applied to the models estimated mean and standard deviations per day.
+        The model definition will therefore be more robust. 
+        Smoothing causes less sensitivity, especially for the std.
         Use the ``plot`` method to visualize the estimated mean and std
+    min_years: int, default=30
+        Minimum number of years for configuration. When setting less than 30,
+        make sure that the estimated model makes sense, using the ``plot``
+        method
 
     Examples
     ----------
@@ -57,10 +65,11 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
     >>> spi = SPEITransformer().configure(knmi_data)
     >>> spi.transform(knmi_data)
     """
-    def __init__(self, metric='SPEI', window='30D', smoothing=True):
+    def __init__(self, metric='SPEI', window='30D', smoothing=True, min_years=30):
         self.window = window
         self.metric = metric
         self.smoothing = smoothing
+        self.min_years = min_years
         self.metric_name = metric + '_' + window
         self.axis_name = 'Precip-Evap' if metric == 'SPEI' else 'Precip'
         self.configured = False
@@ -92,12 +101,12 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
 
     def configure(self, X, y=None):
         """ Fit normal distribution on rolling precipitation (and evaporation)
-        Apply this to historic data of precipitation (at least 30 years)
+        Apply this to historic data of precipitation (at least ``min_years`` years)
         Parameters
         ----------
-            X: pandas dataframe
-                A data frame containing columns 'RH' (and optionally 'EV24')
-                and should have a datetimeindex
+        X: pandas dataframe
+            A data frame containing columns 'RH' (and optionally 'EV24')
+            and should have a datetimeindex
         """
         self.check_X(X)
         target = self.compute_target(X)
@@ -114,15 +123,20 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             .reset_index() \
             .sort_values(by=['month', 'day'])
 
-        # At least 30 samples for one day of the year.
-        if self.model['count'].max() < 30:
-            raise ValueError('Provided weather data contains less than 30 years'
-                             'please provide more data for configuration')
+        n_years = self.model['count'].max()
+        # Make sure that for at least one day there are ``min_years`` samples
+        if n_years < self.min_years:
+            raise ValueError(f'Provided weather data contains less than'
+                             f'{self.min_years} years. '
+                             f'Please provide more data for configuration')
 
-        # At least 25 years to estimate mean / std
-        # This drops leap year days
-        # 25 - 30 days are acceptable
-        self.model.loc[self.model['count'] < 25, ['mean', 'std']] = np.nan
+        # Each day should at least have data for 50% 
+        # of all years in the data, otherwise estimated mean and std
+        # are set to nan. This removes leap year days
+        self.model.loc[
+            (self.model['count'] < (n_years / 2)),
+            ['mean', 'std']
+        ] = np.nan
         if self.smoothing:
             # To remove spikes in the mean and std
             # and create a smooth model over the year
