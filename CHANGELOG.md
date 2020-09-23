@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.0.16
+
+### New features
+- New class: `sam.feature_engineering.SPEITransformer` for computing precipitation and evaporation features
+
 ## Version 2.0.15
 
 ### Bugfixes
