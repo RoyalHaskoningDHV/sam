@@ -18,7 +18,7 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
     window: {"auto"} or int (default = 1)
         number of previous equal values to consider current value a flatliner.
         so if set to 2, requires that 2 previous values are identical to
-        current to set current value to nan.      
+        current to set current value to nan.
         If set to "auto", the threshold is derived in the ``fit`` method.
         Based on a train set, the probability of difference being 0
         is estimated. This probability can be used to estimate the
