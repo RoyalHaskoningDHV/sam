@@ -183,9 +183,8 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             how='left'
         )
         results.index = target.index
-        results[self.metric_name] = (results[self.metric_name] - \
-            results['mean']) / results['std']
-
+        results[self.metric_name] = \
+            (results[self.metric_name] - results['mean']) / results['std']
         return results[[self.metric_name]]
 
     def plot(self):
