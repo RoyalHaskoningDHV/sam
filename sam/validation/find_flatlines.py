@@ -29,6 +29,7 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
     pvalue: float or None (default=None)
         Threshold for likelihood of multiple consecutive flatline samples
         Only used if ``window="auto"``
+        Small pvalues lead to a larger threshold, hence less flatlines will be removed
 
     Examples
     --------
