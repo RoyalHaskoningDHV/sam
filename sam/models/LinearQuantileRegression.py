@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin
 from statsmodels.regression.quantile_regression import QuantReg
 import statsmodels.api as smapi
@@ -11,8 +13,8 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
 
     Parameters
     ----------
-        quantile: float, default=0.5
-            Quantile to fit, with `` 0 < quantile < 1 ``.
+        quantiles: list or float, default=[0.05, 0.95]
+            Quantiles to fit, with `` 0 < q < 1 `` for each q in quantiles.
         tol: float, default=1e-3
             The tolerance for the optimization. The optimization stops
             when duality gap is smaller than the tolerance
@@ -33,48 +35,56 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     >>> from sklearn.model_selection import train_test_split
     >>>
     >>> # Prepare data
-    >>> data = read_knmi('2018-02-01', '2019-10-01', latitude=52.11, longitude=5.18, freq='hourly',
-    >>>                 variables=['FH', 'FF', 'FX', 'T', 'TD', 'SQ', 'Q', 'DR', 'RH', 'P',
-    >>>                            'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
+    >>> data = read_knmi('2018-02-01', '2019-10-01', freq='hourly',
+    >>>                 variables=['FH', 'FF', 'FX', 'T'])
     >>> y = data['T']
     >>> X = data.drop('T', axis=1)
-    >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
-    >>>
     >>> # Fit model
-    >>> model = LinearQuantileRegression(quantile=0.99)
-    >>> model.fit(X_train, y_train)
+    >>> model = LinearQuantileRegression()
+    >>> model.fit(X, y)
     """
-    def __init__(self, quantile=0.5, tol=1e-3, max_iter=1000):
-        self.quantile = quantile
+    def __init__(self, quantiles=[0.05, 0.95], tol=1e-3, max_iter=1000):
+        self.quantiles = quantiles
         self.tol = tol
         self.max_iter = max_iter
+
+    def _fit_single_model(self, X, y, q):
+        # Statsmodels requires to add constant columns manually
+        # otherwise the models will not fit an intercept
+        model_ = QuantReg(y, smapi.add_constant(X))
+        model_result_ = model_.fit(q, p_tol=self.tol, max_iter=self.max_iter)
+        model_result_
+        return model_result_
 
     def fit(self, X, y):
         """ Fit a Linear Quantile Regression using statsmodels
         """
-        # Statsmodels requires to add constant columns manually
-        # otherwise the models will not fit an intercept
-        self.model_ = QuantReg(
-            y,
-            smapi.add_constant(X)
-        )
-        self.model_result_ = self.model_.fit(
-            q=self.quantile,
-            p_tol=self.tol,
-            max_iter=self.max_iter
-        )
+        if type(self.quantiles) is float:
+            self.q_ = [self.quantiles]
+        elif type(self.quantiles) is list:
+            self.q_ = self.quantiles
+        else:
+            raise TypeError(f'Invalid type, quantile {self.quantiles} '
+                            f'should be a float or list of floats')
+        self.prediction_cols = [f'predict_q_{q}' for q in self.quantiles]
+        self.models_ = [self._fit_single_model(X, y, q) for q in self.quantiles]
         return self
 
     def predict(self, X):
         """ Predict / estimate quantiles
         """
-        return self.model_result_.predict(
-            smapi.add_constant(X)
-        )
+        preds = [m.predict(smapi.add_constant(X)) for m in self.models_]
+        preds_df = pd.concat(preds, axis=1)
+        preds_df.columns = self.prediction_cols
+        return preds_df
 
     def score(self, X, y):
         """ Default score Function. Returns the tilted loss
         """
         y_pred = self.predict(X)
-        score = tilted_loss(y_true=y, y_pred=y_pred, quantile=self.quantile)
+        scores = [tilted_loss(
+            y_true=y,
+            y_pred=y_pred[f'predict_q_{q}'],
+            quantile=q) for q in self.quantiles]
+        score = np.mean(scores)
         return score
