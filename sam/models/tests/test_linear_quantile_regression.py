@@ -31,12 +31,12 @@ class TestLinearQuantileRegression(unittest.TestCase):
 
     def test_simpel_linear_quantile_regression(self):
 
-        model = LinearQuantileRegression(quantile=0.5)
+        model = LinearQuantileRegression(quantiles=[0.5])
 
         model.fit(self.X, self.y)
 
-        assert_almost_equal(model.model_result_.params.x1 / 13, 1, decimal=1)
-        assert_almost_equal(model.model_result_.params.const / 42, 1, decimal=1)
+        assert_almost_equal(model.models_[0].params.x1 / 13, 1, decimal=1)
+        assert_almost_equal(model.models_[0].params.const / 42, 1, decimal=1)
 
 
 if __name__ == '__main__':
