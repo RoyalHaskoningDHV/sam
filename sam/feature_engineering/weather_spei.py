@@ -72,7 +72,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         self.min_years = min_years
 
     def _check_configured(self):
-        if not hasattr(self, 'model'):
+        if not hasattr(self, 'model_'):
             raise NotFittedError("This instance of SPEITransformer has not "
                                  "been configured yet. Use 'configure' with "
                                  "appropriate arguments before using this "
