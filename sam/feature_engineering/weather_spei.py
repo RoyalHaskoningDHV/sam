@@ -191,7 +191,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         """
         self._check_configured()
         import matplotlib.pyplot as plt
-        fig, axs = plt.subplots(2, figsize=(10, 10))
+        fig, axs = plt.subplots(1, 2, figsize=(20, 5))
         axs[0].plot(self.model_['mean'])
         axs[0].set_ylabel('Mean of ' + self._axis_name)
         axs[0].set_xlabel('Day of the year')
