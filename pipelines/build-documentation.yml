@@ -1,0 +1,39 @@
+# Python package documenation
+# Create and test a Python package on multiple Python versions.
+# Build the sphinx documentation of the given package
+# Not tested
+
+trigger:
+- documentationtest
+
+pool:
+  vmImage: 'ubuntu-latest'
+strategy:
+  matrix:
+    Python37:
+      python.version: '3.7'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+    addToPath: true
+    architecture: 'x64'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install sphinx sphinx_rtd_theme numpydoc recommonmark sphinx-markdown-tables
+  displayName: 'Install dependencies'
+
+- script: |
+    sphinx-build -b html docs/source/ docs/build/
+  displayName: 'Build the documenation'
+
+- task: AzureFileCopy@4
+  inputs:
+    sourcePath: docs/build/*
+    azureSubscription: ynformed-internal
+    destination: azureBlob
+    storage: stsamdocs
+    containerName: '$web'
+  displayName: 'Publish documentation as artifact'
