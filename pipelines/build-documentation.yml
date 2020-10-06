@@ -35,5 +35,5 @@ steps:
     azureSubscription: ynformed-internal
     scriptLocation: inlineScript
     inlineScript: |
-      az storage blob upload-batch --destination '$web' --source docs/build/ --account-name stsamdocs --auth-mode login
+      az storage blob upload-batch --destination '$web' --source docs/build/ --account-name stsamdocs --auth-mode key
   displayName: 'Publish documentation as artifact'
