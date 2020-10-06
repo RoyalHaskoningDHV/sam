@@ -29,11 +29,11 @@ steps:
     sphinx-build -b html docs/source/ docs/build/
   displayName: 'Build the documenation'
 
-- task: AzureFileCopy@4
+- task: AzureCLI@2
   inputs:
-    sourcePath: docs/build/*
+    scriptType: bash
     azureSubscription: ynformed-internal
-    destination: azureBlob
-    storage: stsamdocs
-    containerName: '$web'
+    scriptLocation: inlineScript
+    inlineScript: |
+      az storage blob upload-batch --destination '$web' --source docs/build/ --account-name stsamdocs --auth-mode login
   displayName: 'Publish documentation as artifact'
