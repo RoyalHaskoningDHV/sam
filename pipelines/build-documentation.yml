@@ -21,9 +21,10 @@ steps:
     architecture: 'x64'
 
 - script: |
-    python -m pip install --upgrade pip
+    python -m pip install --upgrade pip wheel
+    pip install '.[all]'
     pip install sphinx sphinx_rtd_theme numpydoc recommonmark sphinx-markdown-tables
-  displayName: 'Install dependencies'
+  displayName: 'Install package and docs dependencies'
 
 - script: |
     sphinx-build -b html docs/source/ docs/build/
