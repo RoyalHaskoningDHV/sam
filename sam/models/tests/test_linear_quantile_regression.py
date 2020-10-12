@@ -3,6 +3,7 @@ import numpy as np
 import random
 import os
 from sam.models import LinearQuantileRegression
+from sam.metrics import tilted_loss
 import unittest
 from numpy.testing import assert_almost_equal
 
@@ -34,9 +35,17 @@ class TestLinearQuantileRegression(unittest.TestCase):
         model = LinearQuantileRegression(quantiles=[0.5])
 
         model.fit(self.X, self.y)
+        pred = model.predict(self.X)
+        score = model.score(self.X, self.y)
 
         assert_almost_equal(model.models_[0].params.x1 / 13, 1, decimal=1)
         assert_almost_equal(model.models_[0].params.const / 42, 1, decimal=1)
+
+        self.assertEqual(model.prediction_cols, ['predict_q_0.5'])
+        self.assertEqual(pred.columns, ['predict_q_0.5'])
+
+        self.assertLess(model.score(self.X, self.y), 20)
+        assert_almost_equal(score, tilted_loss(self.y, pred['predict_q_0.5']))
 
 
 if __name__ == '__main__':
