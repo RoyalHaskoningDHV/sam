@@ -38,6 +38,7 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
 
         # no flatlines should be detected
         self.assertAllNotNaN(data_corrected)
+        pd.testing.assert_frame_equal(test_df, data_corrected)
 
     def test_remove_flatlines_auto_high(self):
 
@@ -56,6 +57,10 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
         # all flatlines should be removed
         self.assertAllNaN(data_corrected.iloc[[4, 5, 6, 9, 10]])
         self.assertAllNotNaN(data_corrected.drop([4, 5, 6, 9, 10], axis=0))
+        pd.testing.assert_frame_equal(
+            test_df.drop([4, 5, 6, 9, 10], axis=0),
+            data_corrected.drop([4, 5, 6, 9, 10], axis=0)
+        )
 
 
 if __name__ == '__main__':
