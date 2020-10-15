@@ -53,6 +53,9 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         Minimum number of years for configuration. When setting less than 30,
         make sure that the estimated model makes sense, using the ``plot``
         method
+    model_: dataframe, default=None
+        Ignore this variable, this is required to keep the model configured
+        when creating a new instance (common in for example cross validation)
 
     Examples
     ----------
@@ -65,20 +68,18 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
     >>> spi = SPEITransformer().configure(knmi_data)
     >>> spi.transform(knmi_data)
     """
-    def __init__(self, metric='SPEI', window='30D', smoothing=True, min_years=30):
+    def __init__(self, metric='SPEI', window='30D', smoothing=True, min_years=30, model_=None):
         self.window = window
         self.metric = metric
         self.smoothing = smoothing
         self.min_years = min_years
+        self.model_ = model_
 
     def _check_configured(self):
-        if not hasattr(self, 'model_'):
-            raise NotFittedError("This instance of SPEITransformer has not "
-                                 "been configured yet. Use 'configure' with "
-                                 "appropriate arguments before using this "
-                                 "transformer")
+        if self.model_ is None:
+            raise NotFittedError("model_ is None, call `configure` first")
 
-    def _check_X(self, X):
+    def _check_input(self, X):
         if 'RH' not in X.columns:
             raise ValueError("Dataframe X should contain columns 'RH'")
         if ('EV24' not in X.columns) and (self.metric == 'SPEI'):
@@ -104,7 +105,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             A data frame containing columns 'RH' (and optionally 'EV24')
             and should have a datetimeindex
         """
-        self._check_X(X)
+        self._check_input(X)
         target = self._compute_target(X)
 
         self._metric_name = self.metric + '_' + self.window
@@ -149,7 +150,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
 
         return self
 
-    def fit(self, X):
+    def fit(self, X, y=None):
         """ Fit function
         Does nothing, but is required for a transformer.
         This function wil not change the SP(E)I model. The SP(E)I
@@ -157,14 +158,16 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         In this way, the ``SPEITransfomer`` can be used within a
         sklearn pipeline, without requiring > 30 years of data.
         """
+        self._check_configured()
+        self._check_input(X)
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """ Transforming new weather data to SP(E)I metric
         Returns a dataframe with single columns
         """
         self._check_configured()
-        self._check_X(X)
+        self._check_input(X)
         target = self._compute_target(X)
 
         results = pd.DataFrame({
