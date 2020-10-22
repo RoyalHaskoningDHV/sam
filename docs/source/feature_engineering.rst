@@ -39,3 +39,11 @@ Cyclical features
 .. seealso::
    https://www.kaggle.com/avanwyk/encoding-cyclical-features-for-deep-learning
    http://blog.davidkaleko.com/feature-engineering-cyclical-features.html
+
+Weather features
+-----------------------------
+
+.. autoclass:: sam.feature_engineering.SPEITransformer
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -3,9 +3,11 @@ from .decompose_datetime import decompose_datetime, recode_cyclical_features
 from .rolling_features import BuildRollingFeatures
 from .lag_range import range_lag_column
 from .automatic_rolling_engineering import AutomaticRollingEngineering
+from .weather_spei import SPEITransformer
 
 from . import rolling_features
 from . import lag_range
 
 __all__ = ["decompose_datetime", "recode_cyclical_features",
-           "BuildRollingFeatures", "range_lag_column", "AutomaticRollingEngineering"]
+           "BuildRollingFeatures", "range_lag_column", "AutomaticRollingEngineering",
+           "SPEITransformer"]
