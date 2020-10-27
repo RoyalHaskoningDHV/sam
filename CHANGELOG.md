@@ -1,6 +1,5 @@
 # Changelog
 
-<<<<<<< HEAD
 ## Version 2.0.18
 
 ### New functions
@@ -17,14 +16,6 @@
 ### New functions
 - New class: `sam.feature_engineering.SPEITransformer` for computing precipitation and evaporation features
 
-=======
-## Version 2.0.17
-
-### New features
-- `sam.metrics.tilted_loss`: A tilted loss function that works with numpy / pandas 
-- `sam.models.LinearQuantileRegression`: sklearn style wrapper for quantile regression using statsmodels
-
->>>>>>> fe0d0ed5481b8202e0b5a47166c75ca6d2191a70
 ## Version 2.0.15
 
 ### Bugfixes
