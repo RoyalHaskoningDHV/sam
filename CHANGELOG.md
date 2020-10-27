@@ -1,8 +1,13 @@
 # Changelog
 
+## Version 2.0.17
+
+### Changes
+- `sam.validation.flatline`: Now accepts `window="auto"` option, for which the maximum flatline window is estimated in the `fit` method
+
 ## Version 2.0.16
 
-### New features
+### New functions
 - New class: `sam.feature_engineering.SPEITransformer` for computing precipitation and evaporation features
 
 ## Version 2.0.15
