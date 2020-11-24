@@ -615,10 +615,11 @@ class SamQuantileMLP(BaseEstimator):
         """
         Function to set the input column names.
         Only used internally right before the feature building.
+        Time column is not included, since time is always a dependancy
         This can be used to determine model dependancies
         """
         col_names = X.columns.values
-        col_names = col_names[col_names != 'TIME']
+        col_names = col_names[col_names != self.timecol]
         self._input_cols = col_names
 
     def get_input_cols(self):
