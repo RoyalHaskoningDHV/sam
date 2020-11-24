@@ -626,6 +626,7 @@ class SamQuantileMLP(BaseEstimator):
         """
         Function to obtain the input column names.
         This can be used to determine model dependancies
+        Time column is not included, since time is always a dependancy
         """
         check_is_fitted(self, '_input_cols')
         return self._input_cols
