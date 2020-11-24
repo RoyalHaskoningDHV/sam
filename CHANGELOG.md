@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.0.18
+
+### Changes
+- `sam.models.SamQuantileMLP`: Now stores the input columns (before featurebuilding) which can be accessed by `get_input_cols()`
+
+
 ## Version 2.0.17
 
 ### Changes
