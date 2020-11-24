@@ -330,6 +330,7 @@ class SamQuantileMLP(BaseEstimator):
         self.dropout = dropout
         self.verbose = verbose
         self.r2_callback_report = r2_callback_report
+        self._input_cols = None
 
     def validate_data(self, X):
         """
@@ -401,6 +402,9 @@ class SamQuantileMLP(BaseEstimator):
 
         # Index where target is nan, cannot be trained on.
         targetnanrows = y_transformed.isna().any(axis=1)
+
+        # Save input columns names
+        self._set_input_cols(X)
 
         # buildrollingfeatures
         self.rolling_cols_ = [col for col in X if col != self.timecol]
@@ -607,6 +611,23 @@ class SamQuantileMLP(BaseEstimator):
         """
         check_is_fitted(self, '_feature_names')
         return self._feature_names
+
+    def _set_input_cols(self, X):
+        """
+        Function to set the input column names.
+        Only used internally right before the feature building.
+        This can be used to determine model dependancies
+        """
+        col_names = X.columns.values
+        col_names = col_names[col_names != 'TIME']
+        self._input_cols = col_names
+
+    def get_input_cols(self):
+        """
+        Function to obtain the input column names.
+        This can be used to determine model dependancies
+        """
+        return self._input_cols
 
     def get_actual(self, y):
         """
