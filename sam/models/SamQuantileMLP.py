@@ -330,7 +330,6 @@ class SamQuantileMLP(BaseEstimator):
         self.dropout = dropout
         self.verbose = verbose
         self.r2_callback_report = r2_callback_report
-        self._input_cols = None
 
     def validate_data(self, X):
         """
@@ -627,6 +626,7 @@ class SamQuantileMLP(BaseEstimator):
         Function to obtain the input column names.
         This can be used to determine model dependancies
         """
+        check_is_fitted(self, '_input_cols')
         return self._input_cols
 
     def get_actual(self, y):
