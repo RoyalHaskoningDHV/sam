@@ -615,8 +615,8 @@ class SamQuantileMLP(BaseEstimator):
         """
         Function to set the input column names.
         Only used internally right before the feature building.
-        Time column is not included, since time is always a dependancy
-        This can be used to determine model dependancies
+        Time column is not included, since time is always a dependency
+        This can be used to determine model dependencies
         """
         col_names = X.columns.values
         col_names = col_names[col_names != self.timecol]
@@ -625,8 +625,8 @@ class SamQuantileMLP(BaseEstimator):
     def get_input_cols(self):
         """
         Function to obtain the input column names.
-        This can be used to determine model dependancies
-        Time column is not included, since time is always a dependancy
+        This can be used to determine model dependencies
+        Time column is not included, since time is always a dependency
         """
         check_is_fitted(self, '_input_cols')
         return self._input_cols
