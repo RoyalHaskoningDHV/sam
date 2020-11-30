@@ -22,7 +22,7 @@ setup(name='sam',
                   'tensorflow', 'eli5', 'shap', 'plotly'],
           'plotting': ['matplotlib', 'plotly', 'seaborn'],
           'data_engineering': ['knmy', 'requests', 'pymongo'],
-          'data_science': ['tensorflow', 'nfft', 'scipy', 'shap', 'eli5']
+          'data_science': ['tensorflow', 'nfft', 'scipy', 'shap', 'eli5', 'statsmodels']
       },
       tests_require=['pytest', 'pytest-cov', 'pytest-mpl']
       )
