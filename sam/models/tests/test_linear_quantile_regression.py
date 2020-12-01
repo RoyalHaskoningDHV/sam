@@ -2,12 +2,22 @@ import pandas as pd
 import numpy as np
 import random
 import os
+import pytest
 from sam.models import LinearQuantileRegression
 from sam.metrics import tilted_loss
 import unittest
 from numpy.testing import assert_almost_equal
 
+# Is statsmodels not available, skip these unittests
+skipstatsmodels = False
+try:
+    from statsmodels.regression.quantile_regression import QuantReg
+    import statsmodels.api as smapi
+except ImportError:
+    skipstatsmodels = True
 
+
+@pytest.mark.skipif(skipstatsmodels, reason="Statsmodels not found")
 class TestLinearQuantileRegression(unittest.TestCase):
 
     def setUp(self):
