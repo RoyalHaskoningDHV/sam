@@ -1,15 +1,21 @@
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin
-from statsmodels.regression.quantile_regression import QuantReg
-import statsmodels.api as smapi
 from sam.metrics import tilted_loss
+
+# Keep package independent of statsmodels
+try:
+    from statsmodels.regression.quantile_regression import QuantReg
+    import statsmodels.api as smapi
+except ImportError:
+    pass
 
 
 class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     """ scikit-learn style wrapper for QuantReg
     Fits a linear quantile regression model, copied from
     https://github.com/Marco-Santoni/skquantreg/blob/master/skquantreg/quantreg.py
+    This class requires statsmodels
 
     Parameters
     ----------
