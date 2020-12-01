@@ -1,5 +1,10 @@
 # Changelog
 
+
+## Version 2.0.20
+
+### Bugfixed
+- statsmodels is no longer a dependency (dependency introduced in version 2.0.19)
 ## Version 2.0.19
 
 ### New features
