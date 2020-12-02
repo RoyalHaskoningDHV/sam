@@ -430,10 +430,6 @@ class SamQuantileMLP(BaseEstimator):
         self.prediction_cols_ += ['predict_lead_{}_mean'.format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
-        # Remove the first n rows because they are nan anyway because of rolling features
-        if len(self.rolling_window_size) > 0:
-            X_transformed = X_transformed.iloc[max(self.rolling_window_size):]
-            y_transformed = y_transformed.iloc[max(self.rolling_window_size):]
         # Filter rows where the target is unknown
         X_transformed = X_transformed.loc[~targetnanrows]
         y_transformed = y_transformed.loc[~targetnanrows]
@@ -469,10 +465,7 @@ class SamQuantileMLP(BaseEstimator):
             # These should eventually be replaced by Arjans/Fennos function for removing nan rows
             # So that this code will be much more readable
             targetnanrows = y_val_transformed.isna().any(axis=1)
-            # Remove the first n rows because they are nan anyway because of rolling features
-            if len(self.rolling_window_size) > 0:
-                X_val_transformed = X_val_transformed.iloc[max(self.rolling_window_size):]
-                y_val_transformed = y_val_transformed.iloc[max(self.rolling_window_size):]
+
             # Filter rows where the target is unknown
             X_val_transformed = X_val_transformed.loc[~targetnanrows]
             y_val_transformed = y_val_transformed.loc[~targetnanrows]
