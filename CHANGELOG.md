@@ -1,5 +1,22 @@
 # Changelog
 
+
+## Version 2.0.20
+
+### Bugfixed
+- statsmodels is no longer a dependency (dependency introduced in version 2.0.19)
+## Version 2.0.19
+
+### New features
+- `sam.metrics.tilted_loss`: A tilted loss function that works with numpy / pandas 
+- `sam.models.LinearQuantileRegression`: sklearn style wrapper for quantile regression using statsmodels
+
+## Version 2.0.18
+
+### Changes
+- `sam.models.SamQuantileMLP`: Now stores the input columns (before featurebuilding) which can be accessed by `get_input_cols()`
+
+
 ## Version 2.0.17
 
 ### Changes
