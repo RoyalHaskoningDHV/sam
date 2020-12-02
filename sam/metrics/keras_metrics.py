@@ -96,6 +96,55 @@ def keras_joint_mse_tilted_loss(y_true, y_pred, quantiles=[], n_targets=1):
         loss += K.sum(K.mean(K.maximum(q*e, (q-1)*e), axis=0), axis=-1)
     return(loss)
 
+def keras_joint_mae_tilted_loss(y_true, y_pred, quantiles=[], n_targets=1):
+    """ Joint mean and quantile regression loss function
+    Sum of mean absolute error and multiple tilted loss functions
+    Custom loss function, inspired by https://github.com/fmpr/DeepJMQR
+    Only compatible with tensorflow backend.
+
+    This calculates loss for multiple quantiles, and multiple targets.
+    The total loss is the sum of the mse of all targets, and the tilted
+    loss of all quantiles.
+
+    ``y_true`` is expected to be a tensor with shape ``(None, n_targets)``
+    ``y_pred`` is expected to be a tensor with shape ``(None, n_targets * (n_quantiles + 1))``
+    For example, if there are 2 outputs and 2 quantiles, the order of y_pred
+    should be: `[output_1_quantile_1, output_2_quantile_1,
+    output_1_quantile_2, output_2_quantile_2, output_1_mean, output_2_mean]`
+
+    Parameters
+    ----------
+    y_true: tensorflow tensor
+        True values
+    y_pred: tensorflow tensor
+        Predicted values
+    quantiles: list of floats
+        Quantiles to predict, values in (0,1)
+    n_targets: integer, optional (default=1)
+        The number of distinct outputs to predict
+
+    Examples
+    --------
+    >>> from sam.metrics import keras_joint_mae_tilted_loss as mae_tilted
+    >>> model = Sequential(...)  # Any keras model
+    >>> qs = [0.1, 0.9]
+    >>> model.compile(loss=lambda y,f: mae_tilted(y, f, qs))
+    """
+    # select the last column (nodes) of the output
+    k = len(quantiles)
+    mean_pred = tf.slice(y_pred, [0, k * n_targets], [-1, n_targets])
+    # The last node will be fit with 0.5 quantile
+    loss = K.sum(K.mean(K.abs(y_true - mean_pred), axis=0), axis=-1)
+    # For each quantile fit one node with corresponding tilted loss
+    for k in range(len(quantiles)):
+        q = quantiles[k]
+        # Select the kth node
+        q_pred = tf.slice(y_pred, [0, k * n_targets], [-1, n_targets])
+        e = y_true - q_pred
+        # add tilted loss to total loss
+        loss += K.sum(K.mean(K.maximum(q*e, (q-1)*e), axis=0), axis=-1)
+    return(loss)
+
 
 def keras_rmse(y_true, y_pred):
     """

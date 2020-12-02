@@ -284,7 +284,8 @@ class SamQuantileMLP(BaseEstimator):
             quantiles=self.quantiles,
             lr=self.lr,
             momentum=self.momentum,
-            dropout=self.dropout
+            dropout=self.dropout,
+            average_type=self.average_type
         )
 
     def __init__(self,
@@ -307,7 +308,8 @@ class SamQuantileMLP(BaseEstimator):
                  dropout=None,
                  momentum=None,
                  verbose=1,
-                 r2_callback_report=False
+                 r2_callback_report=False,
+                 average_type='mean'
                  ):
 
         self.predict_ahead = predict_ahead
@@ -330,6 +332,7 @@ class SamQuantileMLP(BaseEstimator):
         self.dropout = dropout
         self.verbose = verbose
         self.r2_callback_report = r2_callback_report
+        self.average_type = average_type
 
     def validate_data(self, X):
         """
