@@ -26,4 +26,4 @@ def compute_quantile_ratios(y, pred, predict_ahead=0):
         # mean here computes ratio (mean of True/Falses - 0/1s)
         quantile_ratios[q] = (y < pred['predict_lead_%d_q_' % predict_ahead + str(q)]).mean()
 
-    return compute_quantile_ratiostios
+    return quantile_ratios
