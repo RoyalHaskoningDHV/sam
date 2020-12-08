@@ -27,6 +27,7 @@ def plot_quantile_feature_importances(importances, feature_names=None):
 
     f = plot_feature_importances(importances)
 
+    f_summed = plt.figure()
     if feature_names is not None:
         # assume TIME is not a wanted column (instead should be time features)
         feature_names = list(feature_names)
@@ -45,8 +46,4 @@ def plot_quantile_feature_importances(importances, feature_names=None):
 
             f_summed = plot_feature_importances(importances_summed)
 
-            return f, f_summed
-
-    else:
-
-        return f
+    return f, f_summed
