@@ -29,21 +29,14 @@ def plot_quantile_feature_importances(importances, feature_names=None):
 
     f_summed = plt.figure()
     if feature_names is not None:
-        # assume TIME is not a wanted column (instead should be time features)
-        feature_names = list(feature_names)
-        feature_names.remove("TIME")
+        # and now summed over lag features
+        importances_summed = {}
+        for sensor in feature_names:
+            if not sensor == 'TIME':
+                these_cols = [c for c in importances.columns if c.startswith(sensor)]
+                importances_summed[sensor] = importances[these_cols].sum(axis=1)
+        importances_summed = pd.DataFrame(importances_summed)
 
-        # only do this if passed features names differ from importances columns:
-        if (np.sort(feature_names) == np.sort(importances.columns)).mean() < 1:
-
-            # and now summed over lag features
-            importances_summed = {}
-            for sensor in feature_names:
-                if not sensor == 'TIME':
-                    these_cols = [c for c in importances.columns if c.startswith(sensor)]
-                    importances_summed[sensor] = importances[these_cols].sum(axis=1)
-            importances_summed = pd.DataFrame(importances_summed)
-
-            f_summed = plot_feature_importances(importances_summed)
+        f_summed = plot_feature_importances(importances_summed)
 
     return f, f_summed
