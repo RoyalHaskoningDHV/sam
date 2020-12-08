@@ -18,7 +18,8 @@ def sam_quantile_plot(
         interactive=False,
         outliers=None,
         outlier_window=1,
-        outlier_limit=1):
+        outlier_limit=1,
+        ignore_value=None):
     """
     Uses the output from SamQuantileMLPs predict function to create a quantile prediction plot.
     It plots the actual data, the prediction, and the quantiles as shaded regions.
@@ -80,6 +81,8 @@ def sam_quantile_plot(
         the window size in which at least `outlier_limit` should be outside of `outlier_min_q`
     outlier_limit: int (default=1)
         the minimum number of outliers within outlier_window to be outside of `outlier_min_q`
+    ignore_value: float (default=None)
+        value to ignore during resampling (e.g. 0 for pumps that often go off)
 
     Returns
     ------
@@ -94,13 +97,23 @@ def sam_quantile_plot(
         import plotly.graph_objs as go
         from plotly.offline import plot
 
+    if (y_title == '') and y_true.name:
+        y_title = y_true.name
+
     # shift prediction back to match y_true
     y_hat = y_hat.shift(predict_ahead)
 
     # apply date range to data to speed up the rest
-    if date_range is not None:
-        y_true = y_true[date_range[0]:date_range[1]]
-        y_hat = y_hat[date_range[0]:date_range[1]]
+    if date_range is None:
+        date_range = [y_true.index.min(), y_true.index.max()]
+    y_true = y_true[date_range[0]:date_range[1]]
+    y_hat = y_hat[date_range[0]:date_range[1]]
+
+    if ignore_value is not None:
+        y_true = y_true.copy()
+        ignore_timepoints = (y_true==ignore_value)
+        y_true.loc[ignore_timepoints] = np.nan
+        y_hat.loc[ignore_timepoints] = np.nan
 
     # resample to desired resolution
     if res is not None:

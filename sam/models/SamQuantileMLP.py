@@ -436,6 +436,11 @@ class SamQuantileMLP(BaseEstimator):
         self.prediction_cols_ += ['predict_lead_{}_mean'.format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
+        # Remove the first n rows because they are nan anyway because of rolling features
+        if len(self.rolling_window_size) > 0:
+            X_transformed = X_transformed.iloc[max(self.rolling_window_size):]
+            y_transformed = y_transformed.iloc[max(self.rolling_window_size):]
+
         # Filter rows where the target is unknown
         X_transformed = X_transformed.loc[~targetnanrows]
         y_transformed = y_transformed.loc[~targetnanrows]
@@ -467,6 +472,10 @@ class SamQuantileMLP(BaseEstimator):
                 # Dataframe with 1 column. Will use y's index and name
                 y_val_transformed = pd.DataFrame(y_val.copy()).astype(float)
 
+            # Remove the first n rows because they are nan anyway because of rolling features
+            if len(self.rolling_window_size) > 0:
+                X_val_transformed = X_val_transformed.iloc[max(self.rolling_window_size):]
+                y_val_transformed = y_val_transformed.iloc[max(self.rolling_window_size):]
             # The lines below are only to deal with nans in the validation set
             # These should eventually be replaced by Arjans/Fennos function for removing nan rows
             # So that this code will be much more readable
@@ -772,7 +781,7 @@ class SamQuantileMLP(BaseEstimator):
         print_fn(self.get_feature_names())
         self.model_.summary(print_fn=print_fn)
 
-    def quantile_feature_importances(self, X, y, score=None, n_iter=5,
+    def quantile_feature_importances(self, X, y, score=None, n_iter=1,
                                      sum_time_components=False):
         """
         Computes feature importances based on the quantile loss function.

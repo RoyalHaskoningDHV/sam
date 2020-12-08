@@ -103,7 +103,7 @@ def keras_joint_mae_tilted_loss(y_true, y_pred, quantiles=[], n_targets=1):
     Only compatible with tensorflow backend.
 
     This calculates loss for multiple quantiles, and multiple targets.
-    The total loss is the sum of the mse of all targets, and the tilted
+    The total loss is the sum of the mae of all targets, and the tilted
     loss of all quantiles.
 
     ``y_true`` is expected to be a tensor with shape ``(None, n_targets)``
