@@ -24,7 +24,7 @@ def compute_quantile_ratios(y, pred, predict_ahead=0):
     """
 
     # derive quantiles from column names
-    qs = [float(c.split('_')[-1]) for c in pred.columns if not 'mean' in c]
+    qs = [float(c.split('_')[-1]) for c in pred.columns if 'mean' not in c]
 
     quantile_ratios = {
         # mean here computes ratio (mean of True/Falses - 0/1s)

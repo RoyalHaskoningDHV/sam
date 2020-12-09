@@ -117,7 +117,7 @@ def sam_quantile_plot(
     if res is not None:
         # set ignore_values to nan so they are ignored in the resampling
         if ignore_value is not None:
-            ignore_timepoints = (y_true==ignore_value)
+            ignore_timepoints = (y_true == ignore_value)
             y_true.loc[ignore_timepoints] = np.nan
             y_hat.loc[ignore_timepoints] = np.nan
         y_true = y_true.resample(res).mean()

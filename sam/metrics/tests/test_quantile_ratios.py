@@ -20,5 +20,6 @@ class TestQuantileRatios(unittest.TestCase):
         assert_array_equal(list(res.values()), [0.2, 0.8])
         assert_array_equal(list(res.keys()), [0.2, 0.8])
 
+
 if __name__ == '__main__':
     unittest.main()
