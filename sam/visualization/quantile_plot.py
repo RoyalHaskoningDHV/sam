@@ -110,8 +110,8 @@ def sam_quantile_plot(
     # apply date range to data to speed up the rest
     if date_range is None:
         date_range = [y_true.index.min(), y_true.index.max()]
-    y_true = y_true[date_range[0]:date_range[1]]
-    y_hat = y_hat[date_range[0]:date_range[1]]
+    y_true = y_true.loc[date_range[0]:date_range[1]]
+    y_hat = y_hat.loc[date_range[0]:date_range[1]]
 
     # resample to desired resolution
     if res is not None:
