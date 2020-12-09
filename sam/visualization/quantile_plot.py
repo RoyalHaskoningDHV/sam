@@ -100,6 +100,10 @@ def sam_quantile_plot(
     if (y_title == '') and y_true.name:
         y_title = y_true.name
 
+    # copy to make sure we don't modify the original
+    y_true = y_true.copy()
+    y_hat = y_hat.copy()
+
     # shift prediction back to match y_true
     y_hat = y_hat.shift(predict_ahead)
 
@@ -109,14 +113,13 @@ def sam_quantile_plot(
     y_true = y_true[date_range[0]:date_range[1]]
     y_hat = y_hat[date_range[0]:date_range[1]]
 
-    if ignore_value is not None:
-        y_true = y_true.copy()
-        ignore_timepoints = (y_true==ignore_value)
-        y_true.loc[ignore_timepoints] = np.nan
-        y_hat.loc[ignore_timepoints] = np.nan
-
     # resample to desired resolution
     if res is not None:
+        # set ignore_values to nan so they are ignored in the resampling
+        if ignore_value is not None:
+            ignore_timepoints = (y_true==ignore_value)
+            y_true.loc[ignore_timepoints] = np.nan
+            y_hat.loc[ignore_timepoints] = np.nan
         y_true = y_true.resample(res).mean()
         y_hat = y_hat.resample(res).mean()
 

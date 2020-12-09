@@ -4,12 +4,9 @@
 ## Version 2.0.21
 
 ### New features
-- `keras_joint_mae_tilted_loss`: to fit the median in quantile regression (use average_type='median' in SamQauntileMLP)
-- `plot_quantile_feature_importances`: bar plot of feature importances computed in SamQuantileMLP
+- `keras_joint_mae_tilted_loss`: to fit the median in quantile regression (use average_type='median' in SamQuantileMLP)
+- `plot_feature_importances`: bar plot of feature importances (e.g. computed in SamQuantileMLP.quantile_feature_importances
 - `compute_quantile_ratios`: to check the proportion of data falling beneath certain quantile
-
-### Changes
-- changed default `n_iter` in `SamQauntileMLP.quantile_feature_importances` to 1 to speed up default training
 
 ## Version 2.0.19
 

@@ -1,7 +1,12 @@
 
 def compute_quantile_ratios(y, pred, predict_ahead=0):
     """
-    Computes the proportion of data points beneath each quantile.
+    Computes the total proportion of data points in y beneath each quantile in pred.
+    So for example, with quantile 0.75, you'd expect 75% of values in y to be beneath this quantile
+    This function would then return a dictionary with 0.75 as key, and the actual proportion of
+    values that fell beneath that quantile in y (e.g. 0.743).
+    This allows the user to judge whether the fitted quantile model accurately reflects the
+    distribution of the data.
 
     Parameters
     ---------

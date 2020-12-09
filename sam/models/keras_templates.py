@@ -50,7 +50,10 @@ def create_keras_quantile_mlp(n_input,
     lr: float (default=0.001)
         Learning rate
     average_type: str (default='mean')
-        determines what to fit as the average: 'mean', or 'median'
+        Determines what to fit as the average: 'mean', or 'median'. The average is the last
+        node in the output layer and does not reflect a quantile, but rather estimates the central
+        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
+        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
 
     Returns
         keras model
