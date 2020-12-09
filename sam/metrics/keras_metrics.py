@@ -96,6 +96,7 @@ def keras_joint_mse_tilted_loss(y_true, y_pred, quantiles=[], n_targets=1):
         loss += K.sum(K.mean(K.maximum(q*e, (q-1)*e), axis=0), axis=-1)
     return(loss)
 
+
 def keras_joint_mae_tilted_loss(y_true, y_pred, quantiles=[], n_targets=1):
     """ Joint mean and quantile regression loss function
     Sum of mean absolute error and multiple tilted loss functions
