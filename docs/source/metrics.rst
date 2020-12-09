@@ -51,6 +51,6 @@ Keras metrics
 .. autofunction:: sam.metrics.keras_joint_mse_tilted_loss
 .. autofunction:: sam.metrics.get_keras_forecasting_metrics
 
-Train mean r2
+Compute quantile ratios
 ---------------------------
 .. autofunction:: sam.metrics.compute_quantile_ratios

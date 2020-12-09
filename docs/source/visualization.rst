@@ -52,7 +52,7 @@ Quantile Regression plot
 
 .. image:: general_documents/images/quantile_plot.png
 
-Quantile Feature Importances plot
+Feature importances plot
 ---------------------------
 .. autofunction:: sam.visualization.plot_feature_importances
 
