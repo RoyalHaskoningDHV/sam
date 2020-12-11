@@ -282,7 +282,7 @@ class SamQuantileMLP(BaseEstimator):
         This is just a wrapper for sam.models.create_keras_quantile_mlp
         """
 
-        assert not ((average_type == 'median') and (0.5 in quantiles)),\
+        assert not ((self.average_type == 'median') and (0.5 in self.quantiles)),\
             'average_type is median, but 0.5 is also in quantiles'
 
         return create_keras_quantile_mlp(
