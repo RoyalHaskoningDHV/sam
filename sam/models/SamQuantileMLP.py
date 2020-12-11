@@ -281,6 +281,10 @@ class SamQuantileMLP(BaseEstimator):
         A function that returns a simple, 2d keras model.
         This is just a wrapper for sam.models.create_keras_quantile_mlp
         """
+
+        assert not ((average_type == 'median') and (0.5 in quantiles)),\
+            'average_type is median, but 0.5 is also in quantiles'
+
         return create_keras_quantile_mlp(
             n_input=self.n_inputs_,
             n_neurons=self.n_neurons,
