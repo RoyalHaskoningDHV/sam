@@ -92,6 +92,9 @@ def sam_quantile_plot(
     assert not (outlier_min_q is not None and outliers is not None),\
         'outlier_min_q and outliers cannot be used simultaneously'
 
+    assert not (ignore_value is not None and res is None),\
+        'ignore value should only be set when using resampling (res should not be None)'
+
     import seaborn as sns
     if interactive:
         import plotly.graph_objs as go
