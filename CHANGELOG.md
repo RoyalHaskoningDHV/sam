@@ -8,6 +8,11 @@
 - `plot_feature_importances`: bar plot of feature importances (e.g. computed in SamQuantileMLP.quantile_feature_importances
 - `compute_quantile_ratios`: to check the proportion of data falling beneath certain quantile
 
+## Version 2.0.20
+
+### Bugfixed
+- statsmodels is no longer a dependency (dependency introduced in version 2.0.19)
+
 ## Version 2.0.19
 
 ### New features
