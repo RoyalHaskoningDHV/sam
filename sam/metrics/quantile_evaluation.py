@@ -95,4 +95,3 @@ def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
     crossings = {key.replace('0.500', 'mean'): value for key, value in crossings.items()}
 
     return crossings
-

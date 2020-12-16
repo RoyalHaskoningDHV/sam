@@ -55,5 +55,6 @@ class TestQuantileMetrics(unittest.TestCase):
 
         self.assertRaises(AssertionError, compute_quantile_crossings, pred)
 
+
 if __name__ == '__main__':
     unittest.main()
