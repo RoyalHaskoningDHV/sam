@@ -282,9 +282,6 @@ class SamQuantileMLP(BaseEstimator):
         This is just a wrapper for sam.models.create_keras_quantile_mlp
         """
 
-        assert not ((self.average_type == 'median') and (0.5 in self.quantiles)),\
-            'average_type is median, but 0.5 is also in quantiles'
-
         return create_keras_quantile_mlp(
             n_input=self.n_inputs_,
             n_neurons=self.n_neurons,
@@ -343,6 +340,9 @@ class SamQuantileMLP(BaseEstimator):
         self.r2_callback_report = r2_callback_report
         self.average_type = average_type
 
+        assert not ((self.average_type == 'median') and (0.5 in self.quantiles)),\
+            'average_type is median, but 0.5 is also in quantiles'
+            
     def validate_data(self, X):
         """
         Void function that validates the data and raises an exception if anything is wrong

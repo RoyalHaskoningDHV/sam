@@ -123,7 +123,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         # now do the same for summarizing time features.
         # the model includes minute as a cyclical, so we should have only 1 minute feature here:
         feature_importances = model.quantile_feature_importances(
-          self.X_test, self.y_test, n_iter=2, sum_time_components=True)
+            self.X_test, self.y_test, n_iter=2, sum_time_components=True)
         self.assertEqual(feature_importances.columns.tolist(),
                          ['x', 'y_', 'minute'])
         self.assertEqual(feature_importances.shape, (2, 3))
@@ -509,6 +509,14 @@ class TestSamQuantileMLP(unittest.TestCase):
 
                 assert_array_equal(pred_with_scaling.shape, pred.shape)
                 assert_array_equal(actual_with_scaling.shape, actual.shape)
+
+    def test_average_type(self):
+
+        self.assertRaises(
+            AssertionError,
+            SamQuantileMLP,
+            average_type='median',
+            quantiles=[0.5])
 
 
 if __name__ == '__main__':
