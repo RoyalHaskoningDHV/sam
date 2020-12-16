@@ -342,7 +342,7 @@ class SamQuantileMLP(BaseEstimator):
 
         assert not ((self.average_type == 'median') and (0.5 in self.quantiles)),\
             'average_type is median, but 0.5 is also in quantiles'
-            
+
     def validate_data(self, X):
         """
         Void function that validates the data and raises an exception if anything is wrong
