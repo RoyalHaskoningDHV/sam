@@ -50,7 +50,7 @@ def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
     outside of the closest quantile border below and above 0.5.
     NB: this function operates on the output of SamQuantileMLP.predict()
     NB2: this function expects that either 0.5 or 'mean' is in the qs, or in the columns of pred
-    when qs=None. 
+    when qs=None.
 
     Parameters
     ---------
@@ -59,10 +59,10 @@ def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
     predict_ahead: int (default=0)
         predict ahead to evaluate
     qs: list (default=None)
-        list of quantiles. If none, uses all quantiles in the pred columns. 
+        list of quantiles. If none, uses all quantiles in the pred columns.
         qs can be provided to compare crossings between a specific subset of quantiles.
-        You can also add 'mean' to this list to add it to the comparison. It will then 
-        be compared to the nearest quantiles above and below 0.5. 
+        You can also add 'mean' to this list to add it to the comparison. It will then
+        be compared to the nearest quantiles above and below 0.5.
 
     Returns
     -------
@@ -72,7 +72,7 @@ def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
 
     # switch mean with 0.5 for ease in rest of function
     if qs is None:
-        qs = [float(c.split('_')[-1]) for c in pred.columns if not 'mean' in c] + [0.5]
+        qs = [float(c.split('_')[-1]) for c in pred.columns if 'mean' not in c] + [0.5]
         assert (np.array(qs) == 0.5).sum() == 1, '0.5 and "mean" cannot both be in qs'
     else:
         assert not (0.5 in qs and 'mean' in qs), '0.5 and "mean" cannot both be in qs'
