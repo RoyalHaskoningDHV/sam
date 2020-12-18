@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def compute_quantile_ratios(y, pred, predict_ahead=0):
+def compute_quantile_ratios(y, pred, predict_ahead=0, precision=3):
     """
     Computes the total proportion of data points in y beneath each quantile in pred.
     So for example, with quantile 0.75, you'd expect 75% of values in y to be beneath this quantile
@@ -18,6 +18,8 @@ def compute_quantile_ratios(y, pred, predict_ahead=0):
         output of SamQuantileMLP.predict() function
     predict_ahead: int (default=0)
         predict ahead to evaluate
+    precision: int (default=3)
+        decimal point precision of result
 
     Returns
     -------
@@ -33,6 +35,9 @@ def compute_quantile_ratios(y, pred, predict_ahead=0):
         q: (y < pred['predict_lead_%d_q_' % predict_ahead + str(q)]).mean()
         for q in qs
     }
+
+    quantile_ratios = {
+        round(key, precision): round(value, precision) for key, value in quantile_ratios.items()}
 
     return quantile_ratios
 
