@@ -19,10 +19,10 @@ setup(name='sam',
       install_requires=['pandas>=1.1.0', 'numpy>=1.13', 'scikit-learn>=0.21,<=0.23.0'],
       extras_require={
           'all': ['knmy', 'matplotlib', 'nfft', 'pymongo', 'requests', 'scipy', 'seaborn',
-                  'tensorflow', 'eli5', 'shap', 'plotly', 'statsmodels'],
+                  'tensorflow<=2.3.1', 'eli5', 'shap', 'plotly', 'statsmodels'],
           'plotting': ['matplotlib', 'plotly', 'seaborn'],
           'data_engineering': ['knmy', 'requests', 'pymongo'],
-          'data_science': ['tensorflow', 'nfft', 'scipy', 'shap', 'eli5', 'statsmodels']
+          'data_science': ['tensorflow<=2.3.1', 'nfft', 'scipy', 'shap', 'eli5', 'statsmodels']
       },
       tests_require=['pytest', 'pytest-cov', 'pytest-mpl']
       )
