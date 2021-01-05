@@ -16,7 +16,7 @@ setup(name='sam',
       license='',
       packages=find_packages(exclude=['*tests']),
       zip_safe=True,
-      install_requires=['pandas>=1.1.0', 'numpy>=1.13', 'scikit-learn>=0.21'],
+      install_requires=['pandas>=1.1.0', 'numpy>=1.13', 'scikit-learn>=0.21,<=0.23.0'],
       extras_require={
           'all': ['knmy', 'matplotlib', 'nfft', 'pymongo', 'requests', 'scipy', 'seaborn',
                   'tensorflow', 'eli5', 'shap', 'plotly', 'statsmodels'],
