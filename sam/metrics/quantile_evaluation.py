@@ -72,7 +72,7 @@ def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
     Returns
     -------
     crossings: dict
-        key is quantile, value is the observed proportion of data points below that quantile
+        key is quantile, value is the proportion of quantile crossings.
     """
 
     # switch mean with 0.5 for ease in rest of function
