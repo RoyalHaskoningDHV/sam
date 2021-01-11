@@ -863,8 +863,8 @@ class SamQuantileMLP(BaseEstimator):
                                       "for multiple targets")
 
         from sklearn import __version__ as skversion
-        if skversion >= '0.24.0':
-            raise Exception("This feature requres sklearn version 0.23.1 or lower!")
+        if int(skversion.split('.')[1]) >= 24:
+            raise Exception("This feature requires sklearn version < 0.24.0!")
 
         from eli5.permutation_importance import get_score_importances
 

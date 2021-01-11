@@ -1,17 +1,17 @@
 # Changelog
 
-## Version 2.0.21
-
-### Bugfixed
-- eli5 uses the sklearn.metrics.scorer module, which is gone in 0.24.0, so we need <=0.24.0
-- shap does not work with tensorflow 2.4.0 so we need <=2.3.1
-
-## Version 2.0.21
+## Version 2.0.22
 
 ### New features
 - `keras_joint_mae_tilted_loss`: to fit the median in quantile regression (use average_type='median' in SamQuantileMLP)
 - `plot_feature_importances`: bar plot of feature importances (e.g. computed in SamQuantileMLP.quantile_feature_importances
 - `compute_quantile_ratios`: to check the proportion of data falling beneath certain quantile
+
+## Version 2.0.21
+
+### Bugfixed
+- eli5 uses the sklearn.metrics.scorer module, which is gone in 0.24.0, so we need <=0.24.0
+- shap does not work with tensorflow 2.4.0 so we need <=2.3.1
 
 ## Version 2.0.20
 
