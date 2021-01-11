@@ -862,6 +862,10 @@ class SamQuantileMLP(BaseEstimator):
             raise NotImplementedError("This method is currently not implemented "
                                       "for multiple targets")
 
+        from sklearn import __version__ as skversion
+        if skversion >= '0.24.0':
+            raise Exception("This feature requres sklearn version 0.23.1 or lower!")
+
         from eli5.permutation_importance import get_score_importances
 
         if score is None:
