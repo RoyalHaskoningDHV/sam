@@ -163,6 +163,11 @@ class SamQuantileMLP(BaseEstimator):
     r2_callback_report: boolean (default=False)
         Whether to add train and validation r2 to each epoch as a callback.
         This also changes self.verbose to 2 to prevent log print mess up.
+    average_type: str (default='mean')
+        Determines what to fit as the average: 'mean', or 'median'. The average is the last
+        node in the output layer and does not reflect a quantile, but rather estimates the central
+        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
+        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
 
     Attributes
     ----------
@@ -276,6 +281,7 @@ class SamQuantileMLP(BaseEstimator):
         A function that returns a simple, 2d keras model.
         This is just a wrapper for sam.models.create_keras_quantile_mlp
         """
+
         return create_keras_quantile_mlp(
             n_input=self.n_inputs_,
             n_neurons=self.n_neurons,
@@ -284,7 +290,8 @@ class SamQuantileMLP(BaseEstimator):
             quantiles=self.quantiles,
             lr=self.lr,
             momentum=self.momentum,
-            dropout=self.dropout
+            dropout=self.dropout,
+            average_type=self.average_type
         )
 
     def __init__(self,
@@ -307,7 +314,8 @@ class SamQuantileMLP(BaseEstimator):
                  dropout=None,
                  momentum=None,
                  verbose=1,
-                 r2_callback_report=False
+                 r2_callback_report=False,
+                 average_type='mean'
                  ):
 
         self.predict_ahead = predict_ahead
@@ -330,6 +338,10 @@ class SamQuantileMLP(BaseEstimator):
         self.dropout = dropout
         self.verbose = verbose
         self.r2_callback_report = r2_callback_report
+        self.average_type = average_type
+
+        assert not ((self.average_type == 'median') and (0.5 in self.quantiles)),\
+            'average_type is median, but 0.5 is also in quantiles'
 
     def validate_data(self, X):
         """
@@ -468,14 +480,15 @@ class SamQuantileMLP(BaseEstimator):
                 # Dataframe with 1 column. Will use y's index and name
                 y_val_transformed = pd.DataFrame(y_val.copy()).astype(float)
 
-            # The lines below are only to deal with nans in the validation set
-            # These should eventually be replaced by Arjans/Fennos function for removing nan rows
-            # So that this code will be much more readable
-            targetnanrows = y_val_transformed.isna().any(axis=1)
             # Remove the first n rows because they are nan anyway because of rolling features
             if len(self.rolling_window_size) > 0:
                 X_val_transformed = X_val_transformed.iloc[max(self.rolling_window_size):]
                 y_val_transformed = y_val_transformed.iloc[max(self.rolling_window_size):]
+            # The lines below are only to deal with nans in the validation set
+            # These should eventually be replaced by Arjans/Fennos function for removing nan rows
+            # So that this code will be much more readable
+            targetnanrows = y_val_transformed.isna().any(axis=1)
+
             # Filter rows where the target is unknown
             X_val_transformed = X_val_transformed.loc[~targetnanrows]
             y_val_transformed = y_val_transformed.loc[~targetnanrows]
@@ -779,7 +792,7 @@ class SamQuantileMLP(BaseEstimator):
     def quantile_feature_importances(self, X, y, score=None, n_iter=5,
                                      sum_time_components=False):
         """
-        Computes feature importances based on the quantile loss function.
+        Computes feature importances based on the loss function used to estimate the average.
         This function uses `ELI5's 'get_score_importances (link)
         <https://eli5.readthedocs.io/en/latest/autodocs/permutation_importance.html>`_
         to compute feature importances. It is a method that measures how the score decreases when
@@ -787,31 +800,40 @@ class SamQuantileMLP(BaseEstimator):
         This is essentially a model-agnostic type of feature importance that works with
         every model, including keras MLP models.
 
+        Note that we compute feature importance over the average (the central trace, and the last
+        output node, either median or mean depending on self.average_type), and do not include
+        the quantiles in the loss calculation. Initially, the quantiles were included, but
+        experimentation showed that importances behaved very badly when including the
+        quantiles in the loss: importances were sometimes consistently negative (i.e. in all
+        random iterations), while these features should have been important according to theory,
+        and excluding them indeed lead to much worse model performance. This behavior goes away
+        when only using the mean trace to estimate feature importance.
+
         Parameters
         ----------
         X: pd.DataFrame
-              dataframe with test or train features
+            dataframe with test or train features
         y: pd.Series
-              dataframe with test or train target
-        score: function, optional (default=None)
-             function with signature score(X, y)
-             that returns a scalar. Will be used to measure score decreases for ELI5.
-             By default, use the same scoring as is used by self.score(): RMSE plus MAE of
-             quantiles.
+            dataframe with test or train target
+        score: str or function, optional (default=None)
+            Either a function with signature score(X, y, model)
+            that returns a scalar. Will be used to measure score decreases for ELI5.
+            If None, defaults to MSE or MAE depending on self.average_type.
+            Note that if score computes a loss (i.e. higher is worse), negative values indicate
+            positive contribution to model performance (i.e. negative score decrease means that
+            removing this feature will increase the metric, which is a bad thing with MAE/MSE).
         n_iter: int, optional (default=5)
-             Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
-             this parameter may provide more stablitity at the cost of a longer runtime
+            Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
+            this parameter may provide more stablitity at the cost of a longer runtime
         sum_time_components: bool, optional (default=False)
-             if set to true, sums feature importances of the different subfeatures of each time
-             component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
+            if set to true, sums feature importances of the different subfeatures of each time
+            component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
 
         Returns
         -------
         score_decreases: Pandas dataframe,  shape (n_iter x n_features)
-            The score decreases when leaving out each feature per iteration. The higher, the more
-            important each feature is considered by the model. Negative values indicate positive
-            contribution to model performance (i.e. negative score decrease means that removing
-            this feature will increase the metric, which is a bad thing with RMSE)
+            The score decreases when leaving out each feature per iteration. The larget the
+            magnitude, the more important each feature is considered by the model.
 
         Examples
         --------
@@ -841,23 +863,17 @@ class SamQuantileMLP(BaseEstimator):
                                       "for multiple targets")
 
         from sklearn import __version__ as skversion
-        if skversion >= '0.24.0':
-            raise Exception("This feature requres sklearn version 0.23.1 or lower!")
+        if int(skversion.split('.')[1]) >= 24:
+            raise Exception("This feature requires sklearn version < 0.24.0!")
 
         from eli5.permutation_importance import get_score_importances
 
         if score is None:
-            # By default, use RMSE + quantile MAE
             def score(X, y, model=self.model_):
-                # quantile loss function that performs on the transformed model/data rather than a
-                # 'wrapper'. X is the transformed data, y is the target, model is a keras model,
-                # qs are the quantiles
-                y_pred = model.predict(X)
-                loss = np.sqrt(np.mean((y - y_pred[:, -1])**2))
-                for i, q in enumerate(self.quantiles):
-                    e = np.array(y - y_pred[:, i])
-                    loss += np.mean(np.max([q*e, (q-1)*e], axis=0))
-                return loss
+                if self.average_type == 'median':
+                    return np.mean(np.abs(y - model.predict(X)[:, -1]))
+                elif self.average_type == 'mean':
+                    return np.mean((y - model.predict(X)[:, -1])**2)
 
         X_transformed = self.preprocess_before_predict(X, y)
 
@@ -873,7 +889,8 @@ class SamQuantileMLP(BaseEstimator):
         y_target = y_target[~missings]
 
         # use eli5 to compute feature importances:
-        _, score_decreases = get_score_importances(score, X_transformed, y_target, n_iter=n_iter)
+        base_scores, score_decreases = get_score_importances(
+            score, X_transformed, y_target, n_iter=n_iter)
 
         decreases_df = pd.DataFrame(score_decreases, columns=self.get_feature_names())
 

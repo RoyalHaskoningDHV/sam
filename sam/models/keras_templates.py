@@ -1,5 +1,5 @@
 import numpy as np
-from sam.metrics import keras_joint_mse_tilted_loss
+from sam.metrics import keras_joint_mse_tilted_loss, keras_joint_mae_tilted_loss
 
 
 def create_keras_quantile_mlp(n_input,
@@ -11,7 +11,8 @@ def create_keras_quantile_mlp(n_input,
                               momentum=1.0,
                               hidden_activation='relu',
                               output_activation='linear',
-                              lr=0.001):
+                              lr=0.001,
+                              average_type='mean'):
     """ Function to create a multilayer perceptron in keras
     Optimizes the keras_joint_mse_tilted_loss to do multiple quantile and
     mean regression with a single model.
@@ -48,6 +49,11 @@ def create_keras_quantile_mlp(n_input,
         https://keras.io/layers/core/
     lr: float (default=0.001)
         Learning rate
+    average_type: str (default='mean')
+        Determines what to fit as the average: 'mean', or 'median'. The average is the last
+        node in the output layer and does not reflect a quantile, but rather estimates the central
+        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
+        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
 
     Returns
         keras model
@@ -76,7 +82,10 @@ def create_keras_quantile_mlp(n_input,
         mse_tilted = 'mse'
     else:
         def mse_tilted(y, f):
-            loss = keras_joint_mse_tilted_loss(y, f, quantiles, n_target)
+            if average_type == 'mean':
+                loss = keras_joint_mse_tilted_loss(y, f, quantiles, n_target)
+            elif average_type == 'median':
+                loss = keras_joint_mae_tilted_loss(y, f, quantiles, n_target)
             return(loss)
 
     n_out = n_target * (len(quantiles) + 1)  # one extra for mean regression

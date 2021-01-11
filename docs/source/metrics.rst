@@ -50,3 +50,7 @@ Keras metrics
 .. autofunction:: sam.metrics.keras_tilted_loss
 .. autofunction:: sam.metrics.keras_joint_mse_tilted_loss
 .. autofunction:: sam.metrics.get_keras_forecasting_metrics
+
+Compute quantile ratios
+---------------------------
+.. autofunction:: sam.metrics.compute_quantile_ratios

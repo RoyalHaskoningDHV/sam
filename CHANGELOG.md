@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 2.0.22
+
+### New features
+- `keras_joint_mae_tilted_loss`: to fit the median in quantile regression (use average_type='median' in SamQuantileMLP)
+- `plot_feature_importances`: bar plot of feature importances (e.g. computed in SamQuantileMLP.quantile_feature_importances
+- `compute_quantile_ratios`: to check the proportion of data falling beneath certain quantile
+
 ## Version 2.0.21
 
 ### Bugfixed
@@ -14,7 +21,7 @@
 ## Version 2.0.19
 
 ### New features
-- `sam.metrics.tilted_loss`: A tilted loss function that works with numpy / pandas 
+- `sam.metrics.tilted_loss`: A tilted loss function that works with numpy / pandas
 - `sam.models.LinearQuantileRegression`: sklearn style wrapper for quantile regression using statsmodels
 
 ## Version 2.0.18
@@ -51,7 +58,7 @@
 ## Version 2.0.14
 
 ### New functions
-- `sam.visualisation.sam_quantile_plot`: Options to set `outlier_window` and `outlier_limit`, to only plot anomalies when at least `outlier_limit` anomalies are counted within the `outlier window` 
+- `sam.visualisation.sam_quantile_plot`: Options to set `outlier_window` and `outlier_limit`, to only plot anomalies when at least `outlier_limit` anomalies are counted within the `outlier window`
 
 ### Bugfixes
 - Bugfix in `sam.metrics.custom_callbacks`

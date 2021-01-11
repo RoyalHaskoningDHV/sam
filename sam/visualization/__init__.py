@@ -8,6 +8,7 @@ from .deprecated import make_precision_recall_curve, make_threshold_plot, \
 from .extreme_removal_plot import diagnostic_extreme_removal
 from .quantile_plot import sam_quantile_plot
 from .performance_evaluation_fixed_predict_ahead import performance_evaluation_fixed_predict_ahead
+from .plot_feature_importances import plot_feature_importances
 
 from . import precision_recall
 from . import threshold_plot
@@ -16,4 +17,4 @@ from . import rolling_correlations
 
 __all__ = ["plot_precision_recall_curve", "plot_threshold_curve", "plot_incident_heatmap",
            "plot_lag_correlation", "diagnostic_extreme_removal", "sam_quantile_plot",
-           "performance_evaluation_fixed_predict_ahead"]
+           "performance_evaluation_fixed_predict_ahead", "plot_feature_importances"]
