@@ -1,10 +1,16 @@
 # Changelog
 
+## Version 2.0.21
+
+### Bugfixed
+- eli5 uses the sklearn.metrics.scorer module, which is gone in 0.24.0, so we need <=0.24.0
+- shap does not work with tensorflow 2.4.0 so we need <=2.3.1
 
 ## Version 2.0.20
 
 ### Bugfixed
 - statsmodels is no longer a dependency (dependency introduced in version 2.0.19)
+
 ## Version 2.0.19
 
 ### New features
