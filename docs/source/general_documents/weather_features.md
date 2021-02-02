@@ -1,4 +1,6 @@
-# Weather data
+Weather data
+============
+
 Often, weather features are important predictors. For training the model, historic data might be relevant, but when making predictions, weather forecast can also be useful. However, there is a big difference in the availability of historic weather data vs forecasts, the resolution and frequency of forecasts are for example often lower.
 Weather forecasts are never saved, therefore it is not possible to train/validate a model with authentic weather forecasts. In this case, historic data can be used to model both the historic weather features as well as the forecast weather features. However, to make these weather forecast features realistic, they should be modeled according to the availability of the weather forecast data. Weather forecasts might for example have a lower resolution or frequency than historic weather data. If this is the case, the features should resemble this same low resolution or frequency even if they are constructed based on historical data. 
 

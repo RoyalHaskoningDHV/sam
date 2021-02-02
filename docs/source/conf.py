@@ -25,7 +25,7 @@ from recommonmark.parser import CommonMarkParser
 # -- Project information -----------------------------------------------------
 
 project = 'sam'
-copyright = '2018-2020, Ynformed'
+copyright = '2018-2021, Royal HaskoningDHV'
 author = 'Fenno, Daan, Rutger, Arjan, Loes, Tim, Sebastiaan'
 
 config = configparser.ConfigParser()
@@ -52,7 +52,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.viewcode',
+    # 'sphinx.ext.viewcode',
     'sphinx_markdown_tables',
     'numpydoc'
 ]

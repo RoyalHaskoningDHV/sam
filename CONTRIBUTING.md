@@ -4,13 +4,13 @@ sam is an internal package being developed by Ynformed. For any new code, code r
 
 ## Bug Reports and Feature Requests
 
-The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://dev.ynformed.nl/project/view/22/) No permission is needed to create a card, so go nuts!
+The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://dev.azure.com/ynformed/SAM/_backlogs/backlog/SAM%20Team/Epics) No permission is needed to create a card, so go nuts! I kindly ask you prefix your cards with `[bug]` or `[feature]`, and alert one of the developers since we don't check the board every day!
 
 Bug reports are most helpful if you send us a script which reproduces the problem.
 
 ## Developing
 
-If you want to develop this package, you wil need to install a local version using pip. This is done by going to the root folder of this package, and running `pip install -e .` This will install a development version of the package locally. That means that if you make local changes, the package will automatically reflect them. 
+If you want to develop this package, you wil need to install a local version using pip. This is done by cloning the repo, going to the root folder of this package, and running `pip install -e .` This will install a development version of the package locally. That means that if you make local changes, the package will automatically reflect them. 
 
 If you want to develop in a Jupyter notebook, you will also need to reload the sam package whenever you run `from sam import x`. This can be achieved by putting the following lines at the top of every notebook:
 
@@ -24,7 +24,7 @@ This will reload sam everytime you run a new cell. For more information abut the
 
 ## Linting
 
-Linting is done automatically by arcanist before a diff. To do this, first install the dependencies
+Linting is done automatically by devops during a PR. To do this, first install the dependencies
 
 ```
 lang=bash
@@ -35,7 +35,7 @@ Then, to run the linter manually, go to the root folder of the project, and run 
 
 ## Testing
 
-Unit tests are ran automatically by arcanist before a diff. To do this, first install the dependencies
+Unit tests are ran automatically by devops during a PR. To do this, first install the dependencies
 
 ```
 lang=bash
@@ -44,11 +44,9 @@ pip install pytest-cov
 pip install pytest-mpl
 ```
 
-Additionally, you will have to install the PytestMPLTestEngine extension. Download the file from `https://dev.ynformed.nl/P8`, and copy it to `%ARCANIST_DIR%/src/extensions/PytestMPLTestEngine.php`. Then, to run the tests manually, go the the root folder of the project, and run `arc unit`. If any of the visualizations were changed, the baseline images have to be rebuilt. This can be done with: `pytest --mpl-generate-path=sam/visualization/tests/baseline`.
-
 ## Documentation
 
-This documentation is built automatically after every commit [by jenkins here](http://10.2.0.20/sam), with no interaction required. If you want to build it yourself locally, first install the dependencies:
+This documentation is built automatically after every commit by Azure Devops, with no interaction required. If you want to build it yourself locally, first install the dependencies:
 
 ```
 lang=bash
@@ -59,7 +57,7 @@ pip install recommonmark
 pip install sphinx-markdown-tables
 ```
 
-Then, go to the /docs folder, and run the command: `sphinx-build -b html source/ build/`
+Then, run the command: `sphinx-build -b html docs/source/ docs/build/`
 
 ## Definitions of done
 To ensure quality of code and documentation, we utilise standard definitions of done for SAM. You are kindly requested to comply with these when making a diff.

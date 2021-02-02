@@ -1,27 +1,27 @@
 # sam
 
-The Ynformed library for smart asset management.
+The D&DC Python library for machine learning/processing time series data.
 
 Author: Fenno Vermeij
 
-Email: fenno@ynformed.nl
+Email: fenno.vermeij@rhdhv.com
 
 Contributors: Fenno, Daan, Rutger, Arjan, Loes, Tim, Sebastiaan
 
 ## Getting started
 
-Documentation is [available here.](http://10.2.0.20/sam) This is on the ynformed internal server. This server is only reachable from the ynformed office wifi, or via vpn.
+Documentation is [available here.](https://samdocs.digitalapps.royalhaskoningdhv.com) Just ignore the certificate error for now
 
-To install the package, you need to have access to phabricator via git. Then, you can install it with the following command:
+To install the package, you need to have access to the Azure Devops projects. Then, add a pip.ini (Windows) or pip.conf (Mac/Linux) file to your virtualenv. This file should have the following lines of text:
 
 ```
-lang=python
-pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git
-# To install all optional dependencies: (such as pymongo, knmy, seaborn)
-pip install git+ssh://git@dev.ynformed.nl:2222/diffusion/78/sam.git#egg=sam[all]
+[global]
+extra-index-url=https://pkgs.dev.azure.com/ynformed/_packaging/ynformed/pypi/simple/
 ```
 
-Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the command again to install the latest version. Many other resources related to sam can [be found on the landing page here.](https://main-sam.ynformed.nl/)
+Also, make sure to install the azure keyring: `pip install keyring artifacts-keyring`. Now you can install with `pip install sam`.
+
+Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the `pip install -U sam` command to install the latest version.
 
 ## Configuration
 
@@ -38,4 +38,4 @@ apikey=secret456
 
 ## Issue tracking and Feature Requests
 
-Anyone can create feature requests or bug reports! You can browse and create new issues in Phabricator: https://dev.ynformed.nl/project/view/22/
+Anyone can create feature requests or bug reports! You can browse and create new issues in Devops: https://dev.azure.com/ynformed/SAM/_backlogs/backlog/SAM%20Team/Epics

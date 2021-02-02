@@ -1,4 +1,5 @@
-# Anomaly detection feedback
+Anomaly Detection feedback
+==========================
 
 Anomaly detection feedback should have two functions:
 1.	Labelling unlabeled anomalies
@@ -24,8 +25,9 @@ The following information should then be stored:
 *	Goal variable
 *	Time that the anomaly was stored
 
-## Comments
-### By Tim
+Remarks by Tim
+--------------
+
 A number of remarks:
 
 *   What happens when something is not an anomaly anymore, because we use a new model?
@@ -47,7 +49,8 @@ General:
 
 We could also make some user stories for this to clarify what functionality should be build...
 
-### By Rutger
+Remarks by Rutger
+-----------------
 
 I would separate the labeling (conceptually) completely from the used models. You should just be able to label data, from a start time to an end time.
 

@@ -1,10 +1,11 @@
-# Python package documenation
-# Create and test a Python package on multiple Python versions.
-# Build the sphinx documentation of the given package
-# Not tested
-
 trigger:
-- documentationtest
+  branches:
+    include:
+    - master
+    - documentationtest
+  paths:
+    include:
+    - setup.cfg
 
 pool:
   vmImage: 'ubuntu-latest'
