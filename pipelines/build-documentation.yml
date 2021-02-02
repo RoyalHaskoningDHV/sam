@@ -3,9 +3,6 @@ trigger:
     include:
     - master
     - documentationtest
-  paths:
-    include:
-    - setup.cfg
 
 pool:
   vmImage: 'ubuntu-latest'
