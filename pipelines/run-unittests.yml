@@ -9,7 +9,7 @@ steps:
     architecture: 'x64'
 
 - script: |
-    python -m pip install ".[all]"
+    python -m pip install ".[all]" "scikit-learn<0.24.0"
     python -m pip install pytest pytest-mpl pytest-cov
   displayName: 'install self & pytest dependencies'
 

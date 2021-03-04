@@ -1,5 +1,45 @@
 # Changelog
 
+## Version 2.0.22
+
+### New features
+- `keras_joint_mae_tilted_loss`: to fit the median in quantile regression (use average_type='median' in SamQuantileMLP)
+- `plot_feature_importances`: bar plot of feature importances (e.g. computed in SamQuantileMLP.quantile_feature_importances
+- `compute_quantile_ratios`: to check the proportion of data falling beneath certain quantile
+
+## Version 2.0.21
+
+### Bugfixed
+- eli5 uses the sklearn.metrics.scorer module, which is gone in 0.24.0, so we need <=0.24.0
+- shap does not work with tensorflow 2.4.0 so we need <=2.3.1
+
+## Version 2.0.20
+
+### Bugfixed
+- statsmodels is no longer a dependency (dependency introduced in version 2.0.19)
+
+## Version 2.0.19
+
+### New features
+- `sam.metrics.tilted_loss`: A tilted loss function that works with numpy / pandas
+- `sam.models.LinearQuantileRegression`: sklearn style wrapper for quantile regression using statsmodels
+
+## Version 2.0.18
+
+### Changes
+- `sam.models.SamQuantileMLP`: Now stores the input columns (before featurebuilding) which can be accessed by `get_input_cols()`
+
+
+## Version 2.0.17
+
+### Changes
+- `sam.validation.flatline`: Now accepts `window="auto"` option, for which the maximum flatline window is estimated in the `fit` method
+
+## Version 2.0.16
+
+### New functions
+- New class: `sam.feature_engineering.SPEITransformer` for computing precipitation and evaporation features
+
 ## Version 2.0.15
 
 ### Bugfixes
@@ -18,7 +58,7 @@
 ## Version 2.0.14
 
 ### New functions
-- `sam.visualisation.sam_quantile_plot`: Options to set `outlier_window` and `outlier_limit`, to only plot anomalies when at least `outlier_limit` anomalies are counted within the `outlier window` 
+- `sam.visualisation.sam_quantile_plot`: Options to set `outlier_window` and `outlier_limit`, to only plot anomalies when at least `outlier_limit` anomalies are counted within the `outlier window`
 
 ### Bugfixes
 - Bugfix in `sam.metrics.custom_callbacks`

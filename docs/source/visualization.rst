@@ -51,3 +51,10 @@ Quantile Regression plot
 .. autofunction:: sam.visualization.quantile_plot
 
 .. image:: general_documents/images/quantile_plot.png
+
+Feature importances plot
+---------------------------
+.. autofunction:: sam.visualization.plot_feature_importances
+
+.. image:: general_documents/images/importances_barplot.png
+.. image:: general_documents/images/importances_barplot_sum.png
