@@ -31,7 +31,7 @@ steps:
 - task: AzureCLI@2
   inputs:
     scriptType: bash
-    azureSubscription: ynformed-internal
+    azureSubscription: sam-docs
     scriptLocation: inlineScript
     inlineScript: |
       az storage blob upload-batch --destination '$web' --source docs/build/ --account-name stsamdocs --auth-mode key
