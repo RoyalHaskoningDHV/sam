@@ -16,7 +16,7 @@ To install the package, you need to have access to the Azure Devops projects. Th
 
 ```
 [global]
-extra-index-url=https://pkgs.dev.azure.com/ynformed/_packaging/ynformed/pypi/simple/
+extra-index-url=https://pkgs.dev.azure.com/corporateroot/SAM/_packaging/SAM/pypi/simple/
 ```
 
 Also, make sure to install the azure keyring: `pip install keyring artifacts-keyring`. Now you can install with `pip install sam`.
@@ -29,7 +29,7 @@ A configuration file can be created as `.config`. This configuration file only s
 
 ```
 [regenradar]
-user=loes.knoben
+user=regenradar.username
 password=secret123
 
 [openweathermap]
@@ -38,4 +38,4 @@ apikey=secret456
 
 ## Issue tracking and Feature Requests
 
-Anyone can create feature requests or bug reports! You can browse and create new issues in Devops: https://dev.azure.com/ynformed/SAM/_backlogs/backlog/SAM%20Team/Epics
+Anyone can create feature requests or bug reports! You can browse and create new issues in Devops: https://dev.azure.com/corporateroot/SAM/_workitems/
