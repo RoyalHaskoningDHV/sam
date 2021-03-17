@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.0.23
+
+### New features
+- `sam.data_sources.read_knmi` now accepts parameter `preprocessing` to transform data to more scales.
+
 ## Version 2.0.22
 
 ### New features

@@ -31,6 +31,16 @@ knmy_stations = pd.DataFrame({
                   4.19, 4.27, 4.56, 4.56, 5.09, 5.25, 5.42, 5.46, 5.47, 6.12]
 })
 
+# Variables that are by default on a decimal scale: units of 0.1 instead of 1.0
+knmy_decimal_variables = [
+    'FH', 'FF', 'FX', 'T', 'T10N', 'TD', 'SQ', 'DR', 'RH', 'P',
+    'FHVEC', 'FG', 'FHX', 'FHN', 'FHNH', 'TG', 'TN', 'TX', 'RHX',
+    'PG', 'PX', 'PN', 'EV24'
+]
+
+# variables for which values < 0.05 are returned as -1
+knmy_positive_variables = ['SQ', 'RH', 'RHX']
+
 
 def _haversine(stations_row, lat2, lon2):
     """
@@ -60,7 +70,7 @@ def _try_parsing_date(text):
 
 
 def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly',
-              variables='default', find_nonan_station=False):
+              variables='default', find_nonan_station=False, preprocess=False):
     """
     Export historic variables from KNMI, either hourly or daily.
     There are many weather stations in the Netherlands, but this function will select the station
@@ -95,6 +105,9 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
     find_nonan_station: bool, optional (defaut=False)
         by default (False), return the closest stations even if it includes nans.
         If True, return the closest station that does not include nans instead
+    preprocess: boolm optional (default=False)
+        by default (False), return variables in default units (often 0.1 mm).
+        If true, data is scaled to whole units, and default values of -1 are mapped to 0
 
     Returns
     -------
@@ -194,6 +207,13 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
         # Filter the unwanted results since we changed the start/end earlier
         knmi = knmi.loc[(knmi['TIME'] >= start_backup) & (knmi['TIME'] <= end_backup)]. \
             reset_index(drop=True)
+
+    if preprocess:
+        for col in knmi.columns:
+            if col in knmy_decimal_variables:
+                knmi[col] = knmi[col].divide(10)
+            if col in knmy_positive_variables:
+                knmi[col] = knmi[col].clip(lower=0)
 
     log_dataframe_characteristics(knmi, logging.DEBUG)
     return knmi
