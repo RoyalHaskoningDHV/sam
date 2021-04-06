@@ -10,7 +10,7 @@ http://projects.knmi.nl/datacentrum/catalogus/catalogus/content/nl-obs-surf-stat
 
 # No csv file to avoid problems with relative paths within a package
 csv = """
-number,name,lat,lon
+number,name,latitude,longitude
 209,IJmond,52.47,4.52
 210,Valkenburg Zh,52.18,4.42
 215,Voorschoten,52.13,4.43
