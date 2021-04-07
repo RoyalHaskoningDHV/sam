@@ -1,4 +1,5 @@
-# Data exploration
+Data exploration
+================
 
 There are many ways to do a first data exploration, this document is to help with getting started and give a few guidelines for explorering time series. A nice start is probably the [the SAM exploration tool](#sam-exploration-tool)
 

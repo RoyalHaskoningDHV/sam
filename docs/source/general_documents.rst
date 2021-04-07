@@ -5,6 +5,8 @@ General documents
 ============================
 
 .. toctree::
+  :glob:
+  :maxdepth: 1
 
   general_documents/project_approach
   general_documents/anomaly_detection

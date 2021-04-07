@@ -2,7 +2,6 @@ import os
 import sys
 import configparser
 from recommonmark.parser import CommonMarkParser
-sys.path.insert(0, os.path.abspath('../../'))
 
 # -*- coding: utf-8 -*-
 #
@@ -26,11 +25,11 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'sam'
-copyright = '2018-2020, Ynformed'
+copyright = '2018-2021, Royal HaskoningDHV'
 author = 'Fenno, Daan, Rutger, Arjan, Loes, Tim, Sebastiaan'
 
 config = configparser.ConfigParser()
-config.read('setup.cfg')
+config.read('../../setup.cfg')
 
 # The short X.Y version
 version = config['metadata']['major-version']
@@ -53,7 +52,9 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.viewcode',
+    # Comment this to hide the code in public docs
+    # Should be fine for local use
+    # 'sphinx.ext.viewcode',
     'sphinx_markdown_tables',
     'numpydoc'
 ]

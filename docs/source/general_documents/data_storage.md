@@ -1,4 +1,5 @@
-# Data storage
+Data storage
+=============
 
 To make it easier to work together in a project and with your future self we defined a standard way of storing data. This way was designed to be easy to use and also support the different programming languages. Right now we use two main formats:
 

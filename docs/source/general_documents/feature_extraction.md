@@ -1,4 +1,6 @@
-# Features
+Feature Extraction
+==================
+
 This is the start of the documentation on which features to use when.
 
 ## Transforms

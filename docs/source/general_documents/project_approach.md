@@ -1,4 +1,5 @@
-# Project approach
+Project approach
+==================
 
 In this document we describe the typical steps to take in a sensor analysis project.
 

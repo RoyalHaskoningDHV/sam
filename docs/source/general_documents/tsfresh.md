@@ -1,4 +1,5 @@
-# tsfresh
+tsfresh
+=========
 
 tsfresh is a package that can be used to calculate many timeseries-related features used for analysing time series, especially based on physics, and use them as features in your models. It's pretty straightforward to use, because it has built-in functions that calculate all these features, and select only the relevant ones. To do this, you need the following:
 
