@@ -52,6 +52,8 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
+    # Comment this to hide the code in public docs
+    # Should be fine for local use
     # 'sphinx.ext.viewcode',
     'sphinx_markdown_tables',
     'numpydoc'
