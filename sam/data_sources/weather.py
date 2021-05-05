@@ -84,7 +84,7 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
     find_nonan_station: bool, optional (defaut=False)
         by default (False), return the closest stations even if it includes nans.
         If True, return the closest station that does not include nans instead
-    preprocess: boolm optional (default=False)
+    preprocess: bool, optional (default=False)
         by default (False), return variables in default units (often 0.1 mm).
         If true, data is scaled to whole units, and default values of -1 are mapped to 0
 

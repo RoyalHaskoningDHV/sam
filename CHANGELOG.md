@@ -1,6 +1,12 @@
 # Changelog
 
-## Version 2.0.23
+From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
+
+- x change for breaking changes
+- y for new features
+- z for bugfixes
+
+## Version 2.1.0
 
 ### New features
 - `sam.data_sources.read_knmi` now accepts parameter `preprocessing` to transform data to more scales.
