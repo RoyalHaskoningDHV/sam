@@ -3,33 +3,22 @@ import pandas as pd
 from pandas.io.json import json_normalize
 import datetime
 import math
+from sam.data_sources import knmy_stations
 from sam.logging import log_dataframe_characteristics
 from sam import config  # Credentials file
 import logging
 logger = logging.getLogger(__name__)
 
-"""
-Location of all weather stations available in knmy, with coordinates
-List of all weather stations can be found here:
-http://projects.knmi.nl/datacentrum/catalogus/catalogus/content/nl-obs-surf-stationslijst.htm
-"""
-knmy_stations = pd.DataFrame({
-    'number': [201, 203, 204, 205, 206, 207, 208, 209, 215, 211, 212, 225, 229, 235, 239, 240, 242,
-               248, 249, 251, 252, 257, 258, 260, 267, 269, 270, 273, 275, 277, 278, 279, 280, 283,
-               285, 286, 290, 308, 310, 311, 312, 313, 315, 316, 319, 320, 321, 323, 324, 330, 331,
-               340, 343, 344, 348, 350, 356, 370, 375, 377, 380, 391],
-    'latitude': [54.19, 52.22, 53.16, 55.25, 54.07, 53.37, 53.30, 52.28, 52.08, 53.49, 52.55,
-                 52.28, 53.00, 52.55, 54.51, 52.18, 53.15, 52.38, 52.39, 53.23, 53.13, 52.30,
-                 52.39, 52.06, 52.53, 52.27, 53.13, 52.42, 52.04, 53.25, 52.26, 52.44, 53.08,
-                 52.04, 53.34, 53.12, 52.16, 51.23, 51.27, 51.23, 51.46, 51.30, 51.27, 51.39,
-                 51.14, 51.56, 52.00, 51.32, 51.36, 51.59, 51.31, 51.27, 51.53, 51.57, 51.58,
-                 51.34, 51.52, 51.27, 51.39, 51.12, 50.55, 51.30],
-    'longitude': [2.56, 3.21, 3.38, 3.49, 4.01, 4.58, 5.57, 4.31, 4.26, 2.57, 3.49, 4.34, 4.45,
-                  4.47, 4.42, 4.46, 4.55, 5.10, 4.59, 5.21, 3.13, 4.36, 5.24, 5.11, 5.23, 5.32,
-                  5.46, 5.53, 5.53, 6.12, 6.16, 6.31, 6.35, 6.39, 6.24, 7.09, 6.54, 3.23, 3.36,
-                  3.40, 3.37, 3.15, 4.00, 3.42, 3.50, 3.40, 3.17, 3.54, 4.00, 4.06, 4.08, 4.20,
-                  4.19, 4.27, 4.56, 4.56, 5.09, 5.25, 5.42, 5.46, 5.47, 6.12]
-})
+
+# Variables that are by default on a decimal scale: units of 0.1 instead of 1.0
+knmy_decimal_variables = [
+    'FH', 'FF', 'FX', 'T', 'T10N', 'TD', 'SQ', 'DR', 'RH', 'P',
+    'FHVEC', 'FG', 'FHX', 'FHN', 'FHNH', 'TG', 'TN', 'TX', 'RHX',
+    'PG', 'PX', 'PN', 'EV24'
+]
+
+# variables for which values < 0.05 are returned as -1
+knmy_positive_variables = ['SQ', 'RH', 'RHX']
 
 
 def _haversine(stations_row, lat2, lon2):
@@ -60,7 +49,7 @@ def _try_parsing_date(text):
 
 
 def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly',
-              variables='default', find_nonan_station=False):
+              variables='default', find_nonan_station=False, preprocess=False):
     """
     Export historic variables from KNMI, either hourly or daily.
     There are many weather stations in the Netherlands, but this function will select the station
@@ -95,6 +84,9 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
     find_nonan_station: bool, optional (defaut=False)
         by default (False), return the closest stations even if it includes nans.
         If True, return the closest station that does not include nans instead
+    preprocess: bool, optional (default=False)
+        by default (False), return variables in default units (often 0.1 mm).
+        If true, data is scaled to whole units, and default values of -1 are mapped to 0
 
     Returns
     -------
@@ -194,6 +186,13 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
         # Filter the unwanted results since we changed the start/end earlier
         knmi = knmi.loc[(knmi['TIME'] >= start_backup) & (knmi['TIME'] <= end_backup)]. \
             reset_index(drop=True)
+
+    if preprocess:
+        for col in knmi.columns:
+            if col in knmy_decimal_variables:
+                knmi[col] = knmi[col].divide(10)
+            if col in knmy_positive_variables:
+                knmi[col] = knmi[col].clip(lower=0)
 
     log_dataframe_characteristics(knmi, logging.DEBUG)
     return knmi
