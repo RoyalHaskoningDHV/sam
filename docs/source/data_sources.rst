@@ -15,6 +15,7 @@ Create Synthetic Data
 
 Read Weather API's
 ------------------
+.. autofunction:: sam.data_sources.read_knmi_station_data
 .. autofunction:: sam.data_sources.read_knmi
 .. autofunction:: sam.data_sources.read_openweathermap
 .. autofunction:: sam.data_sources.read_regenradar
