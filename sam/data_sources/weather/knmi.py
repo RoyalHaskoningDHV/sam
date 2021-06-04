@@ -22,14 +22,14 @@ urls = {
 }
 
 # Variables that are by default on a decimal scale: units of 0.1 instead of 1.0
-knmy_decimal_variables = [
+knmi_decimal_variables = [
     'FH', 'FF', 'FX', 'T', 'T10N', 'TD', 'SQ', 'DR', 'RH', 'P',
     'FHVEC', 'FG', 'FHX', 'FHN', 'FHNH', 'TG', 'TN', 'TX', 'RHX',
     'PG', 'PX', 'PN', 'EV24'
 ]
 
 # variables for which values < 0.05 are returned as -1
-knmy_positive_variables = ['SQ', 'RH', 'RHX']
+knmi_positive_variables = ['SQ', 'RH', 'RHX']
 
 
 def _haversine(stations_row, lat2, lon2):
@@ -67,9 +67,9 @@ def _preprocess_knmi(knmi):
     """
     knmi = knmi.copy()
     for col in knmi.columns:
-        if col in knmy_decimal_variables:
+        if col in knmi_decimal_variables:
             knmi[col] = knmi[col].divide(10)
-        if col in knmy_positive_variables:
+        if col in knmi_positive_variables:
             knmi[col] = knmi[col].clip(lower=0)
     return knmi
 
@@ -236,7 +236,6 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
     5	0	75	2018-01-01 05:00:00
     6	0	69	2018-01-01 06:00:00
     """
-    from knmy import knmy  # only needed for this function
 
     assert freq in ['hourly', 'daily']
     logger.debug(("Getting KNMI historic data: start_date={}, end_date={}, latitude={}, "
