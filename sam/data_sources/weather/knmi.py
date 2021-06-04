@@ -149,8 +149,6 @@ def read_knmi_station_data(start_date='2021-01-01',
     header = [li.strip('#').replace(' ', '') for li in lines if '#' in li]
     columns = header[-1].split(',')
 
-    print(raw)
-
     knmi = pd.read_csv(StringIO(raw.replace(' ', '')), skiprows=len(header)-1, header=0)
     knmi.columns = columns
 
@@ -163,6 +161,13 @@ def read_knmi_station_data(start_date='2021-01-01',
 
     knmi = knmi.drop(['YYYYMMDD', 'H'], axis=1, errors='ignore')
     knmi['TIME'] = pd.to_datetime(knmi['TIME'], format='%Y%m%d %H:%M:%S')
+
+    if freq == 'hourly':
+        # add the hour back that we subtracted a few lines earlier
+        knmi['TIME'] = knmi['TIME'] + pd.Timedelta('1 hour')
+        # Filter the unwanted results since we changed the start/end earlier
+        knmi = knmi.loc[(knmi['TIME'] >= start_backup) & (knmi['TIME'] <= end_backup)]. \
+            reset_index(drop=True)
 
     # (Optional) preprocessing
     for var in variables:
