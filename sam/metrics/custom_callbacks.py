@@ -1,7 +1,7 @@
-from tensorflow.keras.callbacks import Callback
-from sam.metrics import train_mean_r2
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sam.metrics.r2_calculation import train_r2
+from tensorflow.keras.callbacks import Callback
 
 
 class R2Evaluation(Callback):
@@ -69,11 +69,10 @@ class R2Evaluation(Callback):
                 these_y_val = self.all_data['y_val'].loc[:, thiscol].values
                 these_y_hat_val = y_hat_val['predict_lead_%d_mean' % p].values
 
-            r2s.append(train_mean_r2(these_y_train,  these_y_hat_train, train_mean))
+            r2s.append(train_r2(these_y_train, these_y_hat_train, train_mean))
 
             if val:
-                r2s_val.append(train_mean_r2(
-                    these_y_val,  these_y_hat_val, train_mean))
+                r2s_val.append(train_r2(these_y_val, these_y_hat_val, train_mean))
 
         r2 = np.mean(r2s)
         logs['r2'] = r2

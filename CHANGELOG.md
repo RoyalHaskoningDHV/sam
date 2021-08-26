@@ -6,6 +6,18 @@ From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
 - y for new features
 - z for bugfixes
 
+## Version 2.2.0
+
+### New features
+- `sam.visualization.performance_evaluation_fixed_predict_ahead` accepts `train_avg_func` parameter that provides a function to calculate the average of the train set to use for r2 calculation (default=median)
+
+### New functions
+- Name change: `sam.metrics.train_mean_r2` -> `sam.metrics.r2_calculation` to avoid circular import errors and the file now contains multiple methods
+- New function: `sam.metrics.r2_calculation.train_r2` a renamed copy of `sam.metrics.r2_calculation.train_mean_r2` as any average can now be used for r2 calculation
+
+### Changes
+- `sam.metrics.train_mean_r2` is now deprecated and calls `sam.metrics.train_r2`
+
 ## Version 2.1.0
 
 ### New features

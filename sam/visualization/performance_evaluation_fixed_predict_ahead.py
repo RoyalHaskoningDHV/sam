@@ -1,11 +1,14 @@
+import sys
+
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
-from sam.metrics import train_mean_r2
+import pandas as pd
+from sam.metrics import train_r2
 
 
 def performance_evaluation_fixed_predict_ahead(y_true_train, y_hat_train, y_true_test, y_hat_test,
-                                               resolutions=[None], predict_ahead=0):
+                                               resolutions=[None], predict_ahead=0,
+                                               train_avg_func=np.nanmean):
     """
     This function evaluates model performance over time for a single given predict ahead.
     It plots and returns r-squared, and creates a scatter plot of prediction vs true.
@@ -32,7 +35,10 @@ def performance_evaluation_fixed_predict_ahead(y_true_train, y_hat_train, y_true
         If set to None, will return results for the native data resolution.
         Valid options are e.g.: [None], [None, '15min', '1H'], or ['1H', '1D']
     predict_ahead: int (default=0)
-        predict_ahead to display performance for
+        Predict_ahead to display performance for
+    train_avg_func: func (default=np.nanmean)
+        Optional argument to pass function to calculate the train set average, by default the
+        mean is used.
 
     Returns
     ------
@@ -100,14 +106,20 @@ def performance_evaluation_fixed_predict_ahead(y_true_train, y_hat_train, y_true
             y_hat_test_res = y_hat_test
 
         # compute r2 with custom r2 function (in sam.metrics)
-        test_r2 = train_mean_r2(y_true_test_res, y_hat_test_res, np.mean(y_true_train_res))
-        train_r2 = train_mean_r2(y_true_train_res, y_hat_train_res, np.mean(y_true_train_res))
+        try:
+            train_average = train_avg_func(y_true_train_res)
+        except Exception:
+            e = sys.exc_info()[0]
+            raise ValueError(f"Supplied train_avg_func resulted in error: {e}")
+
+        test_set_r2 = train_r2(y_true_test_res, y_hat_test_res, train_average)
+        train_set_r2 = train_r2(y_true_train_res, y_hat_train_res, train_average)
 
         # append results to lists
-        r2_list.append(train_r2*100)
+        r2_list.append(train_set_r2*100)
         dataset_list.append('train')
         resolution_list.append(res_label)
-        r2_list.append(test_r2*100)
+        r2_list.append(test_set_r2*100)
         dataset_list.append('test')
         resolution_list.append(res_label)
 

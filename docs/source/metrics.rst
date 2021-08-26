@@ -36,9 +36,9 @@ Mean absolute scaled error
 .. autofunction:: sam.metrics.mean_absolute_scaled_error
 
 
-Train mean r2
+Train r2
 ---------------------------
-.. autofunction:: sam.metrics.train_mean_r2
+.. autofunction:: sam.metrics.train_r2
 
 Tilted loss
 ---------------------------
