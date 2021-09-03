@@ -107,13 +107,13 @@ def performance_evaluation_fixed_predict_ahead(y_true_train, y_hat_train, y_true
 
         # compute r2 with custom r2 function (in sam.metrics)
         try:
-            train_average = train_avg_func(y_true_train_res)
+            benchmark = train_avg_func(y_true_train_res)
         except Exception:
             e = sys.exc_info()[0]
             raise ValueError(f"Supplied train_avg_func resulted in error: {e}")
 
-        test_set_r2 = train_r2(y_true_test_res, y_hat_test_res, train_average)
-        train_set_r2 = train_r2(y_true_train_res, y_hat_train_res, train_average)
+        test_set_r2 = train_r2(y_true_test_res, y_hat_test_res, benchmark)
+        train_set_r2 = train_r2(y_true_train_res, y_hat_train_res, benchmark)
 
         # append results to lists
         r2_list.append(train_set_r2*100)

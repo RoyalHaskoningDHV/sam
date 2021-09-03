@@ -6,10 +6,19 @@ From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
 - y for new features
 - z for bugfixes
 
+## Version 2.3.0
+
+### New features
+- `sam.visualization.quantile_plot` accepts `benchmark` parameter that plots the benchmark used to calculate the model performance
+
+### Changes
+- `sam.preprocessing.sam_reshape.sam_format_to_wide` now explicitly defines the arguments when calling `pd.pivot_table`
+- `sam.metrics.r2_calculation.train_r2` can now use an array as a benchmark, not only a scalar average, for r2 calculation
+
 ## Version 2.2.0
 
 ### New features
-- `sam.visualization.performance_evaluation_fixed_predict_ahead` accepts `train_avg_func` parameter that provides a function to calculate the average of the train set to use for r2 calculation (default=median)
+- `sam.visualization.performance_evaluation_fixed_predict_ahead` accepts `train_avg_func` parameter that provides a function to calculate the average of the train set to use for r2 calculation (default=np.nanmean)
 
 ### New functions
 - Name change: `sam.metrics.train_mean_r2` -> `sam.metrics.r2_calculation` to avoid circular import errors and the file now contains multiple methods

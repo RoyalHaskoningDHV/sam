@@ -19,7 +19,9 @@ def sam_quantile_plot(
         outliers=None,
         outlier_window=1,
         outlier_limit=1,
-        ignore_value=None):
+        ignore_value=None,
+        benchmark=None,
+        benchmark_color='purple'):
     """
     Uses the output from SamQuantileMLPs predict function to create a quantile prediction plot.
     It plots the actual data, the prediction, and the quantiles as shaded regions.
@@ -83,6 +85,14 @@ def sam_quantile_plot(
         the minimum number of outliers within outlier_window to be outside of `outlier_min_q`
     ignore_value: float (default=None)
         value to ignore during resampling (e.g. 0 for pumps that often go off)
+    benchmark: pd.DataFrame
+        The benchmark used to determine R2 of y_hat, for example a dataframe returned by the
+        SamQuantileMLP.predict() function. Columns should contain at least `predict_lead_x_mean`,
+        where x is predict ahead and for each quantile: `predict_lead_x_q_y` where x is the
+        predict_ahead, and y is the quantile. So e.g.:
+        `['predict_lead_0_q_0.25, predict_lead_0_q_0.75, predict_lead_mean']`
+    benchmark_color: string (default='purple')
+        a valid colorstring for the benchmark line/scatter color
 
     Returns
     ------
@@ -116,6 +126,12 @@ def sam_quantile_plot(
     y_true = y_true.loc[date_range[0]:date_range[1]]
     y_hat = y_hat.loc[date_range[0]:date_range[1]]
 
+    # same pre-processing steps for the benchmark
+    if benchmark is not None:
+        benchmark = benchmark.copy()
+        benchmark = benchmark.shift(predict_ahead)
+        benchmark = benchmark.loc[date_range[0]:date_range[1]]
+
     # resample to desired resolution
     if res is not None:
         # set ignore_values to nan so they are ignored in the resampling
@@ -123,8 +139,12 @@ def sam_quantile_plot(
             ignore_timepoints = (y_true == ignore_value)
             y_true.loc[ignore_timepoints] = np.nan
             y_hat.loc[ignore_timepoints] = np.nan
+            if benchmark is not None:
+                benchmark.loc[ignore_timepoints] = np.nan
         y_true = y_true.resample(res).mean()
         y_hat = y_hat.resample(res).mean()
+        if benchmark is not None:
+            benchmark = benchmark.resample(res).mean()
 
     # some bookkeeping before we start plotting
     these_cols = [c for c in y_hat.columns if 'predict_lead_%d_q_' % predict_ahead in c]
@@ -192,6 +212,13 @@ def sam_quantile_plot(
             color=colors[0],
             label='predicted')
 
+        if benchmark is not None:
+            plt.plot(
+                benchmark.index,
+                benchmark['predict_lead_%d_mean' % predict_ahead],
+                color=benchmark_color,
+                label='benchmark')
+
         plt.plot(
             y_true.index,
             y_true,
@@ -203,6 +230,13 @@ def sam_quantile_plot(
             y=y_hat['predict_lead_%d_mean' % predict_ahead],
             line_color=colors[0],
             name='predicted'))
+
+        if benchmark is not None:
+            fig.add_trace(go.Scatter(
+                x=benchmark.index,
+                y=benchmark['predict_lead_%d_mean' % predict_ahead],
+                line_color=benchmark_color,
+                name='benchmark'))
 
         fig.add_trace(go.Scatter(
             x=y_true.index,
