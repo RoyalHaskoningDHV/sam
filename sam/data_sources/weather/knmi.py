@@ -1,24 +1,23 @@
 import datetime
 import logging
-import math
+import re
 from io import StringIO
 
 import numpy as np
 import pandas as pd
 import requests as req
 from pandas.io.json import json_normalize
-from sam import config  # Credentials file
-from sam.data_sources.weather import knmi_stations
-from sam.logging import log_dataframe_characteristics
 
-from .utils import _try_parsing_date
+from sam import config  # Credentials file
+from sam.data_sources.weather.utils import _haversine, _try_parsing_date
+from sam.logging import log_dataframe_characteristics
 
 logger = logging.getLogger(__name__)
 
 urls = {
     'daily': 'https://www.daggegevens.knmi.nl/klimatologie/daggegevens',
     'hourly': 'https://www.daggegevens.knmi.nl/klimatologie/uurgegevens',
-    'daily_rain': 'https://www.daggegevens.knmi.nl/klimatologie/monv/reeksen'  # ignore
+    'daily_rain': 'https://www.daggegevens.knmi.nl/klimatologie/monv/reeksen'  # not implemented
 }
 
 # Variables that are by default on a decimal scale: units of 0.1 instead of 1.0
@@ -30,20 +29,6 @@ knmi_decimal_variables = [
 
 # variables for which values < 0.05 are returned as -1
 knmi_positive_variables = ['SQ', 'RH', 'RHX']
-
-
-def _haversine(stations_row, lat2, lon2):
-    """
-    Helper function to calculate the distance between a station and a (lat, lon) position
-    stations_row is a row of knmi_stations, which means it's a dataframe with shape (1, 3)
-    `Credit for this solution goes to stackoverflow <https://stackoverflow.com/a/19412565>`
-    """
-    lat1, lon1 = math.radians(stations_row['latitude']), math.radians(stations_row['longitude'])
-    lat2, lon2 = math.radians(lat2), math.radians(lon2)
-    a = math.sin((lat2 - lat1) / 2)**2 + \
-        math.cos(lat1) * math.cos(lat2) * math.sin((lon2 - lon1) / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return 6373.0 * c  # radius of the earth, in km
 
 
 def _prepare_input(input):
@@ -61,17 +46,87 @@ def _prepare_input(input):
     return input
 
 
+def _parse_knmi_measurements(knmi_raw, freq, start=None, end=None):
+    """ Parse raw knmi data to a dataframe
+
+    Parameters
+    ----------
+    knmi_raw : str
+        Raw data from the KNMI API (text)
+    freq : str
+        Frequency of the data, either 'hourly' or 'daily'
+    start : datetime.datetime, optional (default=None)
+        Start date of the data
+        Only used if freq='hourly'
+    end : datetime.datetime, optional (default=None)
+        End date of the data
+        Only used if freq='hourly'
+
+    Returns
+    -------
+    knmi : pandas.DataFrame
+        Dataframe with KNMI data
+    """
+        # Parse raw data
+    lines = knmi_raw.splitlines()
+    header = [li.strip('#').replace(' ', '') for li in lines if '#' in li]
+    columns = header[-1].split(',')
+
+    knmi = pd.read_csv(StringIO(knmi_raw.replace(' ', '')), skiprows=len(header)-1, header=0)
+    knmi.columns = columns
+
+    if freq == 'hourly':
+        knmi['H'] = pd.to_numeric(knmi['H'])  # needs to be numeric to subtract 1
+        # Subtract 1 from H since it runs from 1 to 24, which will make datetime conversion fail
+        knmi['TIME'] = knmi['YYYYMMDD'].astype(str) + ' ' + (knmi['H'] - 1).astype(str) + ":00:00"
+    elif freq == 'daily':
+        knmi['TIME'] = knmi['YYYYMMDD'].astype(str) + ' 00:00:00'
+    else:
+        raise ValueError('freq must be either "hourly" or "daily"')
+
+    knmi = knmi.drop(['YYYYMMDD', 'H'], axis=1, errors='ignore')
+    knmi['TIME'] = pd.to_datetime(knmi['TIME'], format='%Y%m%d %H:%M:%S')
+
+    if freq == 'hourly':
+        # add the hour back that we subtracted a few lines earlier
+        knmi['TIME'] = knmi['TIME'] + pd.Timedelta('1 hour')
+        # Filter the unwanted results since we changed the start/end earlier
+        knmi = knmi.loc[(knmi['TIME'] >= start) & (knmi['TIME'] <= end)]. \
+            reset_index(drop=True)
+    return knmi
+
+
+def _parse_knmi_stations(knmi_raw):
+    """ Parse the station data from raw data text
+    """
+    lines = knmi_raw.splitlines()
+    # for each line, remove space parts of length greater that 1
+    lines = [line.strip('# ') for line in lines]
+    lines = [re.sub(r'\s{2,}', ';', line) for line in lines]
+    # find index of first line that starts with STN
+    first_line_index = [i for i, line in enumerate(lines) if line.startswith('STN')][0]
+    lines_after_header = lines[first_line_index:]
+    # all lines are relevant up to those that contain ':'
+    n_lines = [i for i, line in enumerate(lines_after_header) if ':' in line][0]
+    lines = lines[(1 + first_line_index):(n_lines + first_line_index)]
+
+    # transform to dataframe
+    df = pd.read_csv(StringIO('\n'.join(lines)), skiprows=0, header=None, sep=';')
+    df.columns = ['number', 'longitude', 'latitude', 'altitude', 'name']
+    return df
+
+
 def _preprocess_knmi(knmi):
     """ Preprocessing function for KNMI data
     Transforms data to a conventional scale
     """
-    knmi = knmi.copy()
-    for col in knmi.columns:
+    knmi_prep = knmi.copy()
+    for col in knmi_prep.columns:
         if col in knmi_decimal_variables:
-            knmi[col] = knmi[col].divide(10)
+            knmi_prep[col] = knmi_prep[col].divide(10)
         if col in knmi_positive_variables:
-            knmi[col] = knmi[col].clip(lower=0)
-    return knmi
+            knmi_prep[col] = knmi_prep[col].clip(lower=0)
+    return knmi_prep
 
 
 def read_knmi_station_data(start_date='2021-01-01',
@@ -79,10 +134,11 @@ def read_knmi_station_data(start_date='2021-01-01',
                            stations=None,
                            freq='daily',
                            variables='default',
+                           parse=True,
                            preprocess=True):
     """ Read KNMI data for specific station
-    To find station numbers, look at `sam.data_sources.knmi_stations`,
-    of use `sam.data_sources.read_knmi` to use lat/lon and find closest station
+    To find station numbers, use `sam.data_sources.read_knmi_stations`,
+    or use `sam.data_sources.read_knmi` to use lat/lon and find closest station
 
     Source:
     https://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
@@ -100,15 +156,19 @@ def read_knmi_station_data(start_date='2021-01-01',
         if None, data from all stations is returned
     freq : str, optional (default = 'daily')
         frequency of export. Must be 'hourly' or 'daily'
-    variables: list of str, optional (default='default')
+    variables : str, None or list, optional (default='default')
         knmi-variables to export. See `all hourly variables here
         <https://www.daggegevens.knmi.nl/klimatologie/uurgegevens>`_ or `all daily variables
         here <https://www.daggegevens.knmi.nl/klimatologie/daggegevens>`_
         by default, export [average temperature, sunshine duration, rainfall], which is
         ['RH', 'SQ', 'T'] for hourly, and ['RH', 'SQ', 'TG'] for daily
-    preprocess: bool, optional (default=False)
+        If None, all variables will be collected
+    preprocess : bool, optional (default=False)
         by default (False), return variables in default units (often 0.1 mm).
         If true, data is scaled to whole units, and default values of -1 are mapped to 0
+    parse : bool, optional (default=True)
+        if True, parse the data to a pandas dataframe
+        Only use False for debugging purposes
     Returns
     -------
     knmi: dataframe
@@ -137,45 +197,43 @@ def read_knmi_station_data(start_date='2021-01-01',
         start_date = start_date - datetime.timedelta(hours=1)
         start_date = start_date.replace(hour=0, minute=0)
         end_date = end_date.replace(hour=23, minute=0)
+    else: 
+        start_backup, end_backup = start_date, end_date
 
     params = dict(start=start_date, end=end_date,
                   vars=vars, stns=stns, fmt='csv')
 
-    response = req.get(url=url, data=params)
-    raw = response.text
+    # get data
+    response = req.get(url, params=params)
+    # get text from response if executed correctly
+    if response.status_code == 200:
+        knmi_raw = response.text
+    else:
+        raise ValueError('Request failed with status code {}'.format(response.status_code))
 
     # Parse raw data
-    lines = raw.splitlines()
-    header = [li.strip('#').replace(' ', '') for li in lines if '#' in li]
-    columns = header[-1].split(',')
-
-    knmi = pd.read_csv(StringIO(raw.replace(' ', '')), skiprows=len(header)-1, header=0)
-    knmi.columns = columns
-
-    if freq == 'hourly':
-        knmi['H'] = pd.to_numeric(knmi['H'])  # needs to be numeric to subtract 1
-        # Subtract 1 from H since it runs from 1 to 24, which will make datetime conversion fail
-        knmi['TIME'] = knmi['YYYYMMDD'].astype(str) + ' ' + (knmi['H'] - 1).astype(str) + ":00:00"
-    elif freq == 'daily':
-        knmi['TIME'] = knmi['YYYYMMDD'].astype(str) + ' 00:00:00'
-
-    knmi = knmi.drop(['YYYYMMDD', 'H'], axis=1, errors='ignore')
-    knmi['TIME'] = pd.to_datetime(knmi['TIME'], format='%Y%m%d %H:%M:%S')
-
-    if freq == 'hourly':
-        # add the hour back that we subtracted a few lines earlier
-        knmi['TIME'] = knmi['TIME'] + pd.Timedelta('1 hour')
-        # Filter the unwanted results since we changed the start/end earlier
-        knmi = knmi.loc[(knmi['TIME'] >= start_backup) & (knmi['TIME'] <= end_backup)]. \
-            reset_index(drop=True)
+    if parse:
+        knmi = _parse_knmi_measurements(knmi_raw, freq, start=start_backup, end=end_backup)
+    else:
+        return knmi_raw
 
     # (Optional) preprocessing
-    for var in variables:
+    numvar = [var for var in knmi.columns if var not in ['STN', 'TIME']]
+    for var in numvar:
         knmi[var] = knmi[var].astype(float)
     if preprocess:
         knmi = _preprocess_knmi(knmi)
 
     return knmi
+
+
+def read_knmi_stations():
+    """ Function to get all KNMI stations from API
+    """
+    # empty request, containing stations data
+    df = read_knmi_station_data(stations=['ALL'], start_date='2021-01-02',
+                           end_date='2021-01-01', parse=False)
+    return _parse_knmi_stations(df)
 
 
 def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly',
@@ -205,12 +263,13 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
         weather station De Bilt
     freq: str, optional (default = 'hourly')
         frequency of export. Must be 'hourly' or 'daily'
-    variables: list of str, optional (default='default')
+    variables: str, None or list, optional (default='default')
         knmi-variables to export. See `all hourly variables here
         <https://www.daggegevens.knmi.nl/klimatologie/uurgegevens>`_ or `all daily variables
         here <https://www.daggegevens.knmi.nl/klimatologie/daggegevens>`_
         by default, export [average temperature, sunshine duration, rainfall], which is
         ['RH', 'SQ', 'T'] for hourly, and ['RH', 'SQ', 'TG'] for daily
+        If None, all variables will be collected
     find_nonan_station : bool, optional (defaut=False)
         by default (False), return the closest stations even if it includes nans.
         If True, return the closest station that does not include nans instead
@@ -247,7 +306,8 @@ def read_knmi(start_date, end_date, latitude=52.11, longitude=5.18, freq='hourly
                   "longitude={}, freq={}, variables={}").
                  format(start_date, end_date, latitude, longitude, freq, variables))
 
-    # Provide 1 of 50 stations, find closest to specified coordinate
+    # Find closest station to specified coordinate
+    knmi_stations = read_knmi_stations()
     distances = knmi_stations.apply(_haversine, axis=1, args=(latitude, longitude))
     stations = np.array(knmi_stations['number'][np.argsort(distances.values)])
 
