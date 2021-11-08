@@ -35,9 +35,10 @@ class TestWeather(unittest.TestCase):
     def test_read_knmi_stations(self):
         result = read_knmi_stations()
         self.assertIsInstance(result, pd.DataFrame)
-        self.assertEqual(result.columns.tolist(), ['number', 'longitude', 'latitude', 'altitude', 'name'])
+        self.assertEqual(
+            result.columns.tolist(),
+            ['number', 'longitude', 'latitude', 'altitude', 'name'])
         self.assertGreater(result.shape[0], 1)
-
 
     def test_read_knmi_hourly(self):
         result = read_knmi('2016-03-07 06:00:00', '2016-03-07 12:00:00', latitude=52.11,

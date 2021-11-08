@@ -67,7 +67,7 @@ def _parse_knmi_measurements(knmi_raw, freq, start=None, end=None):
     knmi : pandas.DataFrame
         Dataframe with KNMI data
     """
-        # Parse raw data
+    # Parse raw data
     lines = knmi_raw.splitlines()
     header = [li.strip('#').replace(' ', '') for li in lines if '#' in li]
     columns = header[-1].split(',')
@@ -197,7 +197,7 @@ def read_knmi_station_data(start_date='2021-01-01',
         start_date = start_date - datetime.timedelta(hours=1)
         start_date = start_date.replace(hour=0, minute=0)
         end_date = end_date.replace(hour=23, minute=0)
-    else: 
+    else:
         start_backup, end_backup = start_date, end_date
 
     params = dict(start=start_date, end=end_date,
@@ -232,7 +232,7 @@ def read_knmi_stations():
     """
     # empty request, containing stations data
     df = read_knmi_station_data(stations=['ALL'], start_date='2021-01-02',
-                           end_date='2021-01-01', parse=False)
+                                end_date='2021-01-01', parse=False)
     return _parse_knmi_stations(df)
 
 

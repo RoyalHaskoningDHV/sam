@@ -1,6 +1,7 @@
 import datetime
 import math
 
+
 def _try_parsing_date(text):
     """
     Helper function to try parsing text that either does or does not have a time
