@@ -1,11 +1,14 @@
 import unittest
-from sam.data_sources import read_knmi, read_openweathermap, read_regenradar
-from sam import config
-import pandas as pd
-import numpy as np
-from pandas.testing import assert_series_equal
-import pytest
 import warnings
+
+import numpy as np
+import pandas as pd
+import pytest
+from pandas.testing import assert_series_equal
+
+from sam import config
+from sam.data_sources import (read_knmi, read_knmi_stations,
+                              read_openweathermap, read_regenradar)
 
 try:
     owm_apikey = config['openweathermap']['apikey']
@@ -29,6 +32,13 @@ class TestWeather(unittest.TestCase):
 
     # We don't test the actual content of the weather predictions, only the columns and dtypes
     # The TIME column is tested exactly, since it should be deterministic
+    def test_read_knmi_stations(self):
+        result = read_knmi_stations()
+        self.assertIsInstance(result, pd.DataFrame)
+        self.assertEqual(
+            result.columns.tolist(),
+            ['number', 'longitude', 'latitude', 'altitude', 'name'])
+        self.assertGreater(result.shape[0], 1)
 
     def test_read_knmi_hourly(self):
         result = read_knmi('2016-03-07 06:00:00', '2016-03-07 12:00:00', latitude=52.11,

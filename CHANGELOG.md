@@ -6,6 +6,16 @@ From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
 - y for new features
 - z for bugfixes
 
+## Version 2.4.0
+
+### New features
+- `sam.data_sources.read_knmi_station_data` was added to get KNMI data for a selection of KNMI station numbers
+- `sam.data_sources.read_knmi_stations` was added to get all automatic KNMI station meta data
+
+### Bugfixes
+- `sam.data_sources.read_knmi` was changed because of a new KNMI API. The package `knmy` does not work anymore. 
+- `knmy` is no longer a (optional) dependency (outdated)
+
 ## Version 2.3.0
 
 ### New features
