@@ -1,28 +1,23 @@
 import unittest
-from pandas.testing import assert_series_equal
 
-from sam.preprocessing import scale_train_test
-from sklearn.preprocessing import StandardScaler
-import pandas as pd
 import numpy as np
+import pandas as pd
+from pandas.testing import assert_series_equal
+from sam.preprocessing import scale_train_test
 
 
 class TestScaling(unittest.TestCase):
-
     def test_standard_scaler_series(self):
 
         N = 10
         basex = np.random.random(N)
         basey = np.random.random(N)
-        X_base = pd.DataFrame([basex, basex]).astype('float').T
-        y_base = pd.Series(basey).astype('float')
+        X_base = pd.DataFrame([basex, basex]).astype("float").T
+        y_base = pd.Series(basey).astype("float")
         X_train, X_test, y_train, y_test = X_base, X_base, y_base, y_base
-        X_train_s, X_test_s, y_train_s, y_test_s, X_scaler, y_scaler = \
-            scale_train_test(
-                X_train,
-                X_test,
-                y_train,
-                y_test)
+        X_train_s, X_test_s, y_train_s, y_test_s, X_scaler, y_scaler = scale_train_test(
+            X_train, X_test, y_train, y_test
+        )
 
         # test outcome shapes
         self.assertEqual(X_train.shape, X_train_s.shape)
@@ -31,14 +26,14 @@ class TestScaling(unittest.TestCase):
         self.assertEqual(y_train.shape, y_train_s.shape)
 
         # test whether mean is really close to 0
-        assert_series_equal(X_train_s.mean(), pd.Series([0., 0.]))
-        assert_series_equal(X_test_s.mean(), pd.Series([0., 0.]))
+        assert_series_equal(X_train_s.mean(), pd.Series([0.0, 0.0]))
+        assert_series_equal(X_test_s.mean(), pd.Series([0.0, 0.0]))
         self.assertAlmostEqual(y_test_s.mean(), 0)
         self.assertAlmostEqual(y_train_s.mean(), 0)
 
         # test whether std is really 1
-        assert_series_equal(np.std(X_train_s), pd.Series([1., 1.]))
-        assert_series_equal(np.std(X_test_s), pd.Series([1., 1.]))
+        assert_series_equal(np.std(X_train_s), pd.Series([1.0, 1.0]))
+        assert_series_equal(np.std(X_test_s), pd.Series([1.0, 1.0]))
         self.assertAlmostEqual(np.std(y_test_s), 1)
         self.assertAlmostEqual(np.std(y_train_s), 1)
 
@@ -53,15 +48,12 @@ class TestScaling(unittest.TestCase):
         N = 10
         basex = np.random.random(N)
         basey = np.random.random(N)
-        X_base = pd.DataFrame([basex, basex]).astype('float').T
-        y_base = pd.DataFrame([basey, basey, basey]).astype('float').T
+        X_base = pd.DataFrame([basex, basex]).astype("float").T
+        y_base = pd.DataFrame([basey, basey, basey]).astype("float").T
         X_train, X_test, y_train, y_test = X_base, X_base, y_base, y_base
-        X_train_s, X_test_s, y_train_s, y_test_s, X_scaler, y_scaler = \
-            scale_train_test(
-                X_train,
-                X_test,
-                y_train,
-                y_test)
+        X_train_s, X_test_s, y_train_s, y_test_s, X_scaler, y_scaler = scale_train_test(
+            X_train, X_test, y_train, y_test
+        )
 
         # test outcome shapes
         self.assertEqual(X_train.shape, X_train_s.shape)
@@ -70,16 +62,16 @@ class TestScaling(unittest.TestCase):
         self.assertEqual(y_train.shape, y_train_s.shape)
 
         # test whether mean is really close to 0
-        assert_series_equal(X_train_s.mean(), pd.Series([0., 0.]))
-        assert_series_equal(X_test_s.mean(), pd.Series([0., 0.]))
-        assert_series_equal(y_train_s.mean(), pd.Series([0., 0., 0.]))
-        assert_series_equal(y_test_s.mean(), pd.Series([0., 0., 0.]))
+        assert_series_equal(X_train_s.mean(), pd.Series([0.0, 0.0]))
+        assert_series_equal(X_test_s.mean(), pd.Series([0.0, 0.0]))
+        assert_series_equal(y_train_s.mean(), pd.Series([0.0, 0.0, 0.0]))
+        assert_series_equal(y_test_s.mean(), pd.Series([0.0, 0.0, 0.0]))
 
         # test whether std is really 1
-        assert_series_equal(np.std(X_train_s), pd.Series([1., 1.]))
-        assert_series_equal(np.std(X_test_s), pd.Series([1., 1.]))
-        assert_series_equal(np.std(y_train_s), pd.Series([1., 1., 1.]))
-        assert_series_equal(np.std(y_test_s), pd.Series([1., 1., 1.]))
+        assert_series_equal(np.std(X_train_s), pd.Series([1.0, 1.0]))
+        assert_series_equal(np.std(X_test_s), pd.Series([1.0, 1.0]))
+        assert_series_equal(np.std(y_train_s), pd.Series([1.0, 1.0, 1.0]))
+        assert_series_equal(np.std(y_test_s), pd.Series([1.0, 1.0, 1.0]))
 
         # test whether x and y scaler were really seperately fitted on the
         # x and y data

@@ -1,15 +1,16 @@
 import unittest
-from pandas.testing import assert_series_equal
 
-from sam.preprocessing import correct_below_threshold
-from sam.preprocessing import correct_above_threshold
-from sam.preprocessing import correct_outside_range
-import pandas as pd
 import numpy as np
+import pandas as pd
+from pandas.testing import assert_series_equal
+from sam.preprocessing import (
+    correct_above_threshold,
+    correct_below_threshold,
+    correct_outside_range,
+)
 
 
 class TestCorrectExtremes(unittest.TestCase):
-
     def setUp(self):
         self.X = pd.Series([0, 2, -1, 2, 2, 1])
 
@@ -20,7 +21,7 @@ class TestCorrectExtremes(unittest.TestCase):
 
     def testRemoveInRange(self):
         expected = pd.Series([0, 1], index=[0, 5])
-        result = correct_outside_range(self.X, method='remove')
+        result = correct_outside_range(self.X, method="remove")
         assert_series_equal(result, expected, check_dtype=False)
 
     def testSetMaxValue(self):
@@ -55,8 +56,7 @@ class TestCorrectExtremes(unittest.TestCase):
         assert_series_equal(result, expected, check_dtype=False)
 
     def testIncorrectMethod(self):
-        self.assertRaises(ValueError, correct_below_threshold,
-                          self.X, method="error")
+        self.assertRaises(ValueError, correct_below_threshold, self.X, method="error")
 
     def testNanChange(self):
         # Test if nans are ignored as they should be

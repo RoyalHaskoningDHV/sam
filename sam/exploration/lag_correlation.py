@@ -1,21 +1,29 @@
-import pandas as pd
-import numpy as np
-from sam.logging import log_dataframe_characteristics
-from sam.feature_engineering.rolling_features import BuildRollingFeatures
 import logging
+from typing import Callable, Union
+
+import numpy as np
+import pandas as pd
+from sam.feature_engineering.rolling_features import BuildRollingFeatures
+from sam.logging import log_dataframe_characteristics
+
 logger = logging.getLogger(__name__)
 
 
-def lag_correlation(df, target_name, lag=12, method='pearson'):
+def lag_correlation(
+    df: pd.DataFrame,
+    target_name: str,
+    lag: int = 12,
+    method: Union[str, Callable] = "pearson",
+):
     """
-    Creates a new dataframe that contains the correlation of a goal_variable
+    Creates a new dataframe that contains the correlation of target_name
     with other variables in the dataframe based on the output from
     BuildRollingFeatures. The results are processed for easy visualization,
     with a column for the lag and then correlation per feature.
 
     Parameters
     ----------
-    df: Dataframe
+    df: pd.DataFrame
         input dataframe contains variables to calculate lag correlation of
     target_name: str
         The name of the goal variable to calculate lag correlation with
@@ -68,18 +76,21 @@ def lag_correlation(df, target_name, lag=12, method='pearson'):
     if np.isscalar(lag):
         lag = np.arange(lag)
 
-    RollingFeatures = BuildRollingFeatures(rolling_type='lag', window_size=lag,
-                                           lookback=0, keep_original=False)
+    RollingFeatures = BuildRollingFeatures(
+        rolling_type="lag", window_size=lag, lookback=0, keep_original=False
+    )
     df = RollingFeatures.fit_transform(X)
     corr_table = df.corrwith(y, method=method).reset_index()
-    corr_table.columns = ['index', 'corr']
-    corr_table['LAG'] = corr_table['index'].apply(lambda x: x.rsplit('_', 1)[1])
-    corr_table['GROUP'] = corr_table['index'].apply(lambda x: x.rsplit('#', 1)[0])
+    corr_table.columns = ["index", "corr"]
+    corr_table["LAG"] = corr_table["index"].apply(lambda x: x.rsplit("_", 1)[1])
+    corr_table["GROUP"] = corr_table["index"].apply(lambda x: x.rsplit("#", 1)[0])
 
-    tab = pd.pivot_table(corr_table, values='corr', index='LAG', columns='GROUP').reset_index()
-    tab['LAG'] = pd.to_numeric(tab['LAG'])
+    tab = pd.pivot_table(
+        corr_table, values="corr", index="LAG", columns="GROUP"
+    ).reset_index()
+    tab["LAG"] = pd.to_numeric(tab["LAG"])
     tab.columns.name = None
-    tab = tab.sort_values('LAG').reset_index(drop=True)
+    tab = tab.sort_values("LAG").reset_index(drop=True)
 
     logging.info("create_lag_correlation output:")
     log_dataframe_characteristics(tab, logging.INFO)

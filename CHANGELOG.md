@@ -6,6 +6,43 @@ From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
 - y for new features
 - z for bugfixes
 
+## Version 2.5.0
+
+### General changes
+- Removed all deprecated functions, see next [subsection](#2.5.0.additional_changes) for details. All deprecated tests have been removed as well.
+- All docstrings have been checked and (if needed) updated
+- Type hinting in all files
+- Linting changes:
+   - Changed pipeline linter to flake8
+   - Formatted all files in black
+   - Split large classes and functions to satisfy a [maximum cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) of 10
+   - Moved inline imports to top of file if the packages were already imported by (any) parent
+   - Sorted imports
+- Updated the `README.MD` and `CONTRIBUTING.MD` files
+
+### <a id="2.5.0.additional_changes"></a> Additional changes in subpackages
+- `sam.data_sources`
+    - Deleted deprecated function `sam.data_sources.create_synthetic_timeseries`
+- `sam.feature_engineering`
+    - Reduced duplicate code in `sam.feature_engineering.automatic_rolling_engineering` and `sam.feature_engineering.decompose_datetime`
+    - `sam.feature_engineering.automatic_rolling_engineering`: all dataframe inputs must be linearly increasing in time and have a datetime index, if not an AssertionError is raised
+    - Deleted deprecated function `sam.feature_engineering.build_timefeatures`
+    - Moved hardcoded data in `sam.feature_engineering.tests.test_automatic_feature_engineering` to separate `test_data` parent folder
+- `sam.feature_selection`
+    - This subpackage is removed, as it was deprecated
+- `sam.models`
+    - Reduced complexity of `sam.models.SamQuantileMLP` by adding extra internal methods for large methods
+- `sam.preprocessing`
+    - Removed merge conflict files `sam.preprocessing\tests\test_scaling.py.orig` and `sam.preprocessing\data_scaling.py.orig`
+    - Deleted deprecated function `sam.preprocessing.complete_timestamps`
+- `sam.train_models`
+    - This subpackage is removed, as it was deprecated
+- `sam.utils`
+    - Deleted deprecated functions: `sam.utils.MongoWrapper`, `sam.utils.label_dst`, `sam.utils.average_winter_time`, and `sam.utils.unit_to_seconds`
+    - Added new function `sam.utils.has_strictly_increasing_index` to validate the datetime index of a dataframe
+- `sam.visualization`
+    - reduced complexity of `sam.visualization.sam_quantile_plot` by splitting the static and interactive plot in separate functions.
+
 ## Version 2.4.0
 
 ### New features

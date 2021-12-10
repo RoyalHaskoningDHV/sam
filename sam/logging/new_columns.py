@@ -1,11 +1,18 @@
 import logging
 
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 
-def log_new_columns(new, old, level=logging.INFO, log_no_changes=False):
+def log_new_columns(
+    new: pd.DataFrame,
+    old: pd.DataFrame,
+    level: int = logging.INFO,
+    log_no_changes: bool = False,
+):
     """
-    Given a new and old pandas dataframe, checks what columns were removed/added, and logs them
+    Given two pandas dataframe (new and old), checks what columns were removed/added, and logs them
 
     Logs what columns were removed (if there were any)
     Logs what columns were added (if there were any)
@@ -14,10 +21,14 @@ def log_new_columns(new, old, level=logging.INFO, log_no_changes=False):
 
     Parameters
     ----------
-    new : The new pandas dataframe
-    old : The old pandas dataframe
-    level : The loglevel. Is logging.INFO by default
-    log_no_changes : boolean, if it should be logged when columns are identical. False by default
+    new: pd.DataFrame
+        The new pandas dataframe
+    old: pd.DataFrame
+        The old pandas dataframe
+    level: loglevel (int) (default=logging.INFO)
+        Loglevel to log at.
+    log_no_changes : bool (default=False)
+        if it should be logged when columns are identical.
 
 
     Returns

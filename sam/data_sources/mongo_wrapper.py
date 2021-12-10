@@ -30,8 +30,9 @@ class MongoWrapper:
     0	7
     """
 
-    def __init__(self, db, collection, location='localhost', port=27017, **kwargs):
+    def __init__(self, db, collection, location="localhost", port=27017, **kwargs):
         import pymongo  # Only needed now
+
         self.client = pymongo.MongoClient(location, port, **kwargs)
         self.db = self.client[db]
         self.collection = self.db[collection]
@@ -56,7 +57,7 @@ class MongoWrapper:
 
         if as_df:
             col = pd.DataFrame(col)
-            col = col.drop('_id', axis=1)
+            col = col.drop("_id", axis=1)
 
         return col
 
@@ -73,7 +74,7 @@ class MongoWrapper:
         result : self
         """
         if isinstance(content, pd.DataFrame):
-            content = content.to_dict(orient='records')
+            content = content.to_dict(orient="records")
 
         if self.collection.insert_many(content):
             return self

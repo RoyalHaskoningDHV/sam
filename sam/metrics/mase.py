@@ -1,10 +1,14 @@
-from sklearn.metrics import mean_absolute_error, make_scorer
 import numpy as np
+from sklearn.metrics import mean_absolute_error
 
 
-def mean_absolute_scaled_error(y_true, y_pred, shift,
-                               sample_weight=None,
-                               multioutput='uniform_average'):
+def mean_absolute_scaled_error(
+    y_true: np.array,
+    y_pred: np.array,
+    shift: int,
+    sample_weight: np.array = None,
+    multioutput: str = "uniform_average",
+):
     """
     Given true value and predicted value, calculates MASE. Lower is better.
     MASE is the mean absolute error, divided by the MAE of a naive benchmark. The naive benchmark
@@ -13,7 +17,7 @@ def mean_absolute_scaled_error(y_true, y_pred, shift,
     timestep `n-1`. As shift increases, the naive benchmark will get worse, and the MASE will get
     better (lower).
 
-    Even though this function does not require timestamps as input, this function requires that
+    Even though this function does not require timestamps as input, it requires that
     the inputs are sorted by TIME (ascending), and that the timestamps are uniform. Otherwise, the
     output of this function will have no meaning.
 
@@ -63,14 +67,22 @@ def mean_absolute_scaled_error(y_true, y_pred, shift,
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     # If sample_weight is not None, we have to subscript it before passing to MAE
     naive_sampleweight = sample_weight[shift:] if sample_weight is not None else None
-    naive_mae = mean_absolute_error(y_true[shift:], y_true[:-shift],
-                                    sample_weight=naive_sampleweight, multioutput=multioutput)
-    actual_mae = mean_absolute_error(y_true, y_pred,
-                                     sample_weight=sample_weight, multioutput=multioutput)
+    naive_mae = mean_absolute_error(
+        y_true[shift:],
+        y_true[:-shift],
+        sample_weight=naive_sampleweight,
+        multioutput=multioutput,
+    )
+    actual_mae = mean_absolute_error(
+        y_true, y_pred, sample_weight=sample_weight, multioutput=multioutput
+    )
 
     if np.isscalar(naive_mae) and naive_mae == 0:
-        raise ValueError("Target vector is constant. MASE has no meaning in this circumstance.")
+        raise ValueError(
+            "Target vector is constant. MASE has no meaning in this circumstance."
+        )
     elif (naive_mae == 0).any():
         raise ValueError(
-            "One of the target vectors is constant. MASE has no meaning in this circumstance.")
+            "One of the target vectors is constant. MASE has no meaning in this circumstance."
+        )
     return actual_mae / naive_mae

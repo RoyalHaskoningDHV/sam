@@ -1,10 +1,14 @@
+from typing import Tuple
+
 import numpy as np
 import pandas as pd
 from sam.feature_engineering import range_lag_column
 from sklearn.metrics import precision_recall_curve
 
 
-def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
+def incident_recall(
+    y_incidents: np.array, y_pred: np.array, range_pred: Tuple[int] = (0, 0)
+):
     """
     Given `y_pred`, `y_incidents` and a prediction range, see what percentage of incidents in
     `y_incidents` was positively predicted in `y_pred`, within window `range_pred`. Works for
@@ -15,11 +19,11 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
 
     Parameters
     ----------
-    y_pred: 1d array-like, or label indicator array / sparse matrix
-        Predicted labels, as returned by a classifier.
     y_incidents: 1d array-like, or label indicator array / sparse matrix
         Incidents that we want to predict with the classifier within window range_pred
-    range_pred: tuple of int, optional (default = (0,0))
+    y_pred: 1d array-like, or label indicator array / sparse matrix
+        Predicted labels, as returned by a classifier.
+    range_pred: tuple of ints, optional (default = (0,0))
         length of two: (start prediction window, end prediction window)
         If we want to predict an incidents 5 to 1 rows in advance, this will be (1,5)
         range_pred is inclusive, so (0, 1) means you can predict either 0 or 1
@@ -39,15 +43,19 @@ def incident_recall(y_incidents, y_pred, range_pred=(0, 0)):
     >>> incident_recall(y_incidents, y_pred, range_pred)
     0.5
     """
-    assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
+    assert (
+        range_pred[0] >= 0 and range_pred[1] >= 0
+    ), "prediction window must be positive"
     y_pred, y_incidents = pd.Series(y_pred), pd.Series(y_incidents)
     # A prediction has effect on the future, so lag to the future
-    y_pred = range_lag_column(y_pred, (-1*range_pred[0], -1*range_pred[1]))
+    y_pred = range_lag_column(y_pred, (-1 * range_pred[0], -1 * range_pred[1]))
     predicted_incidents = pd.concat([y_pred, y_incidents], axis=1).min(axis=1).sum()
     return predicted_incidents / y_incidents.sum()
 
 
-def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
+def make_incident_recall_scorer(
+    range_pred: Tuple[int, int] = (0, 0), colname: str = "incident"
+):
     """
     Wrapper around `incident_recall_score`, to make it an actual sklearn scorer.
     This works by obtaining the 'incident' column from the data itself. This
@@ -86,13 +94,17 @@ def make_incident_recall_scorer(range_pred=(0, 0), colname='incident'):
     >>> scorer(op(), data)
     0.66666
     """
+
     def incident_recall_scorer(clf, X):
         y_pred = clf.predict(X)
         return incident_recall(X[colname], y_pred, range_pred)
+
     return incident_recall_scorer
 
 
-def _merge_thresholds(left_t, right_t, left_val, right_val):
+def _merge_thresholds(
+    left_t: np.array, right_t: np.array, left_val: np.array, right_val: np.array
+):
     """
     Helper function that merges two different thresholds. Does this by iterating over the
     thresholds, and selecting the lowest threshold as the next.
@@ -111,21 +123,29 @@ def _merge_thresholds(left_t, right_t, left_val, right_val):
     saved_leftval, saved_rightval = left_val[0], right_val[0]
 
     while left_ix < len(left_t) or right_ix < len(right_t):
-        if len(left_t) > 0 and (right_ix == len(right_t) or left_t[left_ix] < right_t[right_ix]):
-            new_t, new_leftval, saved_leftval, left_ix = \
-                step_ahead(new_t, new_leftval, saved_leftval, left_ix, left_t, left_val)
+        if len(left_t) > 0 and (
+            right_ix == len(right_t) or left_t[left_ix] < right_t[right_ix]
+        ):
+            new_t, new_leftval, saved_leftval, left_ix = step_ahead(
+                new_t, new_leftval, saved_leftval, left_ix, left_t, left_val
+            )
             new_rightval.append(saved_rightval)
 
-        elif len(right_t) > 0 and (left_ix == len(left_t) or left_t[left_ix] > right_t[right_ix]):
-            new_t, new_rightval, saved_rightval, right_ix = \
-                step_ahead(new_t, new_rightval, saved_rightval, right_ix, right_t, right_val)
+        elif len(right_t) > 0 and (
+            left_ix == len(left_t) or left_t[left_ix] > right_t[right_ix]
+        ):
+            new_t, new_rightval, saved_rightval, right_ix = step_ahead(
+                new_t, new_rightval, saved_rightval, right_ix, right_t, right_val
+            )
             new_leftval.append(saved_leftval)
 
         elif left_t[left_ix] == right_t[right_ix]:
-            new_t, new_leftval, saved_leftval, left_ix = \
-                step_ahead(new_t, new_leftval, saved_leftval, left_ix, left_t, left_val)
-            new_t, new_rightval, saved_rightval, right_ix = \
-                step_ahead(new_t, new_rightval, saved_rightval, right_ix, right_t, right_val)
+            new_t, new_leftval, saved_leftval, left_ix = step_ahead(
+                new_t, new_leftval, saved_leftval, left_ix, left_t, left_val
+            )
+            new_t, new_rightval, saved_rightval, right_ix = step_ahead(
+                new_t, new_rightval, saved_rightval, right_ix, right_t, right_val
+            )
             new_t = new_t[:-1]
 
     new_leftval.append(left_val[-1])
@@ -133,15 +153,16 @@ def _merge_thresholds(left_t, right_t, left_val, right_val):
     return np.array(new_leftval), np.array(new_rightval), np.array(new_t)
 
 
-def precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 0)):
+def precision_incident_recall_curve(
+    y_incidents: np.array, y_pred: np.array, range_pred: Tuple[int, int] = (0, 0)
+):
     """
     Analogous to `sklearn.metrics.precision_recall_curve
-    <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html>`_,
+    <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html>`,
     but for incident recall and precision.
-    Precision is what it seems: for every prediction you make, check if there
-    really is an incident coming up or not. Precision is the percentage you get correct.
-    Incident recall is as in incident_recall function: for every incident, check if you
-    made at least a single positive prediction.
+    Precision the percentage of correct incidents in the prediction.
+    Incident recall can be found in the incident_recall function: for every incident, check if at
+    least there is a single positive prediction.
 
     The calculation of the thresholds is done by calling `sklearn.precision_recall_curve`.
 
@@ -179,11 +200,15 @@ def precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 0)):
     >>> t
     array([0.1, 0.2, 0.4, 0.5, 0.6])
     """
-    assert range_pred[0] >= 0 and range_pred[1] >= 0, "prediction window must be positive"
+    assert (
+        range_pred[0] >= 0 and range_pred[1] >= 0
+    ), "prediction window must be positive"
     y_lagged = range_lag_column(y_incidents, range_pred)
     precision, _, thresholds_p = precision_recall_curve(y_lagged, y_pred)
 
-    y_pred_incidents = range_lag_column(y_pred, (-1*range_pred[0], -1*range_pred[1]))
+    y_pred_incidents = range_lag_column(
+        y_pred, (-1 * range_pred[0], -1 * range_pred[1])
+    )
     _, recall, thresholds_r = precision_recall_curve(y_incidents, y_pred_incidents)
 
     return _merge_thresholds(thresholds_p, thresholds_r, precision, recall)

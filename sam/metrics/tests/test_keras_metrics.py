@@ -1,16 +1,21 @@
-from sam.metrics import keras_tilted_loss, keras_rmse, keras_joint_mse_tilted_loss, \
-    keras_joint_mae_tilted_loss
-import numpy as np
 import unittest
+
+import numpy as np
 import pytest
+from sam.metrics import (
+    keras_joint_mae_tilted_loss,
+    keras_joint_mse_tilted_loss,
+    keras_rmse,
+    keras_tilted_loss,
+)
 
 # Try importing either backend. If both fail, skip unit tests
 # Unit tests will work regardless of what backend you have
 skipkeras = False
 try:
+    import tensorflow as tf  # noqa: F401
     import tensorflow.keras.backend as K
     from tensorflow.keras.layers import Input
-    import tensorflow as tf
 except ImportError:
     skipkeras = True
 
@@ -32,12 +37,12 @@ def create_function(fun, x, y, param=None):
         foo = [np.reshape(y_true, (1, -1)), np.reshape(y_pred, (1, -1))]
         # func gives an array as output. We just want a scalar
         return func(foo)[0]
+
     return kerasfun
 
 
 @pytest.mark.skipif(skipkeras, reason="Keras backend not found")
 class TestKerasMetrics(unittest.TestCase):
-
     def setUp(self):
         self.x = Input(shape=(None,))
         self.y = Input(shape=(None,))
@@ -63,7 +68,7 @@ class TestKerasMetrics(unittest.TestCase):
     def test_keras_rmse(self):
         fun = create_function(keras_rmse, self.x, self.y)
         result = fun(self.y_true, self.y_predict)
-        expected = np.sqrt(((self.y_true-self.y_predict) ** 2).mean())
+        expected = np.sqrt(((self.y_true - self.y_predict) ** 2).mean())
         self.assertAlmostEqual(result, expected)
 
     def test_keras_sum_tilted_loss(self):
@@ -71,17 +76,17 @@ class TestKerasMetrics(unittest.TestCase):
         n_inputs = 2
         quantiles = [0.1]
         n_outputs = (len(quantiles) + 1) * n_inputs
-        x = Input(shape=((n_inputs, )))
-        y = Input(shape=((n_outputs, )))
-        func = K.function([x, y], keras_joint_mse_tilted_loss(x, y, quantiles, n_inputs))
+        x = Input(shape=((n_inputs,)))
+        y = Input(shape=((n_outputs,)))
+        func = K.function(
+            [x, y], keras_joint_mse_tilted_loss(x, y, quantiles, n_inputs)
+        )
 
         # Just 3 rows
-        y_true = np.array([[1, 2],
-                           [1, 2],
-                           [1, 2]])
-        y_pred = np.array([[0.5, 1.1, 1.1, 2.2],
-                           [0.5, 1.1, 1.1, 2.2],
-                           [0.5, 1.1, 1.1, 2.2]])
+        y_true = np.array([[1, 2], [1, 2], [1, 2]])
+        y_pred = np.array(
+            [[0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2]]
+        )
         # These 4 values are `quantile_1_target_1`, `quantile_1_target_2`,
         # `mean_target_1`, `mean_target_2`
         # The mean error is 0.1 for the first target, 0.2 for the second target.
@@ -98,18 +103,14 @@ class TestKerasMetrics(unittest.TestCase):
         # We test it with 1 inputs, 2 quantiles, so 3 outputs
         n_inputs = 1
         quantiles = [0.1, 0.9]
-        n_outputs = (len(quantiles) + 1)
-        x = Input(shape=((n_inputs, )))
-        y = Input(shape=((n_outputs, )))
+        n_outputs = len(quantiles) + 1
+        x = Input(shape=((n_inputs,)))
+        y = Input(shape=((n_outputs,)))
         func = K.function([x, y], keras_joint_mse_tilted_loss(x, y, quantiles))
 
         # Just 3 rows
-        y_true = np.array([[1],
-                           [1],
-                           [1]])
-        y_pred = np.array([[0.5, 0.9, 0.9],
-                           [0.5, 0.9, 0.9],
-                           [0.5, 0.9, 0.9]])
+        y_true = np.array([[1], [1], [1]])
+        y_pred = np.array([[0.5, 0.9, 0.9], [0.5, 0.9, 0.9], [0.5, 0.9, 0.9]])
         # The mean error is 0.1, so squared, 0.01
         # The mae is 0.5 for the first quantile, 0.1 for the second
         # But the first is correct, so gets multiplied by 0.1, so its 0.05
@@ -119,22 +120,22 @@ class TestKerasMetrics(unittest.TestCase):
         actual = func([y_true, y_pred])
         self.assertAlmostEqual(expected, actual)
 
-    def test_keras_sum_tilted_loss(self):
+    def test_keras_sum_tilted_loss_2(self):
         # We test it with 2 inputs, 1 quantiles, so 4 outputs
         n_inputs = 2
         quantiles = [0.1]
         n_outputs = (len(quantiles) + 1) * n_inputs
-        x = Input(shape=((n_inputs, )))
-        y = Input(shape=((n_outputs, )))
-        func = K.function([x, y], keras_joint_mae_tilted_loss(x, y, quantiles, n_inputs))
+        x = Input(shape=((n_inputs,)))
+        y = Input(shape=((n_outputs,)))
+        func = K.function(
+            [x, y], keras_joint_mae_tilted_loss(x, y, quantiles, n_inputs)
+        )
 
         # Just 3 rows
-        y_true = np.array([[1, 2],
-                           [1, 2],
-                           [1, 2]])
-        y_pred = np.array([[0.5, 1.1, 1.1, 2.2],
-                           [0.5, 1.1, 1.1, 2.2],
-                           [0.5, 1.1, 1.1, 2.2]])
+        y_true = np.array([[1, 2], [1, 2], [1, 2]])
+        y_pred = np.array(
+            [[0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2]]
+        )
         # These 4 values are `quantile_1_target_1`, `quantile_1_target_2`,
         # `mean_target_1`, `mean_target_2`
         # The mean error is 0.1 for the first target, 0.2 for the second target.
@@ -145,23 +146,20 @@ class TestKerasMetrics(unittest.TestCase):
         # The total sum is 0.3 + 0.5 = 0.44
         expected = 0.44
         actual = func([y_true, y_pred])
+        self.assertAlmostEqual(expected, actual, places=6)
 
-    def test_keras_sum_tilted_loss_single_input(self):
+    def test_keras_sum_tilted_loss_single_input_2(self):
         # We test it with 1 inputs, 2 quantiles, so 3 outputs
         n_inputs = 1
         quantiles = [0.1, 0.9]
-        n_outputs = (len(quantiles) + 1)
-        x = Input(shape=((n_inputs, )))
-        y = Input(shape=((n_outputs, )))
+        n_outputs = len(quantiles) + 1
+        x = Input(shape=((n_inputs,)))
+        y = Input(shape=((n_outputs,)))
         func = K.function([x, y], keras_joint_mae_tilted_loss(x, y, quantiles))
 
         # Just 3 rows
-        y_true = np.array([[1],
-                           [1],
-                           [1]])
-        y_pred = np.array([[0.5, 0.9, 0.9],
-                           [0.5, 0.9, 0.9],
-                           [0.5, 0.9, 0.9]])
+        y_true = np.array([[1], [1], [1]])
+        y_pred = np.array([[0.5, 0.9, 0.9], [0.5, 0.9, 0.9], [0.5, 0.9, 0.9]])
         # The mean error is 0.1, so absolute also 0.1
         # The mae is 0.5 for the first quantile, 0.1 for the second
         # But the first is correct, so gets multiplied by 0.1, so its 0.05
@@ -169,7 +167,8 @@ class TestKerasMetrics(unittest.TestCase):
         # The sum is 0.1 + 0.05 + 0.09 is 0.24
         expected = 0.24
         actual = func([y_true, y_pred])
+        self.assertAlmostEqual(expected, actual)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

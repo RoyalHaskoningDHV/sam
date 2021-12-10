@@ -10,7 +10,9 @@ from .utils import _try_parsing_date
 logger = logging.getLogger(__name__)
 
 
-def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='5min', **kwargs):
+def read_regenradar(
+    start_date, end_date, latitude=52.11, longitude=5.18, freq="5min", **kwargs
+):
     """
     Export historic precipitation from Nationale Regenradar.
 
@@ -86,32 +88,36 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq='
     user = config["regenradar"]["user"]
     password = config["regenradar"]["password"]
 
-    logger.debug(("Getting regenradar historic data: start_date={}, end_date={}, latitude={}, "
-                  "longitude={}, window={}").
-                 format(start_date, end_date, latitude, longitude, window))
+    logger.debug(
+        (
+            "Getting regenradar historic data: start_date={}, end_date={}, latitude={}, "
+            "longitude={}, window={}"
+        ).format(start_date, end_date, latitude, longitude, window)
+    )
     if isinstance(start_date, str):
         start_date = _try_parsing_date(start_date)
     if isinstance(end_date, str):
         end_date = _try_parsing_date(end_date)
 
-    regenradar_url = 'https://rhdhv.lizard.net/api/v3/raster-aggregates/?'
-    params = {'agg': 'average',
-              'rasters': '730d6675',
-              'srs': 'EPSG:4326',
-              'start': str(start_date),
-              'stop': str(end_date),
-              'window': str(window),
-              'geom': 'POINT+({x}+{y})'.format(x=longitude, y=latitude)
-              }
+    regenradar_url = "https://rhdhv.lizard.net/api/v3/raster-aggregates/?"
+    params = {
+        "agg": "average",
+        "rasters": "730d6675",
+        "srs": "EPSG:4326",
+        "start": str(start_date),
+        "stop": str(end_date),
+        "window": str(window),
+        "geom": "POINT+({x}+{y})".format(x=longitude, y=latitude),
+    }
     params.update(kwargs)
-    params = '&'.join('%s=%s' % (k, v) for k, v in params.items() if v is not None)
+    params = "&".join("%s=%s" % (k, v) for k, v in params.items() if v is not None)
 
     res = requests.get(regenradar_url + params, auth=(user, password))
     res = res.json()
-    data = json_normalize(res, 'data')
+    data = json_normalize(res, "data")
 
     # Time in miliseconds, convert to posixct
-    data.columns = ['TIME', 'PRECIPITATION']
-    data['TIME'] = pd.to_datetime(data['TIME'], unit='ms')
+    data.columns = ["TIME", "PRECIPITATION"]
+    data["TIME"] = pd.to_datetime(data["TIME"], unit="ms")
     log_dataframe_characteristics(data, logging.DEBUG)
     return data

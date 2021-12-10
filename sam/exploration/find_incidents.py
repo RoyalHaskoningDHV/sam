@@ -1,19 +1,30 @@
-import numpy as np
-from sam.logging import log_dataframe_characteristics
 import logging
+
+import numpy as np
+import pandas as pd
+from sam.logging import log_dataframe_characteristics
+
 logger = logging.getLogger(__name__)
 
 
-def incident_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, max_gap_perc=1,
-                    min_dist_total=0, actual='ACTUAL', low='PREDICT_LOW', high='PREDICT_HIGH'):
+def incident_curves(
+    data: pd.DataFrame,
+    under_conf_interval: bool = True,
+    max_gap: int = 0,
+    min_duration: int = 0,
+    max_gap_perc: float = 1,
+    min_dist_total: float = 0,
+    actual: str = "ACTUAL",
+    low: str = "PREDICT_LOW",
+    high: str = "PREDICT_HIGH",
+):
     """
     Finds and labels connected outliers, or 'curves'. The basic idea of this function is to define
     an outlier as a row where the value is outside some interval. 'Interval' here refers to a
     prediction interval, that can be different for every row. This interval defines what a model
-    considers a 'normal' value for that timepoint. Missing values are never an
-    outlier.
+    considers a 'normal' value for that datapoint. Missing values are not considered outliers.
 
-    Then, we apply various checks and filters to it to create 'curves', or streaks of
+    Then, we apply various checks and filters to the outlier to create 'curves', or streaks of
     connected outlies. These curves can have gaps, if `max_gap > 0`. In the end, only the curves
     that satisfy conditions are kept. Curves that do not satisfy one of the conditions are ignored
     (essentially, the output will act as if they are not outliers at all).
@@ -24,37 +35,35 @@ def incident_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, m
 
     Parameters
     ----------
-    data: dataframe (n_rows, _)
+    data: pd.DataFrame (n_rows, _)
         dataframe containing values, as well two columns determining an interval. These three
         column names can be configured using the 'actual', 'low', and 'high' parameters
-    under_conf_interval: boolean, optional (default=True)
-        If values lower than the interval count as outliers. If this is false, then only
-        values higher than the interval are counted as outliers. false by default
-    max_gap: numeric, optional (default=0)
-        If gaps should be allowed in the outliers, and if yes, how long they can be.
-        For example, if max_gap = 2, and the outliers look like: [True, False, False, True],
-        then this 'gap' of 2 will be assigned to this curve, and this will turn into a single
-        curve of outliers, of length 4
-    min_duration: numeric, optional (default=0)
-        If outliers should have a minimum duration. If yes, how long. Curves with a length
-        that is smaller than this value, will be ignored. Gaps are counted in the duration
-        of a curve.
-    max_gap_perc: numeric, optional (default=1)
+    under_conf_interval: bool, optional (default=True)
+        If true, values lower than the interval count as outliers. Else, only
+        values higher than the interval are counted as outliers.
+    max_gap: int, optional (default=0)
+        How many gaps are allowed between outliers. For example, if max_gap = 2, and the outliers
+        look like: [True, False, False, True], then this 'gap' of 2 will be assigned to this
+        curve, and this will turn into a single curve of outliers, of length 4
+    min_duration: int, optional (default=0)
+        Minimum number of outliers per curve. Curves with a smaller length than this value,
+        will be ignored. Gaps are counted in the duration of a curve.
+    max_gap_perc: float, optional (default=1)
         The maximum percentage of gaps that a curve can have to count. For example,
         if this is 0.4, and a curve contains 2 outliers and 2 gaps, then the curve will be
         ignored.
-    min_dist_total: numeric, optional (default=0)
+    min_dist_total: float, optional (default=0)
         If a curve should have a minimum 'outlier size', and if so, how much.
         The outlier size here is defined as the distance between the value and the end of
         the interval. For example, if the interval is (10, 20) and the value is 21, the
         'outlier size' is 1. These values are summed (gaps are counted as 0), and compared
         to this value. Curves with a sum that is too low will be ignored.
     actual: string, optional (default='ACTUAL')
-        The name of the colomn in the data containing the value for each row
+        The name of the column in the data containing the value for each row
     low: string, optional (default='PREDICT_LOW')
-        The name of the colomn in the data containing the lower end of the interval for each row
+        The name of the column in the data containing the lower end of the interval for each row
     high: string, optional (default='PREDICT_HIGH')
-        The name of the colomn in the data containing the higher end of the interval for each row
+        The name of the column in the data containing the higher end of the interval for each row
 
     Returns
     -------
@@ -74,8 +83,9 @@ def incident_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, m
     >>> incident_curves(data, max_gap=1, max_gap_perc=0.2)
     array([0, 0, 0, 0, 0, 0, 0, 2])
     """
+
     def _number_true_streaks(series):
-        """ Given a boolean series, numbers series of True and set False to 0. For example,
+        """Given a boolean series, numbers series of True and set False to 0. For example,
         [T, T, F, T, F, T, T] will be numbered as [1, 1, 0, 2, 0, 3, 3]. Each streak of T gets
         the same number. The result will be converted to numpy array.
         """
@@ -84,56 +94,86 @@ def incident_curves(data, under_conf_interval=True, max_gap=0, min_duration=0, m
         begin_true_streak = series & begin_streak
         return np.where(series, begin_true_streak.cumsum(), 0)
 
-    logger.debug("Finding outlier curves: under_conf_interval={}, max_gap={}, min_duration={}, "
-                 "max_gap_perc={}, min_dist_total={}, actual={}, low={}, high={}".
-                 format(under_conf_interval, max_gap, min_duration, max_gap_perc, min_dist_total,
-                        actual, low, high))
+    logger.debug(
+        "Finding outlier curves: under_conf_interval={}, max_gap={}, min_duration={}, "
+        "max_gap_perc={}, min_dist_total={}, actual={}, low={}, high={}".format(
+            under_conf_interval,
+            max_gap,
+            min_duration,
+            max_gap_perc,
+            min_dist_total,
+            actual,
+            low,
+            high,
+        )
+    )
 
     data = data.copy()  # copy because we are going to mess with this df in various ways
-    data = data.rename(columns={actual: 'ACTUAL', low: 'PREDICT_LOW', high: 'PREDICT_HIGH'})
+    data = data.rename(
+        columns={actual: "ACTUAL", low: "PREDICT_LOW", high: "PREDICT_HIGH"}
+    )
     # Three columns needed: ACTUAL, PREDICT_HIGH, PREDICT_LOW
-    data['OUTLIER'] = (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW) \
-        if under_conf_interval else (data.ACTUAL > data.PREDICT_HIGH)
+    data["OUTLIER"] = (
+        (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW)
+        if under_conf_interval
+        else (data.ACTUAL > data.PREDICT_HIGH)
+    )
     # Find the streaks of gaps. Gaps are defined as anything that's not an outlier
-    data['GAP'] = _number_true_streaks(~data['OUTLIER'])
+    data["GAP"] = _number_true_streaks(~data["OUTLIER"])
     # Then, all gaps with length of max_gap or lower are merged with neighbouring outliers
-    new_val = data.groupby('GAP').apply(lambda x: True if (x.shape[0] <= max_gap) else False)
+    new_val = data.groupby("GAP").apply(
+        lambda x: True if (x.shape[0] <= max_gap) else False
+    )
     new_val[0] = True  # because this is not an outlier, it's treated seperately
-    new_val.name = 'OUTLIER_FILLED'  # Attribute needed for join
-    data = data.join(new_val, on='GAP')  # Add OUTLIER_FILLED column
+    new_val.name = "OUTLIER_FILLED"  # Attribute needed for join
+    data = data.join(new_val, on="GAP")  # Add OUTLIER_FILLED column
 
     # If there is an outlier AND a gap at the beginning/end. That is wrong.
     firstgap_id, lastgap_id = data.GAP.iloc[0], data.GAP.iloc[-1]
     if firstgap_id != 0:  # entire gap at the beginning that shouldn't be there
-        data.loc[data.GAP == firstgap_id, 'OUTLIER_FILLED'] = False
+        data.loc[data.GAP == firstgap_id, "OUTLIER_FILLED"] = False
     if lastgap_id != 0:  # entire gap at the end that shouldn't be there
-        data.loc[data.GAP == lastgap_id, 'OUTLIER_FILLED'] = False
+        data.loc[data.GAP == lastgap_id, "OUTLIER_FILLED"] = False
 
     # Calculate OUTLIER_DIST which is needed to interpret min_dist_total parameter
-    data['OUTLIER_DIST'] = np.where(data.OUTLIER, np.where(data.ACTUAL > data.PREDICT_HIGH,
-                                                           data.ACTUAL - data.PREDICT_HIGH,
-                                                           data.PREDICT_LOW - data.ACTUAL
-                                                           if under_conf_interval else 0), 0)
+    data["OUTLIER_DIST"] = np.where(
+        data.OUTLIER,
+        np.where(
+            data.ACTUAL > data.PREDICT_HIGH,
+            data.ACTUAL - data.PREDICT_HIGH,
+            data.PREDICT_LOW - data.ACTUAL if under_conf_interval else 0,
+        ),
+        0,
+    )
 
     # Now calculate the streaks of outliers, and number them
-    data['OUTLIER_CURVE'] = _number_true_streaks(data['OUTLIER_FILLED'])
+    data["OUTLIER_CURVE"] = _number_true_streaks(data["OUTLIER_FILLED"])
 
-    logging.debug("Curves found after fixing gaps: {}".format(data['OUTLIER_CURVE'].max()))
+    logging.debug(
+        "Curves found after fixing gaps: {}".format(data["OUTLIER_CURVE"].max())
+    )
 
     # Lastly, filter the outlier streaks that don't match one of the three criteria from params.
-    real_outlier = data.groupby('OUTLIER_CURVE').apply(
-        lambda x: (x.shape[0] >= min_duration) and
-                  (x.OUTLIER_DIST.sum() >= min_dist_total) and
-                  (1 - (x.OUTLIER.sum() / x.shape[0]) <= max_gap_perc))
-    real_outlier.name = 'REAL_OUTLIER'
-    data = data.join(real_outlier, on='OUTLIER_CURVE')
+    real_outlier = data.groupby("OUTLIER_CURVE").apply(
+        lambda x: (x.shape[0] >= min_duration)
+        and (x.OUTLIER_DIST.sum() >= min_dist_total)
+        and (1 - (x.OUTLIER.sum() / x.shape[0]) <= max_gap_perc)
+    )
+    real_outlier.name = "REAL_OUTLIER"
+    data = data.join(real_outlier, on="OUTLIER_CURVE")
 
-    logging.info("Curves found in final result: {}".format(data['OUTLIER_CURVE'].max()))
+    logging.info("Curves found in final result: {}".format(data["OUTLIER_CURVE"].max()))
     return np.where(data.REAL_OUTLIER, data.OUTLIER_CURVE, 0)
 
 
-def incident_curves_information(data, under_conf_interval=True, return_aggregated=True,
-                                normal='PREDICT', time='TIME', **kwargs):
+def incident_curves_information(
+    data: pd.DataFrame,
+    under_conf_interval: bool = True,
+    return_aggregated: bool = True,
+    normal: str = "PREDICT",
+    time: str = "TIME",
+    **kwargs
+):
     """
     Aggregates a dataframe by incident_curves.
     This function calculates incident_curves using incident_curves, and then calculates
@@ -150,20 +190,21 @@ def incident_curves_information(data, under_conf_interval=True, return_aggregate
 
     Parameters
     ----------
-    data: dataframe (n_rows, _)
+    data: pd.DataFrame (n_rows, _)
         dataframe containing actual, low, high, normal, and time columns. These column names
         can be configured using those parameters. The default values are (ACTUAL, PREDICT_LOW,
         PREDICT_HIGH, PREDICT, TIME)
-    under_conf_interval: boolean, optional (default=True)
-        If values lower than the interval count as outliers. If this is false, then only
-        values higher than the interval are counted as outliers. false by default
-    return_aggregated: boolean, optional (default=True)
-        Wether the information about the outliers should be aggregated by OUTLIER_CURVE.
-        The two options return different types of information.
+    under_conf_interval: bool, optional (default=True)
+        If true, values lower than the interval count as outliers. Else, only
+        values higher than the interval are counted as outliers.
+    return_aggregated: bool, optional (default=True)
+        If true the information about the outliers will be aggregated by OUTLIER_CURVE.
+        Else, information will not be aggregated. The two options return different
+        types of information.
     normal: string, optional (default='PREDICT')
-        The name of the colomn in the data containing a 'normal' value for each row
+        The name of the column in the data containing a 'normal' value for each row
     time: string, optional (default='TIME')
-        The name of the colomn in the data containing a 'time' value for each row
+        The name of the column in the data containing a 'time' value for each row
 
     Returns
     -------
@@ -172,11 +213,11 @@ def incident_curves_information(data, under_conf_interval=True, return_aggregate
         The output will have the folowing columns:
 
         - all the original columns
-        - OUTLIER (boolean) whether the value of the row is considered an outlier
+        - OUTLIER (bool) whether the value of the row is considered an outlier
         - OUTLIER_CURVE (numeric) the streak the outlier belongs to, or 0 if it's
           not an outlier
         - OUTLIER_DIST (numeric) The distance between the value and the outside of
-          the interval, describing how much 'out of the normal' the vallue is
+          the interval, describing how much 'out of the normal' the value is
         - OUTLIER_SCORE (numeric) If x is OUTLIER_DIST, and y is the distance
           between the value and the 'normal' column, then this is x / (1 + y)
           This defines some 'ratio' of how abnormal the value is. This can be useful
@@ -221,53 +262,85 @@ def incident_curves_information(data, under_conf_interval=True, return_aggregate
     2	0.7	0.5	0.6	0.4	1547477438	2	True	0.1	0.090909	positive
     """
     data = data.copy()
-    data = data.rename(columns={normal: 'PREDICT', time: 'TIME'})
-    logging.debug("Creating outlier information: return_aggregated={}".format(return_aggregated))
-    data['OUTLIER_CURVE'] = incident_curves(data, under_conf_interval, **kwargs). \
-        astype(np.int64)
+    data = data.rename(columns={normal: "PREDICT", time: "TIME"})
+    logging.debug(
+        "Creating outlier information: return_aggregated={}".format(return_aggregated)
+    )
+    data["OUTLIER_CURVE"] = incident_curves(data, under_conf_interval, **kwargs).astype(
+        np.int64
+    )
     # On unix, 64 is already the default, but on windows, the
-    # outlier_curves function returns 32 bit integers. This function returns pandas
-    # which is consistent across platforms, so we convert to 64-bit to ensure consistency.
+    # outlier_curves function returns 32 bit integers. This function returns a numpy array
+    # which is consistent across platforms, so values are converted to 64-bit to ensure
+    # consistency.
 
-    data['OUTLIER'] = (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW) \
-        if under_conf_interval else (data.ACTUAL > data.PREDICT_HIGH)
-    data['OUTLIER_DIST'] = np.where(data.OUTLIER, np.where(data.ACTUAL > data.PREDICT_HIGH,
-                                                           data.ACTUAL - data.PREDICT_HIGH,
-                                                           data.PREDICT_LOW - data.ACTUAL
-                                                           if under_conf_interval else 0), 0)
-    data['OUTLIER_SCORE'] = np.where(data.OUTLIER, np.where(
+    data["OUTLIER"] = (
+        (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW)
+        if under_conf_interval
+        else (data.ACTUAL > data.PREDICT_HIGH)
+    )
+    data["OUTLIER_DIST"] = np.where(
+        data.OUTLIER,
+        np.where(
+            data.ACTUAL > data.PREDICT_HIGH,
+            data.ACTUAL - data.PREDICT_HIGH,
+            data.PREDICT_LOW - data.ACTUAL if under_conf_interval else 0,
+        ),
+        0,
+    )
+    data["OUTLIER_SCORE"] = np.where(
+        data.OUTLIER,
+        np.where(
+            data.ACTUAL > data.PREDICT_HIGH,
+            (data.ACTUAL - data.PREDICT_HIGH) / (1 + data.PREDICT_HIGH - data.PREDICT),
+            (data.PREDICT_LOW - data.ACTUAL) / (1 + data.PREDICT - data.PREDICT_LOW)
+            if under_conf_interval
+            else 0,
+        ),
+        0,
+    )
+    data["OUTLIER_TYPE"] = np.where(
         data.ACTUAL > data.PREDICT_HIGH,
-        (data.ACTUAL - data.PREDICT_HIGH) / (1 + data.PREDICT_HIGH - data.PREDICT),
-        (data.PREDICT_LOW - data.ACTUAL) / (1 + data.PREDICT - data.PREDICT_LOW)
-        if under_conf_interval else 0), 0)
-    data['OUTLIER_TYPE'] = np.where(data.ACTUAL > data.PREDICT_HIGH, "positive",
-                                    np.where(data.ACTUAL < data.PREDICT_LOW, "negative", "none"))
+        "positive",
+        np.where(data.ACTUAL < data.PREDICT_LOW, "negative", "none"),
+    )
 
     if not return_aggregated:
         return data
 
-    streaks = data.groupby('OUTLIER_CURVE').agg({
-        'OUTLIER_CURVE': 'count',
-        'OUTLIER_DIST': ['sum', 'max'],
-        'OUTLIER_SCORE': ['max'],
-        'TIME': ['min', 'max'],
-        'OUTLIER_TYPE': lambda x: x.iloc[0]
-    })
+    streaks = data.groupby("OUTLIER_CURVE").agg(
+        {
+            "OUTLIER_CURVE": "count",
+            "OUTLIER_DIST": ["sum", "max"],
+            "OUTLIER_SCORE": ["max"],
+            "TIME": ["min", "max"],
+            "OUTLIER_TYPE": lambda x: x.iloc[0],
+        }
+    )
     streaks.columns = ["_".join(x) for x in streaks.columns.ravel()]
-    streaks = streaks.rename(columns={
-        'OUTLIER_CURVE_count': 'OUTLIER_DURATION',
-        'TIME_min': 'OUTLIER_START_TIME',
-        'TIME_max': 'OUTLIER_END_TIME',
-        'OUTLIER_SCORE_max': 'OUTLIER_SCORE_MAX',
-        'OUTLIER_DIST_sum': 'OUTLIER_DIST_SUM',
-        'OUTLIER_DIST_max': 'OUTLIER_DIST_MAX',
-        'OUTLIER_TYPE_<lambda>': 'OUTLIER_TYPE'
-    })
+    streaks = streaks.rename(
+        columns={
+            "OUTLIER_CURVE_count": "OUTLIER_DURATION",
+            "TIME_min": "OUTLIER_START_TIME",
+            "TIME_max": "OUTLIER_END_TIME",
+            "OUTLIER_SCORE_max": "OUTLIER_SCORE_MAX",
+            "OUTLIER_DIST_sum": "OUTLIER_DIST_SUM",
+            "OUTLIER_DIST_max": "OUTLIER_DIST_MAX",
+            "OUTLIER_TYPE_<lambda>": "OUTLIER_TYPE",
+        }
+    )
     # reorder columns
-    streaks = streaks[['OUTLIER_DURATION',
-                       'OUTLIER_TYPE', 'OUTLIER_SCORE_MAX',
-                       'OUTLIER_START_TIME', 'OUTLIER_END_TIME',
-                       'OUTLIER_DIST_SUM', 'OUTLIER_DIST_MAX']]
+    streaks = streaks[
+        [
+            "OUTLIER_DURATION",
+            "OUTLIER_TYPE",
+            "OUTLIER_SCORE_MAX",
+            "OUTLIER_START_TIME",
+            "OUTLIER_END_TIME",
+            "OUTLIER_DIST_SUM",
+            "OUTLIER_DIST_MAX",
+        ]
+    ]
     logger.info("Created data from outlier_curves_information:")
     log_dataframe_characteristics(streaks, logging.INFO)
     return streaks[streaks.index != 0]

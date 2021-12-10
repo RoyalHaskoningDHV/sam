@@ -1,10 +1,28 @@
-import pandas as pd
 import logging
+from datetime import datetime
+from typing import Callable, List, Union
+
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 
-def normalize_timestamps(df, freq, start_time='', end_time='', round_method='ceil',
-                         aggregate_method='last', fillna_method=None):
+def _validate_dataframe(df: pd.DataFrame):
+    if df["ID"].isnull().sum() > 0:
+        raise ValueError("ID column may not contain nans!")
+    if df["TYPE"].isnull().sum() > 0:
+        raise ValueError("TYPE column may not contain nans!")
+
+
+def normalize_timestamps(
+    df: pd.DataFrame,
+    freq: str,
+    start_time: Union[datetime, str] = "",
+    end_time: Union[datetime, str] = "",
+    round_method: str = "ceil",
+    aggregate_method: Union[str, Callable, dict, List[Callable]] = "last",
+    fillna_method: str = None,
+):
     """
     Create a dataframe with all timestamps according to a given frequency. Fills in values
     for these timestamps from a given dataframe in SAM format.
@@ -44,7 +62,7 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
         Dataframe from which the values are created
 
     freq: str or DateOffset
-        the frequency with which the time features are made
+        The required frequency for the time features.
         frequencies can have multiples, e.g. "15 min" for 15 minutes
         `See here for options
         <https://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases>`_
@@ -132,74 +150,87 @@ def normalize_timestamps(df, freq, start_time='', end_time='', round_method='cei
     3   2018-06-09 11:45:00 SENSOR  DEPTH  20.0
     4   2018-06-09 12:00:00 SENSOR  DEPTH  20.0
     """
+
     if df.empty:
-        raise ValueError('No dataframe found')
+        raise ValueError("No dataframe found")
     df = df.copy()
 
-    if df['ID'].isnull().sum() > 0:
-        raise ValueError('ID column may not contain nans!')
-    if df['TYPE'].isnull().sum() > 0:
-        raise ValueError('TYPE column may not contain nans!')
+    _validate_dataframe(df)
 
     original_rows = df.shape[0]
-    original_nas = df['VALUE'].isna().sum()
-    timezone = df['TIME'].dt.tz
+    original_nas = df["VALUE"].isna().sum()
+    timezone = df["TIME"].dt.tz
 
-    fillna_options = ['backfill', 'bfill', 'pad', 'ffill', None]
+    fillna_options = ["backfill", "bfill", "pad", "ffill", None]
     if fillna_method not in fillna_options:
-        raise ValueError('fillna_method not in {}'.format(str(fillna_options)))
+        raise ValueError("fillna_method not in {}".format(str(fillna_options)))
 
-    round_method_options = ['floor', 'round', 'ceil']
-    if round_method == 'floor':
-        df['TIME'] = df['TIME'].dt.floor(freq)  # Technically, this has no effect on the result
-    elif round_method == 'round':
-        df['TIME'] = df['TIME'].dt.round(freq)
-    elif round_method in 'ceil':
-        df['TIME'] = df['TIME'].dt.ceil(freq)
+    round_method_options = ["floor", "round", "ceil"]
+    if round_method == "floor":
+        df["TIME"] = df["TIME"].dt.floor(
+            freq
+        )  # Technically, this has no effect on the result
+    elif round_method == "round":
+        df["TIME"] = df["TIME"].dt.round(freq)
+    elif round_method in "ceil":
+        df["TIME"] = df["TIME"].dt.ceil(freq)
     else:
-        raise ValueError('round_method not in {}'.format(str(round_method_options)))
+        raise ValueError("round_method not in {}".format(str(round_method_options)))
 
     if not start_time:
-        start_time = df['TIME'].min()
+        start_time = df["TIME"].min()
     if not end_time:
-        end_time = df['TIME'].max()
+        end_time = df["TIME"].max()
 
-    logger.debug("Normalizing timestamps: freq={}, start_time={}, end_time={}, "
-                 "aggregate_method={}, fillna_method={}, round_times={}".format(
-                     freq, start_time, end_time, aggregate_method, fillna_method, round_method))
+    logger.debug(
+        "Normalizing timestamps: freq={}, start_time={}, end_time={}, "
+        "aggregate_method={}, fillna_method={}, round_times={}".format(
+            freq, start_time, end_time, aggregate_method, fillna_method, round_method
+        )
+    )
 
     ids, types, time = pd.core.reshape.util.cartesian_product(
-        [df['ID'].unique(),
-         df['TYPE'].unique(),
-         pd.date_range(start=start_time,
-                       end=end_time,
-                       freq=freq,
-                       tz=timezone
-                       )
-         ])
+        [
+            df["ID"].unique(),
+            df["TYPE"].unique(),
+            pd.date_range(start=start_time, end=end_time, freq=freq, tz=timezone),
+        ]
+    )
 
-    complete_df = pd.DataFrame(dict(TIME=time, ID=ids, TYPE=types), columns=['TIME', 'ID', 'TYPE'])
-    complete_df['TIME'] = complete_df['TIME'].dt.floor(freq)
+    complete_df = pd.DataFrame(
+        dict(TIME=time, ID=ids, TYPE=types), columns=["TIME", "ID", "TYPE"]
+    )
+    complete_df["TIME"] = complete_df["TIME"].dt.floor(freq)
 
     # Function currently groups based on first left matching frequency,
     # can be set to the first right frequency within the Grouper function
-    df = df.groupby([pd.Grouper(key='TIME', freq=freq), 'ID', 'TYPE'])\
-        .agg({'VALUE': aggregate_method})
+    df = df.groupby([pd.Grouper(key="TIME", freq=freq), "ID", "TYPE"]).agg(
+        {"VALUE": aggregate_method}
+    )
 
     df = df.reset_index(drop=False)
 
-    complete_df = complete_df.merge(df, how='left', on=['TIME', 'ID', 'TYPE'])
+    complete_df = complete_df.merge(df, how="left", on=["TIME", "ID", "TYPE"])
 
-    logger.debug("Number of missings before fillna: {}".format(complete_df['VALUE'].isna().sum()))
+    logger.debug(
+        "Number of missings before fillna: {}".format(complete_df["VALUE"].isna().sum())
+    )
 
     if fillna_method:
-        complete_df['VALUE'] = complete_df.groupby(['ID', 'TYPE'])['VALUE']\
-            .apply(lambda x: x.fillna(method=fillna_method))
+        complete_df["VALUE"] = complete_df.groupby(["ID", "TYPE"])["VALUE"].apply(
+            lambda x: x.fillna(method=fillna_method)
+        )
 
-    logger.info("Dataframe changed because of normalize_timestamps: "
-                "Previously it had {} rows, now it has {}".
-                format(original_rows, complete_df.shape[0]))
-    logger.info("Also, the VALUE column previously had {} missing values, now it has {}".
-                format(original_nas, complete_df["VALUE"].isna().sum()))
+    logger.info(
+        "Dataframe changed because of normalize_timestamps: "
+        "Previously it had {} rows, now it has {}".format(
+            original_rows, complete_df.shape[0]
+        )
+    )
+    logger.info(
+        "Also, the VALUE column previously had {} missing values, now it has {}".format(
+            original_nas, complete_df["VALUE"].isna().sum()
+        )
+    )
 
     return complete_df

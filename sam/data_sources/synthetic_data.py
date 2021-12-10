@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def _interpolate_pattern(bigtime, smalltime=None, pattern=0, length=1):
@@ -22,13 +22,13 @@ def _interpolate_pattern(bigtime, smalltime=None, pattern=0, length=1):
         else:
             spline[(bigtime == ix) & (smalltime == 0)] = value
     try:
-        return pd.Series(spline).interpolate('cubic').values
+        return pd.Series(spline).interpolate("cubic").values
     except ValueError:
         # numeric nonsense, probably happens only if the length of bigtime is too small
         return np.zeros(bigtime.size)
 
 
-def _add_temporal_noise(time, noisetype='poisson', noisesize=0, length=1):
+def _add_temporal_noise(time, noisetype="poisson", noisesize=0, length=1):
     """
     Helper function to create noise that is different but predictable
     The noise must be poisson or normal
@@ -41,17 +41,29 @@ def _add_temporal_noise(time, noisetype='poisson', noisesize=0, length=1):
         noisesize = np.random.poisson(noisesize, length)
     temp = np.zeros(time.size)
     for ix, value in enumerate(noisesize):
-        if noisetype == 'poisson':
+        if noisetype == "poisson":
             temp[time == ix] = np.random.poisson(lam=value, size=temp[time == ix].size)
-        if noisetype == 'normal':
-            temp[time == ix] = np.random.normal(loc=0, scale=value, size=temp[time == ix].size)
+        if noisetype == "normal":
+            temp[time == ix] = np.random.normal(
+                loc=0, scale=value, size=temp[time == ix].size
+            )
     return temp
 
 
-def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 0),
-                         daynoise=(None, 0), noise={}, minmax_values=None,
-                         cutoff_values=None, negabs=None, random_missing=None,
-                         seed=None):
+def synthetic_timeseries(
+    dates,
+    monthly=0,
+    daily=0,
+    hourly=0,
+    monthnoise=(None, 0),
+    daynoise=(None, 0),
+    noise={},
+    minmax_values=None,
+    cutoff_values=None,
+    negabs=None,
+    random_missing=None,
+    seed=None,
+):
     """
     Create a synthetic time series, with some temporal patterns, and some noise. There are various
     parameters to control the distribution of the variables. The output will never be completely
@@ -156,34 +168,36 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
     # Expects its inputs to start at 1
 
     # add monthly pattern
-    data += _interpolate_pattern(dates.dt.month-1, dates.dt.day-1, monthly, 12)
+    data += _interpolate_pattern(dates.dt.month - 1, dates.dt.day - 1, monthly, 12)
     # add daily pattern
     data += _interpolate_pattern(dates.dt.dayofweek, dates.dt.hour, daily, 7)
     # add hourly pattern
     data += _interpolate_pattern(dates.dt.hour, None, hourly, 24)
 
     # add monthly noise
-    data += _add_temporal_noise(dates.dt.month-1, monthnoise[0], monthnoise[1], 12)
+    data += _add_temporal_noise(dates.dt.month - 1, monthnoise[0], monthnoise[1], 12)
     # add monthly noise
     data += _add_temporal_noise(dates.dt.dayofweek, daynoise[0], daynoise[1], 7)
 
     # add noise
     for key in noise:
-        if key == 'normal':
-            data += np.random.normal(size=dates.size, loc=0, scale=noise['normal'])
-        if key == 'poisson':
-            data += np.random.poisson(size=dates.size, lam=noise['poisson'])
+        if key == "normal":
+            data += np.random.normal(size=dates.size, loc=0, scale=noise["normal"])
+        if key == "poisson":
+            data += np.random.poisson(size=dates.size, lam=noise["poisson"])
 
     # Rescale values to all fall exactly in the minmax values
     if minmax_values is not None:
         currentmin, currentmax = np.nanmin(data), np.nanmax(data)
         scale = (minmax_values[1] - minmax_values[0]) / (currentmax - currentmin)
         offset = minmax_values[0] - currentmin
-        data = (scale * (data+offset))
+        data = scale * (data + offset)
 
     # Set values outside of cutoff to nan. Used for more predictable nans
     if cutoff_values is not None:
-        data = np.where((data < cutoff_values[0]) | (data > cutoff_values[1]), np.nan, data)
+        data = np.where(
+            (data < cutoff_values[0]) | (data > cutoff_values[1]), np.nan, data
+        )
 
     # Subtracts a value from the result, and absolute value.
     # This makes the result center more around 0
@@ -192,13 +206,22 @@ def synthetic_timeseries(dates, monthly=0, daily=0, hourly=0, monthnoise=(None, 
 
     # Add random missing values, to the proportion of random_missing.
     if random_missing is not None:
-        data[np.random.choice(data.size, int(data.size * random_missing), replace=False)] = np.nan
+        data[
+            np.random.choice(data.size, int(data.size * random_missing), replace=False)
+        ] = np.nan
 
     return data
 
 
-def synthetic_date_range(start='2016-01-01', end='2017-01-01', freq='H',
-                         max_delay=0, random_stop_freq=0, random_stop_max_length=1, seed=None):
+def synthetic_date_range(
+    start="2016-01-01",
+    end="2017-01-01",
+    freq="H",
+    max_delay=0,
+    random_stop_freq=0,
+    random_stop_max_length=1,
+    seed=None,
+):
     """
     Create a synthetic, somewhat realistic-looking array of datetimes.
 
@@ -264,15 +287,20 @@ def synthetic_date_range(start='2016-01-01', end='2017-01-01', freq='H',
 
     # Add a delay of 0 to max_delay seconds to every time
     random_delay = np.cumsum(np.random.uniform(0, max_delay, index.size))
-    index += pd.to_timedelta(random_delay, unit='s')
+    index += pd.to_timedelta(random_delay, unit="s")
 
     # Choose indexes for the start of random stops
-    random_stops = np.random.choice(len(index), int(random_stop_freq * len(index)), replace=False)
+    random_stops = np.random.choice(
+        len(index), int(random_stop_freq * len(index)), replace=False
+    )
     for ix in random_stops:
         # If random_stop_max_length is 1, we cannot randomly draw a number, so just set it to 1
-        stop_length = 1 if random_stop_max_length == 1 else \
-                      np.random.randint(1, random_stop_max_length)
-        index[ix:ix+stop_length] = np.nan
+        stop_length = (
+            1
+            if random_stop_max_length == 1
+            else np.random.randint(1, random_stop_max_length)
+        )
+        index[ix : ix + stop_length] = np.nan
     # Remove the stops. This causes long batches that take (much) longer than usual.
     index = index.dropna()
     # make the end an exclusive bound. It may have been surpassed because of the delays

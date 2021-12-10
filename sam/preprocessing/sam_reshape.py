@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def sam_format_to_wide(data, sep='_'):
+def sam_format_to_wide(data: pd.DataFrame, sep: str = "_"):
     """
     Converts a typical sam-format df '(TIME, ID, TYPE, VALUE)' to wide format.
     This is almost a wrapper around pd.pivot_table, although it does a few extra things.
@@ -11,35 +11,49 @@ def sam_format_to_wide(data, sep='_'):
 
     Parameters
     ----------
-    data: dataframe
+    data: pd.DataFrame
         dataframe with TIME, ID, TYPE, VALUE columns
     sep: str, optional (default='_')
         separator that will be placed between ID and TYPE to create column names.
 
     Returns
     -------
-    data_wide: dataframe
+    data_wide: pd.DataFrame
         the data, in wide format, with 1 column for every ID/TYPE combination, as well as a
         TIME column. For example, if ID is 'abc' and TYPEs are 'debiet' and 'stand', the
         created column names will be 'abc_debiet' and 'abc_stand', as well as TIME. The result
         will be sorted by TIME, ascending. The index will be a range from 0 to `nrows`.
     """
-    data = pd.pivot_table(data, values='VALUE', index=['TIME'], columns=['ID', 'TYPE'])
+    data = pd.pivot_table(data, values="VALUE", index=["TIME"], columns=["ID", "TYPE"])
     try:
-        data.columns = [str(x[0]) + sep + x[1] for x in
-                        list(zip(data.columns.levels[0][data.columns.codes[0]],
-                                 data.columns.levels[1][data.columns.codes[1]]))]
+        data.columns = [
+            str(x[0]) + sep + x[1]
+            for x in list(
+                zip(
+                    data.columns.levels[0][data.columns.codes[0]],
+                    data.columns.levels[1][data.columns.codes[1]],
+                )
+            )
+        ]
     except AttributeError:
         # In pandas 0.24, 'labels' was replaced by 'codes'
         # Since we support pandas 0.23, we need to fallback on labels if needed
-        data.columns = [str(x[0]) + sep + x[1] for x in
-                        list(zip(data.columns.levels[0][data.columns.labels[0]],
-                                 data.columns.levels[1][data.columns.labels[1]]))]
-    data = data.reset_index().sort_values(by='TIME', axis=0)
+        data.columns = [
+            str(x[0]) + sep + x[1]
+            for x in list(
+                zip(
+                    data.columns.levels[0][data.columns.labels[0]],
+                    data.columns.levels[1][data.columns.labels[1]],
+                )
+            )
+        ]
+    data = data.reset_index().sort_values(by="TIME", axis=0)
     return data
 
 
-def wide_to_sam_format(data, sep='_', idvalue='', timecol='TIME'):
+def wide_to_sam_format(
+    data: pd.DataFrame, sep: str = "_", idvalue: str = "", timecol: str = "TIME"
+):
     """
     Convert a wide format dataframe to sam format.
     This function has the requirement that the dataframe has a time column, of which the name
@@ -54,7 +68,7 @@ def wide_to_sam_format(data, sep='_', idvalue='', timecol='TIME'):
 
     Parameters
     ----------
-    data: dataframe
+    data: pd.DataFrame
         data in wide format, with time column and other column names like 'ID(sep)TYPE'
     sep: string, optional (default='_')
         the seperator that appears in column names between id and type.
@@ -65,27 +79,27 @@ def wide_to_sam_format(data, sep='_', idvalue='', timecol='TIME'):
 
     Returns
     -------
-    df: dataframe
+    df: pd.DataFrame
         the data in sam format, with columns TIME, ID, TYPE, VALUE.
     """
-    data = (data
-            .rename({timecol: 'TIME'}, axis=1)
-            .set_index('TIME')
-            .unstack()
-            .reset_index()
-            .rename({'level_0': 'TYPE', 0: 'VALUE'}, axis=1)
-            )
+    data = (
+        data.rename({timecol: "TIME"}, axis=1)
+        .set_index("TIME")
+        .unstack()
+        .reset_index()
+        .rename({"level_0": "TYPE", 0: "VALUE"}, axis=1)
+    )
     if sep is None:
         # The data only has one id
-        data['ID'] = idvalue
-        return data[['TIME', 'ID', 'TYPE', 'VALUE']]
-    id_type = data['TYPE'].str.split(sep, n=1, expand=True)
-    data['ID'] = id_type[0].replace('', idvalue)
-    data['TYPE'] = id_type[1]
+        data["ID"] = idvalue
+        return data[["TIME", "ID", "TYPE", "VALUE"]]
+    id_type = data["TYPE"].str.split(sep, n=1, expand=True)
+    data["ID"] = id_type[0].replace("", idvalue)
+    data["TYPE"] = id_type[1]
 
     # Ensure that A (without sep) will be split as ID = `idvalue`, TYPE = A
-    missingtypes = data['TYPE'].isnull()
-    data.loc[missingtypes, 'TYPE'] = data['ID'].loc[missingtypes]
-    data.loc[missingtypes, 'ID'] = idvalue
+    missingtypes = data["TYPE"].isnull()
+    data.loc[missingtypes, "TYPE"] = data["ID"].loc[missingtypes]
+    data.loc[missingtypes, "ID"] = idvalue
     # Reorder columns
-    return data[['TIME', 'ID', 'TYPE', 'VALUE']]
+    return data[["TIME", "ID", "TYPE", "VALUE"]]

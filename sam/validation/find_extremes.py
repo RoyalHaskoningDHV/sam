@@ -1,11 +1,15 @@
-import numpy as np
-from sklearn.base import TransformerMixin, BaseEstimator
 import logging
+from typing import Union
+
+import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
+
 logger = logging.getLogger(__name__)
 
 
 class RemoveExtremeValues(BaseEstimator, TransformerMixin):
-    '''
+    """
     This transformer finds extreme values and sets them to nan in a few steps:
 
     - Estimate upper and lower bounds from the data in the fit method by
@@ -18,8 +22,8 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
     `rollingwindow` parameter is sufficiently large to capture slow variations,
     without removing local peaks that might be 'outliers'.
 
-    In addition, the default `madthresh` of 15 is relatively conservative. More
-    liberal thresholds can be tried.
+    In addition, the default `madthresh` of 15 is relatively conservative. Less
+    strict thresholds can be tried.
 
     Note that you only pass cols that are suited for extreme value detection.
     For instance, a pump can sometimes be out of operation and so be set to 0.
@@ -71,29 +75,24 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
     >>> fig = diagnostic_extreme_removal(REV, train_df, 'values')
     >>> test_corrected = REV.transform(test_df)
     >>> fig = diagnostic_extreme_removal(REV, test_df, 'values')
-    '''
+    """
 
-    def __init__(
-            self,
-            cols,
-            rollingwindow,
-            madthresh=15):
+    def __init__(self, cols: list, rollingwindow: Union[int, str], madthresh=15):
 
         self.cols = cols
         self.rollingwindow = rollingwindow
         self.madthresh = madthresh
 
-    def _compute_rolling(self, x):
+    def _compute_rolling(self, x: pd.Series):
         r = x.rolling(self.rollingwindow, min_periods=1, center=True).median()
         return r
 
-    def fit(self, data):
+    def fit(self, data: pd.DataFrame):
         """
-        The only real parameter that is estimated from the data is the
-        median absolute deviation of the differencde between the observed
-        data and the rolling median. So let's define this in the fit,
-        so we have a transformer we can apply to new data without having
-        to re-estimate this parameter.
+        Estimate upper and lower bounds from the data by column by
+        computing median deviation above and below a running median by column.
+        This method creates the attiburte self.thresh_high and self.thresh_low
+        that contain the respective bounds.
 
         Parameters
         ----------
@@ -120,9 +119,10 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, data):
+    def transform(self, data: pd.DataFrame):
         """
-        sets values to nan that fall outside bounds set in the fit method
+        Sets values that fall outside bounds set in the fit method to nan
+
         Parameters
         ----------
         data: pd.DataFrame
@@ -146,8 +146,8 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
             diff = x.values - rolling
 
             # as thresholds are computed in signed way, we can directly compare
-            invalids = (diff > self.thresh_high[c])
-            invalids |= (diff < self.thresh_low[c])
+            invalids = diff > self.thresh_high[c]
+            invalids |= diff < self.thresh_low[c]
 
             # save some variables to self so they are available for plot
             self.diffs[c] = diff
@@ -159,11 +159,12 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
 
             # log number of values removed and tresholds used
             logger.info(
-                'detected %d ' % np.sum(invalids) +
-                'extreme values from %s. ' % c +
-                'using upper threshold of: %.2f ' % self.thresh_high[c] +
-                'and lower threshold of: %.2f ' % self.thresh_low[c] +
-                'using madthresh of %d ' % self.madthresh +
-                'and rollingwindow of %s' % str(self.rollingwindow))
+                "detected %d " % np.sum(invalids)
+                + "extreme values from %s. " % c
+                + "using upper threshold of: %.2f " % self.thresh_high[c]
+                + "and lower threshold of: %.2f " % self.thresh_low[c]
+                + "using madthresh of %d " % self.madthresh
+                + "and rollingwindow of %s" % str(self.rollingwindow)
+            )
 
         return data_r

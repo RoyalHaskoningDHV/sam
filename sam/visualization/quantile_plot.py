@@ -1,27 +1,29 @@
-import matplotlib.pyplot as plt
+from typing import List
+
 import numpy as np
 import pandas as pd
 
 
 def sam_quantile_plot(
-        y_true,
-        y_hat,
-        title=None,
-        y_title='',
-        data_prop=None,
-        y_range=None,
-        date_range=None,
-        colors=['#2453bd', '#7497e3', '#c3d0eb', '#d1d8e8'],
-        outlier_min_q=None,
-        predict_ahead=0,
-        res=None,
-        interactive=False,
-        outliers=None,
-        outlier_window=1,
-        outlier_limit=1,
-        ignore_value=None,
-        benchmark=None,
-        benchmark_color='purple'):
+    y_true: pd.DataFrame,
+    y_hat: pd.DataFrame,
+    title: str = None,
+    y_title: str = "",
+    data_prop: int = None,
+    y_range: int = None,
+    date_range: list = None,
+    colors: list = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"],
+    outlier_min_q: int = None,
+    predict_ahead: int = 0,
+    res: str = None,
+    interactive: bool = False,
+    outliers: np.array = None,
+    outlier_window: int = 1,
+    outlier_limit: int = 1,
+    ignore_value: float = None,
+    benchmark: pd.DataFrame = None,
+    benchmark_color: str = "purple",
+):
     """
     Uses the output from SamQuantileMLPs predict function to create a quantile prediction plot.
     It plots the actual data, the prediction, and the quantiles as shaded regions.
@@ -69,10 +71,8 @@ def sam_quantile_plot(
     res: string (default=None)
         Time resolution to resample data to. Should be interpretable by pandas resamples
         (e.g. '5min', '1D' etc.). For this to work, the data must have datetime indices.
-    plot_type: bool (default=False)
-        Returns a matplotlib figure if False, otherwise returns a plotly figure/
-        (Click here) <https://plot.ly/python/getting-started/>`_ to see how to install plotly
-        and how to display figures inline in jupyter notebooks or lab.
+    interactive: bool (default=False)
+        Returns a matplotlib figure if False, otherwise returns a plotly figure.
     outliers: array-like (default=None)
         Alternatively to the outlier_min_q argument, you can pass a boolean array of outliers here.
         This allows the user to specify their own rules that determine whether a sample is an
@@ -96,21 +96,18 @@ def sam_quantile_plot(
 
     Returns
     ------
-    fig: matplotlib figure
+    fig: matplotlib.pyplot.figure if interactive=False else go.Figure
     """
 
-    assert not (outlier_min_q is not None and outliers is not None),\
-        'outlier_min_q and outliers cannot be used simultaneously'
+    assert not (
+        outlier_min_q is not None and outliers is not None
+    ), "outlier_min_q and outliers cannot be used simultaneously"
 
-    assert not (ignore_value is not None and res is None),\
-        'ignore value should only be set when using resampling (res should not be None)'
+    assert not (
+        ignore_value is not None and res is None
+    ), "ignore value should only be set when using resampling (res should not be None)"
 
-    import seaborn as sns
-    if interactive:
-        import plotly.graph_objs as go
-        from plotly.offline import plot
-
-    if (y_title == '') and y_true.name:
+    if (y_title == "") and y_true.name:
         y_title = y_true.name
 
     # copy to make sure we don't modify the original
@@ -123,20 +120,20 @@ def sam_quantile_plot(
     # apply date range to data to speed up the rest
     if date_range is None:
         date_range = [y_true.index.min(), y_true.index.max()]
-    y_true = y_true.loc[date_range[0]:date_range[1]]
-    y_hat = y_hat.loc[date_range[0]:date_range[1]]
+    y_true = y_true.loc[date_range[0] : date_range[1]]
+    y_hat = y_hat.loc[date_range[0] : date_range[1]]
 
     # same pre-processing steps for the benchmark
     if benchmark is not None:
         benchmark = benchmark.copy()
         benchmark = benchmark.shift(predict_ahead)
-        benchmark = benchmark.loc[date_range[0]:date_range[1]]
+        benchmark = benchmark.loc[date_range[0] : date_range[1]]
 
     # resample to desired resolution
     if res is not None:
         # set ignore_values to nan so they are ignored in the resampling
         if ignore_value is not None:
-            ignore_timepoints = (y_true == ignore_value)
+            ignore_timepoints = y_true == ignore_value
             y_true.loc[ignore_timepoints] = np.nan
             y_hat.loc[ignore_timepoints] = np.nan
             if benchmark is not None:
@@ -146,166 +143,301 @@ def sam_quantile_plot(
         if benchmark is not None:
             benchmark = benchmark.resample(res).mean()
 
-    # some bookkeeping before we start plotting
-    these_cols = [c for c in y_hat.columns if 'predict_lead_%d_q_' % predict_ahead in c]
-
-    # figure out how to sort the columns
-    col_order = np.argsort([float(c.split('_')[-1]) for c in these_cols])
-
-    # determine number of quantiles
-    n_quants = int((len(these_cols))/2)
-
-    # setup plotly figure
+    # create figure
     if interactive:
-        fig = go.Figure()
+        fig = _interactive_quantile_plot(
+            y_true=y_true,
+            y_hat=y_hat,
+            title=title,
+            y_title=y_title,
+            data_prop=data_prop,
+            y_range=y_range,
+            date_range=date_range,
+            colors=colors,
+            outlier_min_q=outlier_min_q,
+            predict_ahead=predict_ahead,
+            outliers=outliers,
+            outlier_window=outlier_window,
+            outlier_limit=outlier_limit,
+            benchmark=benchmark,
+            benchmark_color=benchmark_color,
+        )
     else:
-        fig = plt.figure(figsize=(15, 7.5))
-
-    # loop over quantiles to create shaded regions
-    for i in list(range(0, n_quants))[::-1]:
-
-        highcol = these_cols[col_order[n_quants+i]]
-        lowcol = these_cols[col_order[n_quants-1-i]]
-        this_ci = float(highcol.split('_')[-1]) - float(lowcol.split('_')[-1])
-
-        if not interactive:
-
-            plt.fill_between(
-                y_hat.index,
-                y_hat[lowcol],
-                y_hat[highcol],
-                alpha=0.25,
-                color=colors[i],
-                label='%.3f CI' % this_ci)
-
-        else:
-
-            y_hat_dropna = y_hat.dropna()
-
-            fig.add_trace(go.Scatter(
-                x=y_hat_dropna.index,
-                y=y_hat_dropna[highcol],
-                fill=None,
-                mode='lines',
-                line={'width': 0.1},
-                line_color=colors[i],
-                name='%.3f CI' % this_ci,
-                showlegend=False,
-                legendgroup='%.3f CI' % this_ci))
-
-            fig.add_trace(go.Scatter(
-                x=y_hat_dropna.index,
-                y=y_hat_dropna[lowcol],
-                fill='tonexty',
-                mode='lines',
-                line={'width': 0.1},
-                line_color=colors[i],
-                name='%.3f CI' % this_ci,
-                legendgroup='%.3f CI' % this_ci
-            ))
-
-    # now draw the mean prediction and actuals
-    if not interactive:
-        plt.plot(
-            y_hat.index,
-            y_hat['predict_lead_%d_mean' % predict_ahead],
-            color=colors[0],
-            label='predicted')
-
-        if benchmark is not None:
-            plt.plot(
-                benchmark.index,
-                benchmark['predict_lead_%d_mean' % predict_ahead],
-                color=benchmark_color,
-                label='benchmark')
-
-        plt.plot(
-            y_true.index,
-            y_true,
-            color='black',
-            label='true')
-    else:
-        fig.add_trace(go.Scatter(
-            x=y_hat.index,
-            y=y_hat['predict_lead_%d_mean' % predict_ahead],
-            line_color=colors[0],
-            name='predicted'))
-
-        if benchmark is not None:
-            fig.add_trace(go.Scatter(
-                x=benchmark.index,
-                y=benchmark['predict_lead_%d_mean' % predict_ahead],
-                line_color=benchmark_color,
-                name='benchmark'))
-
-        fig.add_trace(go.Scatter(
-            x=y_true.index,
-            y=y_true,
-            line_color='black',
-            name='true'))
-
-    # now plot outliers
-    if outlier_min_q is not None or outliers is not None:
-
-        # if outliers is not passed, determine them through use of outlier_min_q
-        if outlier_min_q is not None and outliers is None:
-
-            valid_low = y_hat[these_cols[col_order[n_quants-1-(outlier_min_q-1)]]]
-            valid_high = y_hat[these_cols[col_order[n_quants+(outlier_min_q-1)]]]
-            outliers = (y_true > valid_high) | (y_true < valid_low)
-            outliers = outliers.astype(int)
-            k = np.ones(outlier_window)
-            outliers = (np.convolve(
-                outliers, k, mode='full')[:len(outliers)] >= outlier_limit).astype(bool)
-
-        if not interactive:
-            plt.plot(
-                y_true[outliers].index,
-                y_true[outliers],
-                'o',
-                ms=5,
-                color='r',
-                label='outlier')
-        else:
-            fig.add_trace(go.Scatter(
-                x=y_true[outliers].index,
-                y=y_true[outliers],
-                mode='markers',
-                marker={'color': 'red'},
-                name='outlier'))
-
-    # set some plot properties
-    if data_prop is not None:
-        data_range = y_true.max() - y_true.min()
-        if y_range is None:
-            ymax = y_true.max() + data_range * data_prop
-            ymin = y_true.min() - data_range * data_prop
-            y_range = [ymin, ymax]
-
-    if not interactive:
-
-        if title is not None:
-            plt.title(title)
-        plt.legend(loc='best')
-        plt.ylabel(y_title)
-        sns.despine(offset=10)
-        if y_range is not None:
-            plt.ylim(y_range)
-        if date_range is not None:
-            plt.xlim(pd.to_datetime(date_range))
-
-    else:
-        if title is not None:
-            fig.layout.update(title=title)
-        if y_range is not None:
-            fig.layout.update(yaxis_range=y_range)
-        if date_range is not None:
-            fig.layout.update(xaxis_range=date_range)
-
-        fig.layout.update(
-            yaxis_title=y_title,
-            width=1000,
-            height=500,
+        fig = _static_quantile_plot(
+            y_true=y_true,
+            y_hat=y_hat,
+            title=title,
+            y_title=y_title,
+            data_prop=data_prop,
+            y_range=y_range,
+            date_range=date_range,
+            colors=colors,
+            outlier_min_q=outlier_min_q,
+            predict_ahead=predict_ahead,
+            outliers=outliers,
+            outlier_window=outlier_window,
+            outlier_limit=outlier_limit,
+            benchmark=benchmark,
+            benchmark_color=benchmark_color,
         )
 
     return fig
+
+
+def _interactive_quantile_plot(
+    y_true: pd.DataFrame,
+    y_hat: pd.DataFrame,
+    title: str = None,
+    y_title: str = "",
+    data_prop: int = None,
+    y_range: int = None,
+    date_range: list = None,
+    colors: list = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"],
+    outlier_min_q: int = None,
+    predict_ahead: int = 0,
+    outliers: np.array = None,
+    outlier_window: int = 1,
+    outlier_limit: int = 1,
+    benchmark: pd.DataFrame = None,
+    benchmark_color: str = "purple",
+):
+    import plotly.graph_objs as go
+
+    # some bookkeeping before we start plotting
+    these_cols = [c for c in y_hat.columns if "predict_lead_%d_q_" % predict_ahead in c]
+
+    # figure out how to sort the columns
+    col_order = np.argsort([float(c.split("_")[-1]) for c in these_cols])
+
+    # determine number of quantiles
+    n_quants = int((len(these_cols)) / 2)
+
+    # setup plotly figure
+    fig = go.Figure()
+
+    # loop over quantiles to create shaded regions
+    for i in list(range(0, n_quants))[::-1]:
+        highcol = these_cols[col_order[n_quants + i]]
+        lowcol = these_cols[col_order[n_quants - 1 - i]]
+        this_ci = float(highcol.split("_")[-1]) - float(lowcol.split("_")[-1])
+
+        y_hat_dropna = y_hat.dropna()
+
+        fig.add_trace(
+            go.Scatter(
+                x=y_hat_dropna.index,
+                y=y_hat_dropna[highcol],
+                fill=None,
+                mode="lines",
+                line={"width": 0.1},
+                line_color=colors[i],
+                name="%.3f CI" % this_ci,
+                showlegend=False,
+                legendgroup="%.3f CI" % this_ci,
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=y_hat_dropna.index,
+                y=y_hat_dropna[lowcol],
+                fill="tonexty",
+                mode="lines",
+                line={"width": 0.1},
+                line_color=colors[i],
+                name="%.3f CI" % this_ci,
+                legendgroup="%.3f CI" % this_ci,
+            )
+        )
+
+    # now draw the mean prediction and actuals
+    fig.add_trace(
+        go.Scatter(
+            x=y_hat.index,
+            y=y_hat["predict_lead_%d_mean" % predict_ahead],
+            line_color=colors[0],
+            name="predicted",
+        )
+    )
+
+    if benchmark is not None:
+        fig.add_trace(
+            go.Scatter(
+                x=benchmark.index,
+                y=benchmark["predict_lead_%d_mean" % predict_ahead],
+                line_color=benchmark_color,
+                name="benchmark",
+            )
+        )
+
+    fig.add_trace(go.Scatter(x=y_true.index, y=y_true, line_color="black", name="true"))
+
+    # now plot outliers
+    if outlier_min_q is not None or outliers is not None:
+        # if outliers is not passed, determine them through use of outlier_min_q
+        if outlier_min_q is not None and outliers is None:
+            valid_low = y_hat[these_cols[col_order[n_quants - 1 - (outlier_min_q - 1)]]]
+            valid_high = y_hat[these_cols[col_order[n_quants + (outlier_min_q - 1)]]]
+            outliers = (y_true > valid_high) | (y_true < valid_low)
+            outliers = outliers.astype(int)
+            k = np.ones(outlier_window)
+            outliers = (
+                np.convolve(outliers, k, mode="full")[: len(outliers)] >= outlier_limit
+            ).astype(bool)
+
+        fig.add_trace(
+            go.Scatter(
+                x=y_true[outliers].index,
+                y=y_true[outliers],
+                mode="markers",
+                marker={"color": "red"},
+                name="outlier",
+            )
+        )
+
+    # set some plot properties
+    if data_prop is not None and y_range is None:
+        y_range = _get_y_range(y_true, data_prop)
+
+    if title is not None:
+        fig.layout.update(title=title)
+    if y_range is not None:
+        fig.layout.update(yaxis_range=y_range)
+    if date_range is not None:
+        fig.layout.update(xaxis_range=date_range)
+
+    fig.layout.update(
+        yaxis_title=y_title,
+        width=1000,
+        height=500,
+    )
+
+    return fig
+
+
+def _static_quantile_plot(
+    y_true: pd.DataFrame,
+    y_hat: pd.DataFrame,
+    title: str = None,
+    y_title: str = "",
+    data_prop: int = None,
+    y_range: int = None,
+    date_range: list = None,
+    colors: list = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"],
+    outlier_min_q: int = None,
+    predict_ahead: int = 0,
+    outliers: np.array = None,
+    outlier_window: int = 1,
+    outlier_limit: int = 1,
+    benchmark: pd.DataFrame = None,
+    benchmark_color: str = "purple",
+):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    # some bookkeeping before we start plotting
+    these_cols = [c for c in y_hat.columns if "predict_lead_%d_q_" % predict_ahead in c]
+
+    # figure out how to sort the columns
+    col_order = np.argsort([float(c.split("_")[-1]) for c in these_cols])
+
+    # determine number of quantiles
+    n_quants = int((len(these_cols)) / 2)
+
+    # setup plotly figure
+    fig = plt.figure(figsize=(15, 7.5))
+
+    # loop over quantiles to create shaded regions
+    for i in list(range(0, n_quants))[::-1]:
+        highcol = these_cols[col_order[n_quants + i]]
+        lowcol = these_cols[col_order[n_quants - 1 - i]]
+        this_ci = float(highcol.split("_")[-1]) - float(lowcol.split("_")[-1])
+
+        plt.fill_between(
+            y_hat.index,
+            y_hat[lowcol],
+            y_hat[highcol],
+            alpha=0.25,
+            color=colors[i],
+            label="%.3f CI" % this_ci,
+        )
+
+    # now draw the mean prediction and actuals
+    plt.plot(
+        y_hat.index,
+        y_hat["predict_lead_%d_mean" % predict_ahead],
+        color=colors[0],
+        label="predicted",
+    )
+
+    if benchmark is not None:
+        plt.plot(
+            benchmark.index,
+            benchmark["predict_lead_%d_mean" % predict_ahead],
+            color=benchmark_color,
+            label="benchmark",
+        )
+
+    plt.plot(y_true.index, y_true, color="black", label="true")
+
+    # now plot outliers
+    if outlier_min_q is not None or outliers is not None:
+        # if outliers is not passed, determine them through use of outlier_min_q
+        if outlier_min_q is not None and outliers is None:
+            valid_low = y_hat[these_cols[col_order[n_quants - 1 - (outlier_min_q - 1)]]]
+            valid_high = y_hat[these_cols[col_order[n_quants + (outlier_min_q - 1)]]]
+            outliers = (y_true > valid_high) | (y_true < valid_low)
+            outliers = outliers.astype(int)
+            k = np.ones(outlier_window)
+            outliers = (
+                np.convolve(outliers, k, mode="full")[: len(outliers)] >= outlier_limit
+            ).astype(bool)
+
+        plt.plot(
+            y_true[outliers].index,
+            y_true[outliers],
+            "o",
+            ms=5,
+            color="r",
+            label="outlier",
+        )
+
+    # set some plot properties
+    if data_prop is not None and y_range is None:
+        y_range = _get_y_range(y_true, data_prop)
+
+    if title is not None:
+        plt.title(title)
+    plt.legend(loc="best")
+    plt.ylabel(y_title)
+    sns.despine(offset=10)
+    if y_range is not None:
+        plt.ylim(y_range)
+    if date_range is not None:
+        plt.xlim(pd.to_datetime(date_range))
+
+    return fig
+
+
+def _get_y_range(y: pd.DataFrame, data_prop: int) -> List[float]:
+    """Calculates the proportional range of `y` given `data_prop`
+
+    Parameters
+    ----------
+    y : pd.DataFrame
+        Pandas DataFrame with single row
+    data_prop: int
+        Proportion of data range to include outside data maxima for plot range
+
+    Returns
+    -------
+    List[float]
+        List of length 2, with first index the minimum and second index the maximum of the
+        proportional range of `y`
+    """
+    data_range = y.max() - y.min()
+    ymax = y.max() + data_range * data_prop
+    ymin = y.min() - data_range * data_prop
+    y_range = [ymin, ymax]
+
+    return y_range

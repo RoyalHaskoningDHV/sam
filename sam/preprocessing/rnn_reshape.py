@@ -1,9 +1,11 @@
+import logging
+
 import numpy as np
 import pandas as pd
 from sam.feature_engineering import BuildRollingFeatures
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,6 +41,7 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
     >>> reshaper = ReshapeFeaturesRNN(window=7)
     >>> X3D = reshaper.fit_transform(X)
     """
+
     def _validate_params(self):
         """apply various checks to the inputs of the __init__ function
         throw value error or type error based on the result
@@ -54,11 +57,15 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
         self.remove_leading_nan = remove_leading_nan
         self.window_range = range(window - 1, -1, -1)
         self.start = window + lookback - 1
-        logger.debug("Initialized reshaping generator. window={}, lookback={}, "
-                     "remove_leading_nan={}".format(window, lookback, remove_leading_nan))
+        logger.debug(
+            "Initialized reshaping generator. window={}, lookback={}, "
+            "remove_leading_nan={}".format(window, lookback, remove_leading_nan)
+        )
         if self.remove_leading_nan:
-            logger.warning("remove_leading_nan is True and can lead to "
-                           "X and y of unequal size! Be sure that this is what you want.")
+            logger.warning(
+                "remove_leading_nan is True and can lead to "
+                "X and y of unequal size! Be sure that this is what you want."
+            )
 
     def fit(self, X=None, y=None):
         """Calculates n_features
@@ -71,10 +78,11 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
         self._validate_params()
         self.n_features_ = X.shape[1]
         self.lag_transformer_ = BuildRollingFeatures(
-            rolling_type='lag',
+            rolling_type="lag",
             window_size=self.window_range,
             lookback=self.lookback,
-            keep_original=False)
+            keep_original=False,
+        )
         self.lag_transformer_.fit(X)
         return self
 
@@ -91,7 +99,7 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
         X_new : numpy array
             A three dimensional numpy array, moving windows over the features table `X`
         """
-        check_is_fitted(self, 'n_features_')
+        check_is_fitted(self, "n_features_")
         # X needs to be pandas dataframe to use BuildRollingFeatures
         X = pd.DataFrame(X)
         n_samples = X.shape[0]
@@ -99,5 +107,5 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
         X_new = np.reshape(X_lags.values, (n_samples, self.window, self.n_features_))
         # remove first elements that have no full history
         if self.remove_leading_nan:
-            X_new = X_new[self.start:, :, :]
-        return(X_new)
+            X_new = X_new[self.start :, :, :]
+        return X_new

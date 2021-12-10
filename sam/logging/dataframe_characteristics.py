@@ -1,9 +1,11 @@
 import logging
 
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 
-def log_dataframe_characteristics(df, level=logging.INFO):
+def log_dataframe_characteristics(df: pd.DataFrame, level=logging.INFO):
     """
     Given a dataframe log it's characteristics with the default logger
 
@@ -14,8 +16,10 @@ def log_dataframe_characteristics(df, level=logging.INFO):
 
     Parameters
     ----------
-    df : A pandas dataframe
-    level : Loglevel to log at. By default, logging.INFO
+    df: pd.DataFrame
+        Any pandas dataframe
+    level: loglevel (int) (default=logging.INFO)
+        Loglevel to log at.
 
     Returns
     -------
@@ -29,7 +33,9 @@ def log_dataframe_characteristics(df, level=logging.INFO):
     logger.log(level, "columns: %s", df.shape[0])
     logger.log(level, "rows: %s", df.shape[1])
     if df.shape[0] == 0 or df.shape[1] == 0:
-        logger.log(level, "No type information of columns, because there were no values")
+        logger.log(
+            level, "No type information of columns, because there were no values"
+        )
     else:
         for i in df.columns.values:
             # Take the first value of a column to get the real type

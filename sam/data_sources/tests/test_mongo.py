@@ -1,15 +1,17 @@
 import unittest
-from sam.data_sources import MongoWrapper
+
 import pandas as pd
-from pandas.testing import assert_frame_equal
 import pytest
+from pandas.testing import assert_frame_equal
 from pymongo.errors import ServerSelectionTimeoutError
+from sam.data_sources import MongoWrapper
 
 
 def find_mongo_host(possible_hostnames, port=27017):
     for hostname in possible_hostnames:
-        mongo = MongoWrapper('test', 'unittest', hostname, port,
-                             serverSelectionTimeoutMS=100)
+        mongo = MongoWrapper(
+            "test", "unittest", hostname, port, serverSelectionTimeoutMS=100
+        )
         try:
             mongo.client.server_info()  # forces a call
         except ServerSelectionTimeoutError:  # no mongodb found
@@ -19,23 +21,22 @@ def find_mongo_host(possible_hostnames, port=27017):
 
 
 # These are the hostnames to try. Potentially add more in the future
-possible_hostnames = ['localhost', 'mongo', 'mongodb']
+possible_hostnames = ["localhost", "mongo", "mongodb"]
 hostname = find_mongo_host(possible_hostnames, port=27017)
 
-skipmongo = pytest.mark.skipif(hostname is None,
-                               reason="No valid mongodb on localhost/mongo/mongodb, port 27017")
+skipmongo = pytest.mark.skipif(
+    hostname is None, reason="No valid mongodb on localhost/mongo/mongodb, port 27017"
+)
 
 
 class TestMongoWrapper(unittest.TestCase):
-
     def setUp(self):
-        self.mongo = MongoWrapper('test', 'unittest', hostname, 27017)
+        self.mongo = MongoWrapper("test", "unittest", hostname, 27017)
 
-        self.dict_data = [{'some': 0, 'thing': 'bar'},
-                          {'some': 1, 'thing': 'foo'}]
-        self.dataframe = pd.DataFrame({'some': [0, 1],
-                                       'thing': ['bar', 'foo']},
-                                      columns=['some', 'thing'])
+        self.dict_data = [{"some": 0, "thing": "bar"}, {"some": 1, "thing": "foo"}]
+        self.dataframe = pd.DataFrame(
+            {"some": [0, 1], "thing": ["bar", "foo"]}, columns=["some", "thing"]
+        )
         # empty the collection before testing
         self.mongo.empty()
 
@@ -56,15 +57,14 @@ class TestMongoWrapper(unittest.TestCase):
         self.assertTrue(self.mongo.add(self.dict_data))
         self.assertTrue(self.mongo.add(self.dataframe))
         result = self.mongo.get()
-        expected = pd.concat([self.dataframe, self.dataframe],
-                             ignore_index=True)
+        expected = pd.concat([self.dataframe, self.dataframe], ignore_index=True)
         assert_frame_equal(result, expected)
         self.assertTrue(self.mongo.empty())
 
     @skipmongo
     def test_query(self):
         self.assertTrue(self.mongo.add(self.dict_data))
-        result = self.mongo.get(query={'some': 1})
+        result = self.mongo.get(query={"some": 1})
         expected = self.dataframe.iloc[1:]
         expected.index = [0]  # mongo doesn't remember index on query
         assert_frame_equal(result, expected)
@@ -77,5 +77,5 @@ class TestMongoWrapper(unittest.TestCase):
         self.assertRaises(TypeError, self.mongo.add, wrong)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

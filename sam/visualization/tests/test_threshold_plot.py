@@ -1,11 +1,11 @@
 import unittest
+
+import numpy as np
 import pytest
 from sam.visualization import plot_threshold_curve
-import numpy as np
 
 
 class TestThresholdlot(unittest.TestCase):
-
     @pytest.mark.mpl_image_compare(tolerance=30)
     def test_regular_threshold_plot(self):
         y_true = np.array([0, 1, 0, 1, 0, 1])
@@ -21,5 +21,5 @@ class TestThresholdlot(unittest.TestCase):
         return ax.get_figure()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

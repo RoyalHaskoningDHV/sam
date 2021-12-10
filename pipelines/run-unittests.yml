@@ -10,12 +10,12 @@ steps:
 
 - script: |
     python -m pip install ".[all]" "scikit-learn<0.24.0"
-    python -m pip install pytest pytest-mpl pytest-cov
-  displayName: 'install self & pytest dependencies'
+    python -m pip install pytest pytest-mpl pytest-cov fastparquet
+  displayName: 'Install self & pytest dependencies'
 
 - script: |
     pytest --mpl --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
-  displayName: 'run unit tests'
+  displayName: 'Run unit tests'
 
 - task: PublishTestResults@2
   condition: succeededOrFailed()

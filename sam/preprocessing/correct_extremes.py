@@ -1,10 +1,13 @@
 import logging
+from typing import Callable, Tuple, Union
+
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-def setdoc(func):
+def setdoc(func: Callable):
 
     func.__doc__ = """
     This documentation covers `correct_above_threshold`, `correct_below_threshold`
@@ -79,46 +82,64 @@ def setdoc(func):
     return func
 
 
-def _fix_values(series, outliers, threshold, method, value, outside_range=False):
+def _fix_values(
+    series: pd.Series,
+    outliers: pd.Series,
+    threshold: Union[float, Tuple[float, float]],
+    method: str,
+    value: float,
+    outside_range: bool = False,
+):
     """
-    Helper function, read the other docs
+    Internal function used to deal with extreme values in `correct_above_threshold`,
+    `correct_below_threshold` and `correct_outside_range`. Read the documentation
+    from those functions to get more insigns and information regarding the
+    input parameters
     """
-    methods = ['na', 'clip', 'previous', 'average', 'value', 'remove']
+    methods = ["na", "clip", "previous", "average", "value", "remove"]
     if method not in methods:
         raise ValueError(
-            "Method {} not allowed, it must be in {}".format(method, methods))
+            "Method {} not allowed, it must be in {}".format(method, methods)
+        )
 
-    logging.debug("Now correcting threshold"
-                  "threshold={}, method={}, value={}".
-                  format(threshold, method, value))
+    logging.debug(
+        "Now correcting threshold"
+        "threshold={}, method={}, value={}".format(threshold, method, value)
+    )
 
     na_locations = series.isna()
 
-    if (method == "previous"):
+    if method == "previous":
         series.loc[outliers] = np.nan
-        series = series.fillna(method='ffill')
+        series = series.fillna(method="ffill")
         series.loc[na_locations] = np.nan  # Recover original nans
-    elif (method == "average"):
+    elif method == "average":
         series.loc[outliers] = np.nan
         # Values seems to work with time indexes as well
-        series = series.interpolate(method='values')
+        series = series.interpolate(method="values")
         series.loc[na_locations] = np.nan  # Recover original nans
-    elif (method == 'value'):
+    elif method == "value":
         series.loc[outliers] = value
-    elif (method == 'remove'):
+    elif method == "remove":
         series = series.loc[~outliers]
-    elif (method == 'na'):
+    elif method == "na":
         series.loc[outliers] = np.nan
-    elif (method == 'clip'):
+    elif method == "clip":
         if outside_range:
             series = series.clip(lower=threshold[0], upper=threshold[1])
         else:
             series.loc[outliers] = threshold
 
-    logger.info("Correct_outside_range changed {} values using method {}".
-                format(sum(outliers), method))
-    logger.info("The series previously had {} missing values, now it has {}".
-                format(na_locations.sum(), series.isna().sum()))
+    logger.info(
+        "Correct_outside_range changed {} values using method {}".format(
+            sum(outliers), method
+        )
+    )
+    logger.info(
+        "The series previously had {} missing values, now it has {}".format(
+            na_locations.sum(), series.isna().sum()
+        )
+    )
 
     return series
 
@@ -130,14 +151,13 @@ def correct_above_threshold(series, threshold=1, method="na", value=None):
 
 
 @setdoc
-def correct_below_threshold(series, target_column="TARGET", threshold=0, method="na", value=None):
+def correct_below_threshold(series, threshold=0, method="na", value=None):
     outliers = series < threshold
     return _fix_values(series, outliers, threshold, method, value)
 
 
 @setdoc
-def correct_outside_range(series, target_column="TARGET", threshold=(0, 1), method="na",
-                          value=None):
+def correct_outside_range(series, threshold=(0, 1), method="na", value=None):
     if not threshold[0] < threshold[1]:
         raise ValueError("Threshold must be a tuple (a, b) with a < b")
     outliers = (series < threshold[0]) | (series > threshold[1])

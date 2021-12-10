@@ -1,12 +1,13 @@
-import pandas as pd
+from typing import Any
+
 import numpy as np
-from sam.data_sources import read_knmi
-from sklearn.exceptions import NotFittedError
+import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.exceptions import NotFittedError
 
 
 class SPEITransformer(BaseEstimator, TransformerMixin):
-    """ Standardized Precipitation (and Evaporation) Index
+    """Standardized Precipitation (and Evaporation) Index
 
     Computation of standardized metric that measures relative drought
     or precipitation shortage.
@@ -68,74 +69,109 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
     >>> spi = SPEITransformer().configure(knmi_data)
     >>> spi.transform(knmi_data)
     """
-    def __init__(self, metric='SPEI', window='30D', smoothing=True, min_years=30, model_=None):
+
+    def __init__(
+        self,
+        metric: str = "SPEI",
+        window: str = "30D",
+        smoothing: bool = True,
+        min_years: int = 30,
+        model_: pd.DataFrame = None,
+    ):
         self.window = window
         self.metric = metric
         self.smoothing = smoothing
         self.min_years = min_years
         self.model_ = model_
 
-    def _check_configured(self):
+    def _check_configured(self) -> None:
         if self.model_ is None:
             raise NotFittedError("model_ is None, call `configure` first")
 
-    def _check_input(self, X):
-        if 'RH' not in X.columns:
+    def _check_input(self, X: pd.DataFrame) -> None:
+        """Check if required columns are present in dataframe `X`
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            Dataframe to check the columns of
+        """
+        if "RH" not in X.columns:
             raise ValueError("Dataframe X should contain columns 'RH'")
-        if ('EV24' not in X.columns) and (self.metric == 'SPEI'):
+        if ("EV24" not in X.columns) and (self.metric == "SPEI"):
             raise ValueError("Metric SPEI requires X to have 'EV24' column")
 
-    def _compute_target(self, X):
-        if self.metric == 'SPI':
-            target = X['RH']
-        elif self.metric == 'SPEI':
-            target = X['RH'] - X['EV24']
+    def _compute_target(self, X: pd.DataFrame) -> pd.Series:
+        """Compute target depending on metric type
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            Dataframe to extract target from
+
+        Returns
+        -------
+        pd.Series
+            target series
+        """
+        if self.metric == "SPI":
+            target = X["RH"]
+        elif self.metric == "SPEI":
+            target = X["RH"] - X["EV24"]
         else:
             raise ValueError("Invalid metric type, choose either 'SPI' or 'SPEI'")
         target = target.rolling(self.window).mean()
 
         return target
 
-    def configure(self, X, y=None):
-        """ Fit normal distribution on rolling precipitation (and evaporation)
+    def configure(self, X: pd.DataFrame, y: Any = None):
+        """Fit normal distribution on rolling precipitation (and evaporation)
         Apply this to historic data of precipitation (at least ``min_years`` years)
+
         Parameters
         ----------
         X: pandas dataframe
             A data frame containing columns 'RH' (and optionally 'EV24')
             and should have a datetimeindex
+        y: Any, default=None
+            Not used
         """
         self._check_input(X)
         target = self._compute_target(X)
 
-        self._metric_name = self.metric + '_' + self.window
-        self._axis_name = 'Precip-Evap' if self.metric == 'SPEI' else 'Precip'
+        self._metric_name = self.metric + "_" + self.window
+        self._axis_name = "Precip-Evap" if self.metric == "SPEI" else "Precip"
 
-        results = pd.DataFrame({
-            self._metric_name: target,
-            'month': target.index.month,
-            'day': target.index.day
-        }, index=target.index)
+        results = pd.DataFrame(
+            {
+                self._metric_name: target,
+                "month": target.index.month,
+                "day": target.index.day,
+            },
+            index=target.index,
+        )
 
-        self.model_ = results \
-            .groupby(['month', 'day'])[self._metric_name] \
-            .agg(['count', 'mean', 'std']) \
-            .reset_index() \
-            .sort_values(by=['month', 'day'])
+        self.model_ = (
+            results.groupby(["month", "day"])[self._metric_name]
+            .agg(["count", "mean", "std"])
+            .reset_index()
+            .sort_values(by=["month", "day"])
+        )
 
-        n_years = self.model_['count'].max()
+        n_years = self.model_["count"].max()
         # Make sure that for at least one day there are ``min_years`` samples
         if n_years < self.min_years:
-            raise ValueError(f'Provided weather data contains less than'
-                             f'{self.min_years} years. '
-                             f'Please provide more data for configuration')
+            raise ValueError(
+                f"Provided weather data contains less than"
+                f"{self.min_years} years. "
+                f"Please provide more data for configuration"
+            )
 
         # Each day should at least have data for 50%
         # of all years in the data, otherwise estimated mean and std
         # are set to nan. This removes leap year days
         self.model_.loc[
-            (self.model_['count'] < (n_years / 2)),
-            ['mean', 'std']
+            (self.model_["count"] < (n_years / 2)), ["mean", "std"]
         ] = np.nan
         if self.smoothing:
             # To remove spikes in the mean and std
@@ -143,61 +179,84 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             # smoothing is applied. This approach of 5-step median
             # is just a first approach, and does the essential trick
             # Default SP(E)I from literature does not use smoothing
-            self.model_['mean'] = self.model_['mean'] \
-                .rolling(5, center=True, min_periods=1).median(skipna=True)
-            self.model_['std'] = self.model_['std'] \
-                .rolling(5, center=True, min_periods=1).median(skipna=True)
+            self.model_["mean"] = (
+                self.model_["mean"]
+                .rolling(5, center=True, min_periods=1)
+                .median(skipna=True)
+            )
+            self.model_["std"] = (
+                self.model_["std"]
+                .rolling(5, center=True, min_periods=1)
+                .median(skipna=True)
+            )
 
         return self
 
-    def fit(self, X, y=None):
-        """ Fit function
-        Does nothing, but is required for a transformer.
-        This function wil not change the SP(E)I model. The SP(E)I
-        should be configured with the ``configure`` method.
-        In this way, the ``SPEITransfomer`` can be used within a
+    def fit(self, X: pd.DataFrame, y: Any = None):
+        """Fit function. Does nothing other than checking input, but is required for a
+        transformer. This function wil not change the SP(E)I model. The SP(E)I should be configured
+        with the ``configure`` method. In this way, the ``SPEITransfomer`` can be used within a
         sklearn pipeline, without requiring > 30 years of data.
+
+        Parameters
+        ----------
+        X: pandas dataframe
+            A data frame containing columns 'RH' (and optionally 'EV24')
+            and should have a datetimeindex
+        y: Any, default=None
+            Not used
         """
         self._check_configured()
         self._check_input(X)
         return self
 
-    def transform(self, X):
-        """ Transforming new weather data to SP(E)I metric
-        Returns a dataframe with single columns
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Transforming new weather data to SP(E)I metric
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            New weather data to transform
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns a dataframe with single columns
         """
         self._check_configured()
         self._check_input(X)
         target = self._compute_target(X)
 
-        results = pd.DataFrame({
-            self._metric_name: target,
-            'month': target.index.month,
-            'day': target.index.day
-        }, index=target.index)
+        results = pd.DataFrame(
+            {
+                self._metric_name: target,
+                "month": target.index.month,
+                "day": target.index.day,
+            },
+            index=target.index,
+        )
 
         results = results.merge(
-            self.model_,
-            left_on=['month', 'day'],
-            right_on=['month', 'day'],
-            how='left'
+            self.model_, left_on=["month", "day"], right_on=["month", "day"], how="left"
         )
         results.index = target.index
-        results[self._metric_name] = \
-            (results[self._metric_name] - results['mean']) / results['std']
+        results[self._metric_name] = (
+            results[self._metric_name] - results["mean"]
+        ) / results["std"]
         return results[[self._metric_name]]
 
     def plot(self):
-        """ Plot model
-        Visualisation of the configured model. This function shows the
+        """Plot model
+        Visualization of the configured model. This function shows the
         estimated mean and standard deviation per day of the year.
         """
         self._check_configured()
         import matplotlib.pyplot as plt
+
         fig, axs = plt.subplots(1, 2, figsize=(20, 5))
-        axs[0].plot(self.model_['mean'])
-        axs[0].set_ylabel('Mean of ' + self._axis_name)
-        axs[0].set_xlabel('Day of the year')
-        axs[1].plot(self.model_['std'])
-        axs[1].set_ylabel('Standard deviation of ' + self._axis_name)
-        axs[1].set_xlabel('Day of the year')
+        axs[0].plot(self.model_["mean"])
+        axs[0].set_ylabel("Mean of " + self._axis_name)
+        axs[0].set_xlabel("Day of the year")
+        axs[1].plot(self.model_["std"])
+        axs[1].set_ylabel("Standard deviation of " + self._axis_name)
+        axs[1].set_xlabel("Day of the year")

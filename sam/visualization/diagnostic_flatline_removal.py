@@ -1,34 +1,31 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from sam.validation import RemoveFlatlines
 
 
-def diagnostic_flatline_removal(RF, raw_data, col):
+def diagnostic_flatline_removal(rf: RemoveFlatlines, raw_data: pd.DataFrame, col: str):
     """
-    Creates a diagnostic plot for the extreme value removal procedure
-    in sam.preprocessing.correct_extremes.remove_extreme_values().
+    Creates a diagnostic plot for the extreme value removal procedure.
 
     Parameters:
     ----------
-    RF: object
+    rf: sam.validation.RemoveFlatlines
         fitted RemoveFlatlines object
     raw_data: pd.DataFrame
-        non-transformed data data
+        non-transformed data
     col: string
         column name to plot
-    diff: pd.Series
-        ab(x - rolling)
-    thresh: float
-        threshold used for extreme value detection
 
     Returns:
     -------
-    fig: figure
+    fig: matplotlib.pyplot.figure
         diagnostic plot
     """
+    import matplotlib.pyplot as plt
 
     # get data
     x = raw_data[col].copy()
-    invalid_w = np.where(RF.invalids[col])[0]
+    invalid_w = np.where(rf.invalids[col])[0]
     invalid_values = x.iloc[invalid_w]
 
     # generate plot
@@ -36,23 +33,20 @@ def diagnostic_flatline_removal(RF, raw_data, col):
     plt.subplot(111)
     plt.title(col)
 
-    plt.plot(
-        x.index,
-        x.values,
-        label='original_signal',
-        lw=5)
+    plt.plot(x.index, x.values, label="original_signal", lw=5)
 
     plt.plot(
         invalid_values.index,
         invalid_values.values,
-        'o',
+        "o",
         ms=10,
         mew=2,
-        mec='r',
-        fillstyle='none',
-        label='invalid samples')
+        mec="r",
+        fillstyle="none",
+        label="invalid samples",
+    )
 
-    plt.legend(loc='best')
+    plt.legend(loc="best")
     plt.tight_layout()
 
     return fig

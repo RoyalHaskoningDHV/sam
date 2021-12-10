@@ -1,8 +1,9 @@
-from sklearn.metrics import precision_recall_curve
+import numpy as np
 from sam.metrics import precision_incident_recall_curve
+from sklearn.metrics import precision_recall_curve
 
 
-def plot_threshold_curve(y_true, y_score, range_pred=None):
+def plot_threshold_curve(y_true: np.array, y_score: np.array, range_pred: tuple = None):
     """
     Create and return a threshold curve, also known as Ynformed plot. It does this by putting
     the threshold on the x-axis, and for each threshold, plotting the precision and recall.
@@ -11,12 +12,12 @@ def plot_threshold_curve(y_true, y_score, range_pred=None):
     Parameters
     ----------
     y_true: array_like, shape = (n_outputs,)
-        The truth values. Must be either 0 or 1. If range_pred is provided, this refers
+        The actual values. Values must be either 0 or 1. If range_pred is provided, this refers
         to the incidents.
     y_score: array_like, shape = (n_outputs,)
-        The prediction. Must be between 0 and 1
+        The prediction. Values must be between 0 and 1
     range_pred: tuple, optional (default = None)
-        If this is provided, make a precision/incident recall plot, using y_true as the
+        If provided, make a precision/incident recall plot, using y_true as the
         incidents, and this range_pred.
 
     Returns
@@ -38,14 +39,15 @@ def plot_threshold_curve(y_true, y_score, range_pred=None):
     if range_pred is None:
         # Retrieve the curve data
         precision, recall, thresholds = precision_recall_curve(y_true, y_score)
-        recall_label = 'Recall'
+        recall_label = "Recall"
     else:
-        precision, recall, thresholds = precision_incident_recall_curve(y_true, y_score,
-                                                                        range_pred)
-        recall_label = 'Incident Recall'
+        precision, recall, thresholds = precision_incident_recall_curve(
+            y_true, y_score, range_pred
+        )
+        recall_label = "Incident Recall"
 
     # Initialize the figure
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     ax.set_title("Precision and Recall Scores per threshold")
 
     # Plot the curves in the figure
@@ -53,6 +55,6 @@ def plot_threshold_curve(y_true, y_score, range_pred=None):
     ax.plot(thresholds, recall[:-1], label=recall_label)
     ax.set_ylabel("Score")
     ax.set_xlabel("Decision Threshold")
-    ax.legend(loc='best')
+    ax.legend(loc="best")
 
     return ax

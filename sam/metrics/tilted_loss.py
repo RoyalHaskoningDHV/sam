@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def tilted_loss(y_true, y_pred, quantile=0.5):
+def tilted_loss(y_true: np.array, y_pred: np.array, quantile: float = 0.5):
     """
     Calculate tilted, or quantile loss with numpy. Given a quantile q, and an error e,
     then tilted loss is defined as `(1-q) * |e|` if `e < 0`, and `q * |e|` if `e > 0`.
@@ -20,6 +20,11 @@ def tilted_loss(y_true, y_pred, quantile=0.5):
         The quantile to use when computing tilted loss.
         Must be between 0 and 1 for tilted loss to be positive.
 
+    Returns
+    -------
+    float:
+        The quantile loss
+
     Examples
     --------
     >>> import numpy as np
@@ -30,4 +35,4 @@ def tilted_loss(y_true, y_pred, quantile=0.5):
     """
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     e = y_true - y_pred
-    return np.mean(np.maximum(quantile*e, (quantile-1)*e), axis=-1)
+    return np.mean(np.maximum(quantile * e, (quantile - 1) * e), axis=-1)

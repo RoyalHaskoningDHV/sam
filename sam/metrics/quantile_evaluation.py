@@ -1,7 +1,12 @@
+from typing import List, Union
+
 import numpy as np
+import pandas as pd
 
 
-def compute_quantile_ratios(y, pred, predict_ahead=0, precision=3):
+def compute_quantile_ratios(
+    y: pd.Series, pred: pd.DataFrame, predict_ahead: int = 0, precision: int = 3
+):
     """
     Computes the total proportion of data points in y beneath each quantile in pred.
     So for example, with quantile 0.75, you'd expect 75% of values in y to be beneath this quantile
@@ -17,7 +22,7 @@ def compute_quantile_ratios(y, pred, predict_ahead=0, precision=3):
     pred: pd.DataFrame
         output of SamQuantileMLP.predict() function
     predict_ahead: int (default=0)
-        predict ahead to evaluate
+        Number of timestep ahead to evaluate
     precision: int (default=3)
         decimal point precision of result
 
@@ -28,21 +33,25 @@ def compute_quantile_ratios(y, pred, predict_ahead=0, precision=3):
     """
 
     # derive quantiles from column names
-    qs = [float(c.split('_')[-1]) for c in pred.columns if 'mean' not in c]
+    qs = [float(c.split("_")[-1]) for c in pred.columns if "mean" not in c]
 
     quantile_ratios = {
         # mean here computes ratio (mean of True/Falses - 0/1s)
-        q: (y < pred['predict_lead_%d_q_' % predict_ahead + str(q)]).mean()
+        q: (y < pred["predict_lead_%d_q_" % predict_ahead + str(q)]).mean()
         for q in qs
     }
 
     quantile_ratios = {
-        round(key, precision): round(value, precision) for key, value in quantile_ratios.items()}
+        round(key, precision): round(value, precision)
+        for key, value in quantile_ratios.items()
+    }
 
     return quantile_ratios
 
 
-def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
+def compute_quantile_crossings(
+    pred: pd.DataFrame, predict_ahead: int = 0, qs: List[Union[float, str]] = None
+):
     """
     Computes the total proportion of predictions of a certain quantile that fall below the next
     lower quantile. This phenomenon is called 'quantile crossing'.
@@ -53,18 +62,18 @@ def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
     below the 0.1 predictions.
     In addition, this function calculates in what proportion of cases the mean prediction falls
     outside of the closest quantile border below and above 0.5.
-    NB: this function operates on the output of SamQuantileMLP.predict()
-    NB2: this function expects that either 0.5 or 'mean' is in the qs, or in the columns of pred
+    NOTE: this function operates on the output of SamQuantileMLP.predict()
+    NOTE-2: this function expects that either 0.5 or 'mean' is in the qs, or in the columns of pred
     when qs=None.
 
     Parameters
     ---------
     pred: pd.DataFrame
-        output of SamQuantileMLP.predict() function
+        Output of SamQuantileMLP.predict() function
     predict_ahead: int (default=0)
-        predict ahead to evaluate
+        Number of timestep ahead to evaluate
     qs: list (default=None)
-        list of quantiles. If none, uses all quantiles in the pred columns.
+        List of quantiles. If none, uses all quantiles in the pred columns.
         qs can be provided to compare crossings between a specific subset of quantiles.
         You can also add 'mean' to this list to add it to the comparison. It will then
         be compared to the nearest quantiles above and below 0.5.
@@ -72,31 +81,34 @@ def compute_quantile_crossings(pred, predict_ahead=0, qs=None):
     Returns
     -------
     crossings: dict
-        key is quantile, value is the proportion of quantile crossings.
+        Key is quantile, value is the proportion of quantile crossings.
     """
 
     # switch mean with 0.5 for ease in rest of function
     if qs is None:
-        qs = [float(c.split('_')[-1]) for c in pred.columns if 'mean' not in c] + [0.5]
+        qs = [float(c.split("_")[-1]) for c in pred.columns if "mean" not in c] + [0.5]
         assert (np.array(qs) == 0.5).sum() == 1, '0.5 and "mean" cannot both be in qs'
     else:
-        assert not (0.5 in qs and 'mean' in qs), '0.5 and "mean" cannot both be in qs'
-        qs = [float(str(q).replace('mean', '0.5')) for q in qs]
+        assert not (0.5 in qs and "mean" in qs), '0.5 and "mean" cannot both be in qs'
+        qs = [float(str(q).replace("mean", "0.5")) for q in qs]
 
     # now replace the 'mean' part with 0.5 in the predictions
-    pred.columns = [c.replace('mean', 'q_0.5') for c in pred.columns]
+    pred.columns = [c.replace("mean", "q_0.5") for c in pred.columns]
 
     # make sure quantiles are sorted if they arent already:
     qs = np.sort(qs)[::-1]
 
     # now compute the quantile crossings
     crossings = {}
-    for c in range(len(qs)-1):
-        crossings[f'{qs[c]:.3f} < {qs[c+1]:.3f}'] = (
-            pred[f'predict_lead_{predict_ahead}_q_{qs[c]}'] <
-            pred[f'predict_lead_{predict_ahead}_q_{qs[c+1]}']).mean()
+    for c in range(len(qs) - 1):
+        crossings[f"{qs[c]:.3f} < {qs[c+1]:.3f}"] = (
+            pred[f"predict_lead_{predict_ahead}_q_{qs[c]}"]
+            < pred[f"predict_lead_{predict_ahead}_q_{qs[c+1]}"]
+        ).mean()
 
     # now replace 0.5 with mean again
-    crossings = {key.replace('0.500', 'mean'): value for key, value in crossings.items()}
+    crossings = {
+        key.replace("0.500", "mean"): value for key, value in crossings.items()
+    }
 
     return crossings

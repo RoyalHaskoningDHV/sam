@@ -1,19 +1,20 @@
-import pandas as pd
 import numpy as np
-from sklearn.base import BaseEstimator, RegressorMixin
+import pandas as pd
 from sam.metrics import tilted_loss
+from sklearn.base import BaseEstimator, RegressorMixin
 
 # Keep package independent of statsmodels
 try:
-    from statsmodels.regression.quantile_regression import QuantReg
     import statsmodels.api as smapi
+    from statsmodels.regression.quantile_regression import QuantReg
 except ImportError:
     pass
 
 
 class LinearQuantileRegression(BaseEstimator, RegressorMixin):
-    """ scikit-learn style wrapper for QuantReg
-    Fits a linear quantile regression model, copied from
+    """
+    scikit-learn style wrapper for QuantReg
+    Fits a linear quantile regression model, base idea from
     https://github.com/Marco-Santoni/skquantreg/blob/master/skquantreg/quantreg.py
     This class requires statsmodels
 
@@ -49,7 +50,10 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     >>> model = LinearQuantileRegression()
     >>> model.fit(X, y)
     """
-    def __init__(self, quantiles=[0.05, 0.95], tol=1e-3, max_iter=1000):
+
+    def __init__(
+        self, quantiles: list = [0.05, 0.95], tol: float = 1e-3, max_iter: int = 1000
+    ):
         self.quantiles = quantiles
         self.tol = tol
         self.max_iter = max_iter
@@ -59,38 +63,42 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
         # otherwise the models will not fit an intercept
         model_ = QuantReg(y, smapi.add_constant(X))
         model_result_ = model_.fit(q, p_tol=self.tol, max_iter=self.max_iter)
-        model_result_
         return model_result_
 
-    def fit(self, X, y):
-        """ Fit a Linear Quantile Regression using statsmodels
+    def fit(self, X: np.array, y: np.array):
+        """
+        Fit a Linear Quantile Regression using statsmodels
         """
         if type(self.quantiles) is float:
             self.q_ = [self.quantiles]
         elif type(self.quantiles) is list:
             self.q_ = self.quantiles
         else:
-            raise TypeError(f'Invalid type, quantile {self.quantiles} '
-                            f'should be a float or list of floats')
-        self.prediction_cols = [f'predict_q_{q}' for q in self.quantiles]
+            raise TypeError(
+                f"Invalid type, quantile {self.quantiles} "
+                f"should be a float or list of floats"
+            )
+        self.prediction_cols = [f"predict_q_{q}" for q in self.quantiles]
         self.models_ = [self._fit_single_model(X, y, q) for q in self.quantiles]
         return self
 
-    def predict(self, X):
-        """ Predict / estimate quantiles
+    def predict(self, X: np.array):
+        """
+        Predict / estimate quantiles
         """
         preds = [m.predict(smapi.add_constant(X)) for m in self.models_]
         preds_df = pd.concat(preds, axis=1)
         preds_df.columns = self.prediction_cols
         return preds_df
 
-    def score(self, X, y):
-        """ Default score Function. Returns the tilted loss
+    def score(self, X: np.array, y: np.array):
+        """
+        Default score function. Returns the tilted loss
         """
         y_pred = self.predict(X)
-        scores = [tilted_loss(
-            y_true=y,
-            y_pred=y_pred[f'predict_q_{q}'],
-            quantile=q) for q in self.quantiles]
+        scores = [
+            tilted_loss(y_true=y, y_pred=y_pred[f"predict_q_{q}"], quantile=q)
+            for q in self.quantiles
+        ]
         score = np.mean(scores)
         return score

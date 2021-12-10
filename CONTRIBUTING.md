@@ -1,6 +1,6 @@
 # Contributing
 
-sam is an internal package being developed by Ynformed. For any new code, code review by another Ynformed is therefore required!
+sam is an internal package being developed by Royal HaskoningDHV. For any new code, code review by a software developer is required!
 
 ## Bug Reports and Feature Requests
 
@@ -20,7 +20,7 @@ lang=python
 %autoreload 2
 ```
 
-This will reload sam everytime you run a new cell. For more information abut the autoreload extension, [see the documentation here](https://ipython.org/ipython-doc/3/config/extensions/autoreload.html)
+This will reload sam every time you run a new cell. For more information abut the autoreload extension, [see the documentation here](https://ipython.org/ipython-doc/3/config/extensions/autoreload.html)
 
 ## Linting
 
@@ -28,10 +28,10 @@ Linting is done automatically by devops during a PR. To do this, first install t
 
 ```
 lang=bash
-pip install pycodestyle
+pip install flake8
 ```
 
-Then, to run the linter manually, go to the root folder of the project, and run `pycodestyle`. Alternatively, you can use flake8, but satisfying all flake8 rules is not required when developing this package.
+Then, to run the linter manually, go to the root folder of the project, and run `flake8 sam --config=setup.cfg`. Satisfying all flake8 rules is required when developing this package.
 
 ## Testing
 
@@ -42,6 +42,7 @@ lang=bash
 pip install pytest
 pip install pytest-cov
 pip install pytest-mpl
+pip install fastparquet
 ```
 
 ## Documentation

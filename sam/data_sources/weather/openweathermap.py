@@ -1,8 +1,10 @@
+import logging
+
 import pandas as pd
 from pandas.io.json import json_normalize
-from sam.logging import log_dataframe_characteristics
 from sam import config  # Credentials file
-import logging
+from sam.logging import log_dataframe_characteristics
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,27 +55,35 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
     # Will raise exception if this section does not appear in the config file
     apikey = config["openweathermap"]["apikey"]
 
-    logger.debug("Getting openweathermap forecast: latitude={}, longitude={}".
-                 format(latitude, longitude))
-    url = "https://api.openweathermap.org/data/2.5/forecast?units=metric&lat={}&lon={}&APPID={}". \
-        format(latitude, longitude, apikey)
-    res = requests.get(url).json()['list']
+    logger.debug(
+        "Getting openweathermap forecast: latitude={}, longitude={}".format(
+            latitude, longitude
+        )
+    )
+    url = (
+        "https://api.openweathermap.org/data/2.5/"
+        f"forecast?units=metric&lat={latitude}&lon={longitude}&APPID={apikey}"
+    )
+    res = requests.get(url).json()["list"]
     data = json_normalize(res)
 
-    data['TIME'] = pd.to_datetime(data['dt'], unit='s', utc=True)
-    data = data.rename({
-        'clouds.all': 'cloud_coverage',
-        'main.grnd_level': 'pressure_groundlevel',
-        'main.humidity': 'humidity',
-        'main.pressure': 'pressure',
-        'main.sea_level': 'pressure_sealevel',
-        'main.temp': 'temp',
-        'main.temp_max': 'temp_max',
-        'main.temp_min': 'temp_min',
-        'rain.3h': 'rain_3h',
-        'wind.deg': 'wind_deg',
-        'wind.speed': 'wind_speed'}, axis=1). \
-        drop(['dt', 'dt_txt', 'weather', 'main.temp_kf', 'sys.pod'], axis=1)
+    data["TIME"] = pd.to_datetime(data["dt"], unit="s", utc=True)
+    data = data.rename(
+        {
+            "clouds.all": "cloud_coverage",
+            "main.grnd_level": "pressure_groundlevel",
+            "main.humidity": "humidity",
+            "main.pressure": "pressure",
+            "main.sea_level": "pressure_sealevel",
+            "main.temp": "temp",
+            "main.temp_max": "temp_max",
+            "main.temp_min": "temp_min",
+            "rain.3h": "rain_3h",
+            "wind.deg": "wind_deg",
+            "wind.speed": "wind_speed",
+        },
+        axis=1,
+    ).drop(["dt", "dt_txt", "weather", "main.temp_kf", "sys.pod"], axis=1)
 
     log_dataframe_characteristics(data, logging.DEBUG)
     return data

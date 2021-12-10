@@ -1,13 +1,15 @@
-import pandas as pd
-import numpy as np
 import logging
+
+import numpy as np
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 
-def label_dst(timestamps):
+def label_dst(timestamps_series: pd.Series):
     """
     Find possible conflicts due to daylight savings time, by
-    labeling timestamps. This converts a series of timestamps to
+    labeling timestamps_series. This converts a series of timestamps to
     a series of strings. The strings are either 'normal',
     'to_summertime', or 'to_wintertime'.
     to_summertime happens the last sunday morning of march,
@@ -19,7 +21,7 @@ def label_dst(timestamps):
 
     Parameters
     ----------
-    timestamps: Series, shape = (n_inputs,)
+    timestamps_series: pd.Series, shape = (n_inputs,)
         a series of pandas timestamps
 
     Returns
@@ -49,22 +51,28 @@ def label_dst(timestamps):
     7   2019-10-27 02:45:00 to_wintertime
     8   2019-10-27 03:00:00 normal
     """
-    logger.debug("Labeling dst on {} timestamps".format(timestamps.size))
-    last_sunday_morning = (timestamps.dt.day >= 25) & \
-                          (timestamps.dt.weekday == 6) & \
-                          (timestamps.dt.hour == 2)
-    result = np.where((last_sunday_morning) & (timestamps.dt.month == 3),
-                      "to_summertime",
-                      np.where((last_sunday_morning) & (timestamps.dt.month == 10),
-                               "to_wintertime",
-                               "normal"))
+    logger.debug("Labeling dst on {} timestamps".format(timestamps_series.size))
+    last_sunday_morning = (
+        (timestamps_series.dt.day >= 25)
+        & (timestamps_series.dt.weekday == 6)
+        & (timestamps_series.dt.hour == 2)
+    )
+    result = np.where(
+        (last_sunday_morning) & (timestamps_series.dt.month == 3),
+        "to_summertime",
+        np.where(
+            (last_sunday_morning) & (timestamps_series.dt.month == 10),
+            "to_wintertime",
+            "normal",
+        ),
+    )
 
     valuecounts = str(pd.Series(result).value_counts()).replace("\n", ", ")
     logger.debug("labeldst output values: {}".format(valuecounts))
     return result
 
 
-def average_winter_time(data, tmpcol='tmp_UNID'):
+def average_winter_time(data: pd.DataFrame, tmpcol: str = "tmp_UNID"):
     """
     Solve duplicate timestamps in wintertime, by averaging them
     Because the to_wintertime hour happens twice, there can be duplicate timestamps
@@ -111,14 +119,16 @@ def average_winter_time(data, tmpcol='tmp_UNID'):
     # We make a column that is unique for all except wintertime
     # This means that in the groupby line, non-to_wintertime
     # lines will never be grouped
-    data_copy[tmpcol] = np.where(dst_labels == 'to_wintertime',
-                                 -1, np.arange(len(data_copy.index)))
+    data_copy[tmpcol] = np.where(
+        dst_labels == "to_wintertime", -1, np.arange(len(data_copy.index))
+    )
     groupcols = data_copy.columns.tolist()
-    groupcols.remove('VALUE')  # in place only
+    groupcols.remove("VALUE")  # in place only
     data_copy = data_copy.groupby(groupcols).mean().reset_index().drop(tmpcol, axis=1)
 
-    logging.info("TIME colum changed because of Average_winter_time. "
-                 "Before it had {} rows, now it has {}".
-                 format(data.shape[0], data_copy.shape[0]))
+    logging.info(
+        "TIME colum changed because of Average_winter_time. "
+        "Before it had {} rows, now it has {}".format(data.shape[0], data_copy.shape[0])
+    )
 
     return data_copy

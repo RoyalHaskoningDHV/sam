@@ -1,10 +1,21 @@
+from math import ceil, floor
+from typing import Iterable, Tuple
+
 import pandas as pd
-from math import floor, ceil
 
 
-def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='incident',
-                          time_column=None, normalize=False, figsize=(24, 4),
-                          xlabel_rotation=30, datefmt=None, **kwargs):
+def plot_incident_heatmap(
+    df: pd.DataFrame,
+    resolution: str = "row",
+    row_column: str = "id",
+    value_column: str = "incident",
+    time_column: str = None,
+    normalize: bool = False,
+    figsize: Iterable[Tuple[int, int]] = (24, 4),
+    xlabel_rotation: int = 30,
+    datefmt: str = None,
+    **kwargs
+):
     """
     Create and return a heatmap for incident occurence. This can be used to visualize e.g.
     the count of outliers/threshold surpassings/warnings given over time.
@@ -68,8 +79,10 @@ def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='i
     df = df.copy()
 
     # Resample the data if needed
-    if resolution != 'row':
-        df_grouped = df.groupby([row_column, pd.Grouper(key=time_column, freq=resolution)])
+    if resolution != "row":
+        df_grouped = df.groupby(
+            [row_column, pd.Grouper(key=time_column, freq=resolution)]
+        )
         df_grouped = df_grouped[value_column].sum().unstack(fill_value=0)
     else:
         if time_column is not None:
@@ -77,7 +90,9 @@ def plot_incident_heatmap(df, resolution='row', row_column='id', value_column='i
             df_grouped = df.pivot(row_column, time_column, value_column).fillna(0)
         else:
             # Use the index, so first reset_index
-            df_grouped = df.reset_index().pivot(row_column, 'index', value_column).fillna(0)
+            df_grouped = (
+                df.reset_index().pivot(row_column, "index", value_column).fillna(0)
+            )
 
     if normalize:
         df_grouped = df_grouped / df_grouped.values.max()

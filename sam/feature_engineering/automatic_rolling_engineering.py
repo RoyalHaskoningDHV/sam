@@ -1,25 +1,27 @@
-# sam functionality
-from sam.feature_engineering import BuildRollingFeatures
-from sam.feature_engineering import decompose_datetime
-# sklearn functionality
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
-from sklearn.metrics import r2_score
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.base import BaseEstimator, TransformerMixin, clone
-from sklearn.utils.validation import check_is_fitted
-from sklearn.linear_model import LinearRegression, BayesianRidge
-# other
-import pandas as pd
+from typing import Dict, List, Tuple, Union
+
 import numpy as np
+import pandas as pd
+from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
+from sam.utils import has_strictly_increasing_index
+from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import BayesianRidge, LinearRegression
+from sklearn.metrics import r2_score
+from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
+from sklearn.pipeline import Pipeline
+from sklearn.utils.validation import check_is_fitted
+
+INPUT_VALIDATION_ERR_MESSAGE = (
+    "all input must be linearly increasing in time and have a datetime index"
+)
 
 
 class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
     """
     Steps for automatic rolling engineering:
-
     - setup self.n_rollings number of different rolling features (unparameterized yet) in
         sklearn ColumnTransformer pipeline
     - find the best parameters for each of the rolling features using random search
@@ -37,16 +39,16 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
     rolling_types: list of strings (default=['mean', 'lag'])
         rolling_types to try for BuildRollingFeatures.
         Note: cannot be 'ewm'.
-    estimator_type: str (default='lin')
-        type of estimator to determine rolling importance. Can one of: ['rf', 'lin', 'bayeslin']
     n_iter_per_param: int (default=25)
         number of random values to try for each parameter. The total number of iterations is
         given by n_iter_per_param * len(window_sizes) * len(rolling_types)
     cv: int (default=3)
         number of cross-validated tries to attempt for each parameter combination
+    estimator_type: str (default='lin')
+        type of estimator to determine rolling importance. Can be one of: ['rf', 'lin', 'bayeslin']
     passthrough: bool (default=True)
         whether to pass original features in the transform method or not
-    cyclicals: list (default=[])
+    cyclicals: list (default=None)
         A list of pandas datetime properties, such as ['minute', 'hour', 'dayofweek', 'week'],
         that will be converted to cyclicals.
         The rationale here is that if time features are not added, the rolling engineering
@@ -54,7 +56,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         a recurring daily pattern that can be captured by time features.
         Note that if timefeatures are added, they are not added in the transform method. Therefore,
         you will have to add them yourself during subsequent model building stages.
-    onehots: list (default=[])
+    onehots: list (default=None)
         A list of pandas datetime properties, such as ['minute', 'hour', 'dayofweek', 'week'],
         that will be converted using onehot encoding.
         The rationale here is that if time features are not added, the rolling engineering
@@ -106,7 +108,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
     >>> r2_base, r2_rollings, yhat_base, yhat_roll = ARE.compute_diagnostics(
     >>>     X_train, X_test, y_train, y_test)
     >>> print(r2_base, r2_rollings)
-    0.3435308160142201 0.7113915967302382
+    0.34353081601421975 0.7164710002213178
 
     >>> # you can also inspect feature importances:
     >>> sns.barplot(data=ARE.feature_importances_, y='feature_name', x='coefficients')
@@ -120,15 +122,17 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
     >>> plt.legend(loc='best')
     """
 
-    def __init__(self,
-                 window_sizes,
-                 rolling_types=['mean', 'lag'],
-                 n_iter_per_param=25,
-                 cv=3,
-                 estimator_type='lin',
-                 passthrough=True,
-                 cyclicals=[],
-                 onehots=[]):
+    def __init__(
+        self,
+        window_sizes: List[List],
+        rolling_types: List[str] = ["mean", "lag"],
+        n_iter_per_param: int = 25,
+        cv: int = 3,
+        estimator_type: str = "lin",
+        passthrough: bool = True,
+        cyclicals: List[str] = None,
+        onehots: List[str] = None,
+    ):
 
         self.window_sizes = window_sizes
         self.rolling_types = rolling_types
@@ -136,32 +140,60 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         self.cv = cv
         self.estimator_type = estimator_type
         self.passthrough = passthrough
-        self.add_time_features = cyclicals + onehots
-        self.cyclicals = cyclicals
-        self.onehots = onehots
 
-    def _setup_estimator(self):
-        if self.estimator_type == 'rf':
+        if cyclicals is None:
+            self.cyclicals = []
+        else:
+            self.cyclicals = cyclicals
+
+        if onehots is None:
+            self.onehots = []
+        else:
+            self.onehots = onehots
+
+    def _setup_estimator(self) -> RegressorMixin:
+        if self.estimator_type == "rf":
             estimator = RandomForestRegressor(n_estimators=100, min_samples_split=5)
-        elif self.estimator_type == 'lin':
+        elif self.estimator_type == "lin":
             estimator = LinearRegression()
-        elif self.estimator_type == 'bayeslin':
+        elif self.estimator_type == "bayeslin":
             estimator = BayesianRidge()
+
         return estimator
 
-    def _setup_pipeline(self, original_features, time_features):
+    def _setup_pipeline(
+        self, original_features: List[str], time_features: List[str]
+    ) -> Pipeline:
         """
         Create the pipeline that is later fitted. Includes:
         - BuildRollingFeatures
         - SimpleImputer
         - Model (depending on self.estimator_type)
+
+        Parameters
+        ----------
+        original_features : list of strings
+            list of original feature names
+        time_features : list of strings
+            list of time feature names
+
+        Returns
+        -------
+        Pipeline
+            resulting pipeline that can be fitted
         """
+
         rolls = []
         for feature in original_features:
             for i in range(len(self.window_sizes)):
                 # only keep originals once to prevent doubling
-                rolls.append(('%s_%d' % (feature, i),
-                              BuildRollingFeatures(keep_original=(i == 0)), [feature]))
+                rolls.append(
+                    (
+                        "%s_%d" % (feature, i),
+                        BuildRollingFeatures(keep_original=(i == 0)),
+                        [feature],
+                    )
+                )
 
         class UnitTransformer(BaseEstimator, TransformerMixin):
             """
@@ -174,7 +206,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                 pass
 
             def get_feature_names(self):
-                check_is_fitted(self, 'feature_names_')
+                check_is_fitted(self, "feature_names_")
                 return self.feature_names_
 
             def fit(self, X, y):
@@ -187,73 +219,102 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         for time_feature in time_features:
             rolls.append((time_feature, UnitTransformer(), [time_feature]))
 
-        pipeline = Pipeline(steps=[
-            ('rollpipe', ColumnTransformer(rolls, n_jobs=-1)),
-            ('imputer', SimpleImputer()),
-            ('model', self._setup_estimator())])
+        pipeline = Pipeline(
+            steps=[
+                ("rollpipe", ColumnTransformer(rolls, n_jobs=-1)),
+                ("imputer", SimpleImputer()),
+                ("model", self._setup_estimator()),
+            ]
+        )
 
         return pipeline
 
-    def _setup_rolling_gridsearch_params(self, original_features):
+    def _setup_rolling_gridsearch_params(
+        self, original_features: List[str]
+    ) -> Dict[str, List[Union[str, List]]]:
         """
-        create grid to search over
+        Create grid of rolling feature parameters
+
+        Parameters
+        ----------
+        original_features : list of strings
+            list of feature names
+
+        Returns
+        -------
+        dict
+            dictionary with entry for each window_size and rolling_type combination for each
+            original feature
         """
+
         param_grid = {}
         for i in range(len(self.window_sizes)):
             for feature in original_features:
-                param_grid['rollpipe__%s_%d__window_size' % (feature, i)] = self.window_sizes[i]
-                param_grid['rollpipe__%s_%d__rolling_type' % (feature, i)] = self.rolling_types
+                param_grid[
+                    "rollpipe__%s_%d__window_size" % (feature, i)
+                ] = self.window_sizes[i]
+                param_grid[
+                    "rollpipe__%s_%d__rolling_type" % (feature, i)
+                ] = self.rolling_types
 
         return param_grid
 
-    def get_feature_names(self):
-        check_is_fitted(self, 'feature_names_')
-        return self.feature_names_
+    def _validate_params(self, X_shape: tuple) -> None:
+        """
+        Validate the self parameters
 
-    def _validate_params(self, X_shape):
+        Parameters
+        ----------
+        X_shape : tuple
+            tuple of array dimensions
+        """
 
         for window_size in self.window_sizes:
-
             if type(window_size) is list:
-                interval = [np.min(window_size), np.max(window_size)]
+                interval: list = [np.min(window_size), np.max(window_size)]
             else:
                 # otherwise we assume it is a scipy.stats distribution
-                interval = window_size.interval(1)
+                interval: tuple = window_size.interval(1)
 
-            assert interval[0] >= 0,\
-                'window_size must be greater than 0'
+            assert interval[0] >= 0, "window_size must be greater than 0"
 
-            assert X_shape[0] > interval[1],\
-                'number of samples too small for maximum window_size ' +\
-                '(should be smaller than X.shape[0])'
+            assert X_shape[0] > interval[1], (
+                "number of samples too small for maximum window_size "
+                + "(should be smaller than X.shape[0])"
+            )
 
-        assert 'ewm' not in self.rolling_types, 'rolling_type cannot be ewm'
-        assert self.n_iter_per_param > 0, 'n_iter_per_param must be greater than 0'
-        assert self.cv > 1, 'cv must be greater than 1'
+        assert "ewm" not in self.rolling_types, "rolling_type cannot be ewm"
+        assert self.n_iter_per_param > 0, "n_iter_per_param must be greater than 0"
+        assert self.cv > 1, "cv must be greater than 1"
 
-    def _add_time_features(self, X):
+    def _add_time_features(self, X: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
         """
-        This function adds the timefeatures given in 'components' to X.
+        Add the timefeatures given in 'components' to X
 
         Parameters
         ----------
         X: pandas dataframe
             with time index and other features as columns
-        components: list of strings
-            should be pandas dt properties
 
         Returns
         -------
         X: pandas dataframe
             original X dataframe with the time features added
+        timecols: list of strings
+            list of time feature names
         """
 
-        if len(self.add_time_features) > 0:
-            times_df = pd.DataFrame({'TIME': X.index})
-            time_features = decompose_datetime(
-                times_df, components=self.add_time_features,
-                onehots=self.onehots, cyclicals=self.cyclicals, keep_original=True)
-            time_features = time_features.set_index('TIME', drop=True)
+        components: list = self.cyclicals + self.onehots
+        if len(components) > 0:
+            times_df = pd.DataFrame({"TIME": X.index})
+            time_features: pd.DataFrame = decompose_datetime(
+                times_df,
+                components=components,
+                onehots=self.onehots,
+                cyclicals=self.cyclicals,
+                keep_original=True,
+            )
+            time_features = time_features.set_index("TIME", drop=True)
 
             # some columns can be constant (i.e. higher res than data is in). However, removing
             # all constant columns will also remove one-hot-encoded features that are not
@@ -261,13 +322,18 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             # So, we simply leave all constant features in there.
 
             X = X.join(time_features)
-            timecols = time_features.columns
+            timecols: list = time_features.columns
         else:
             timecols = []
 
         return X, timecols
 
-    def fit(self, X, y):
+    def get_feature_names(self) -> None:
+        check_is_fitted(self, "feature_names_")
+
+        return self.feature_names_
+
+    def fit(self, X: pd.DataFrame, y: pd.DataFrame):
         """
         Finds the best rolling feature parameters and sets up transformer for the transform method
         Note!: all input must be linearly increasing in time and have a datetime index.
@@ -280,8 +346,11 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             with shape [n_samples]
         """
 
+        assert has_strictly_increasing_index(X), INPUT_VALIDATION_ERR_MESSAGE
+        assert has_strictly_increasing_index(y), INPUT_VALIDATION_ERR_MESSAGE
+
         # save feature names here before adding timefeatures
-        original_features = X.columns
+        original_features: list = X.columns
 
         # add time time features
         X, timefeatures = self._add_time_features(X)
@@ -289,70 +358,85 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         self._validate_params(np.shape(X))
 
         # setup pipeline
-        pipeline = self._setup_pipeline(original_features, timefeatures)
-        param_grid = self._setup_rolling_gridsearch_params(original_features)
+        pipeline: Pipeline = self._setup_pipeline(original_features, timefeatures)
+        param_grid: dict = self._setup_rolling_gridsearch_params(original_features)
 
-        n_iter = self.n_iter_per_param * len(self.window_sizes) * len(self.rolling_types)
+        n_iter: int = (
+            self.n_iter_per_param * len(self.window_sizes) * len(self.rolling_types)
+        )
 
         # find best rollings using randomsearch (future improvement: use BayesSearchCV from skopt)
         search = RandomizedSearchCV(
-            pipeline, param_distributions=param_grid, n_jobs=-1,
-            cv=TimeSeriesSplit(self.cv), verbose=2, iid=False, n_iter=n_iter)
+            pipeline,
+            param_distributions=param_grid,
+            n_jobs=-1,
+            cv=TimeSeriesSplit(self.cv),
+            verbose=2,
+            iid=False,
+            n_iter=n_iter,
+        )
         search.fit(X, y)
 
         # recover feature names
-        feature_names = search.best_estimator_['rollpipe'].get_feature_names()
+        feature_names: list = search.best_estimator_["rollpipe"].get_feature_names()
 
         # fix names from e.g. 'RH_1__RH#mean_96' to 'RH#mean_96'
-        feature_names = [f.split('__')[1] for f in feature_names]
-        self.rolling_feature_names_ = [f for f in feature_names if '#' in f]
+        feature_names: list = [f.split("__")[1] for f in feature_names]
+        self.rolling_feature_names_: list = [f for f in feature_names if "#" in f]
 
         # convert these names to a set of BuildRollingFeatures that creates these features
         transformers = []
-        for i, f in enumerate(self.rolling_feature_names_):
+        for name in self.rolling_feature_names_:
+            feature_name: str = name.split("#")[0]
+            rolling_type: str = name.split("#")[1].split("_")[0]
+            window_size = int(name.split("_")[-1])
 
-            feature_name = f.split('#')[0]
-            rolling_type = f.split('#')[1].split('_')[0]
-            window_size = int(f.split('_')[-1])
-
-            transformers.append([
-                '%s_%s_%d' % (feature_name, rolling_type, window_size),
-                BuildRollingFeatures(
-                    rolling_type=rolling_type,
-                    window_size=window_size,
-                    keep_original=False),
-                [feature_name]
-            ])
+            transformers.append(
+                [
+                    "%s_%s_%d" % (feature_name, rolling_type, window_size),
+                    BuildRollingFeatures(
+                        rolling_type=rolling_type,
+                        window_size=window_size,
+                        keep_original=False,
+                    ),
+                    [feature_name],
+                ]
+            )
 
         # now save the columntransformer to the self object to be used in the transform method
         self._transformer = ColumnTransformer(transformers, n_jobs=-1)
         self._transformer = self._transformer.fit(X)
 
-        X_new = search.best_estimator_[:-1].transform(X)
-        if self.estimator_type == 'rf':
-            imp_name = 'importances'
-            importances = search.best_estimator_['model'].feature_importances_
-        elif self.estimator_type == 'lin':
-            imp_name = 'coefficients'
-            importances = search.best_estimator_['model'].coef_
+        _ = search.best_estimator_[:-1].transform(X)
+        if self.estimator_type == "rf":
+            imp_name = "importances"
+            importances: np.ndarray = search.best_estimator_[
+                "model"
+            ].feature_importances_
+        elif self.estimator_type == "lin":
+            imp_name = "coefficients"
+            importances: np.ndarray = search.best_estimator_["model"].coef_
 
         # also save the feature importances under convenient name:
-        self.feature_importances_ = pd.DataFrame({
-            imp_name: importances,
-            'feature_name': feature_names}).sort_values(by=imp_name, ascending=False)
+        self.feature_importances_ = pd.DataFrame(
+            {imp_name: importances, "feature_name": feature_names}
+        ).sort_values(by=imp_name, ascending=False)
 
         # this is required for setup of df including timefeatures in transform
         if self.passthrough:
-            self.feature_names_full_ = feature_names
+            self.feature_names_full_: list = feature_names
         else:
-            self.feature_names_full_ = self.rolling_feature_names_
+            self.feature_names_full_: list = self.rolling_feature_names_
 
         # these are the final feature names
-        self.timecols = [f for f in self.feature_names_full_ if 'TIME' in f]
-        self.feature_names_ = [f for f in self.feature_names_full_ if 'TIME' not in f]
+        self.timecols: list = [f for f in self.feature_names_full_ if "TIME" in f]
+        self.feature_names_: list = [
+            f for f in self.feature_names_full_ if "TIME" not in f
+        ]
+
         return self
 
-    def transform(self, X):
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         """
         Applies the BuildRollingFeature transformations found to work best in the fit method
         Note!: all input must be linearly increasing in time and have a datetime index.
@@ -368,13 +452,15 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             with shape [n_samples x n_features]
         """
 
-        check_is_fitted(self, 'feature_names_')
+        assert has_strictly_increasing_index(X), INPUT_VALIDATION_ERR_MESSAGE
+
+        check_is_fitted(self, "feature_names_")
 
         # we need to add time time features for the transformer to work
-        X, timefeatures = self._add_time_features(X)
+        X, _ = self._add_time_features(X)
 
         # create the rolling features
-        X_new = self._transformer.transform(X)
+        X_new: np.ndarray = self._transformer.transform(X)
 
         # add original data if wanted
         if self.passthrough:
@@ -388,7 +474,13 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         return X_new
 
-    def compute_diagnostics(self, X_train, X_test, y_train, y_test):
+    def compute_diagnostics(
+        self,
+        X_train: pd.DataFrame,
+        X_test: pd.DataFrame,
+        y_train: pd.DataFrame,
+        y_test: pd.DataFrame,
+    ) -> Tuple[float, float, np.ndarray, np.ndarray]:
         """
         This function is meant to provide some insight in the performance gained by adding the
         rolling features.
@@ -424,32 +516,37 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             prediction for the model including rollings
         """
 
-        check_is_fitted(self, 'feature_names_')
+        assert has_strictly_increasing_index(X_train), INPUT_VALIDATION_ERR_MESSAGE
+        assert has_strictly_increasing_index(X_test), INPUT_VALIDATION_ERR_MESSAGE
+        assert has_strictly_increasing_index(y_train), INPUT_VALIDATION_ERR_MESSAGE
+        assert has_strictly_increasing_index(y_test), INPUT_VALIDATION_ERR_MESSAGE
+
+        check_is_fitted(self, "feature_names_")
 
         # setup base estimation
         X_train_base, _ = self._add_time_features(X_train)
         X_test_base, _ = self._add_time_features(X_test)
 
-        base_model = self._setup_estimator()
+        base_model: RegressorMixin = self._setup_estimator()
         base_model = base_model.fit(X_train_base, y_train)
-        yhat_base = base_model.predict(X_test_base)
+        yhat_base: np.ndarray = base_model.predict(X_test_base)
 
         # and now with rolling features
-        X_train_rolling = self.transform(X_train)
-        X_test_rolling = self.transform(X_test)
+        X_train_rolling: pd.DataFrame = self.transform(X_train)
+        X_test_rolling: pd.DataFrame = self.transform(X_test)
         X_train_rolling, _ = self._add_time_features(X_train_rolling)
         X_test_rolling, _ = self._add_time_features(X_test_rolling)
 
         imputer = SimpleImputer()  # required as nans are created in rolling features
         X_train_rolling = imputer.fit_transform(X_train_rolling)
-        X_test_rolling = imputer.transform(X_test_rolling)
+        X_test_rolling: pd.DataFrame = imputer.transform(X_test_rolling)
 
-        roll_model = self._setup_estimator()
+        roll_model: RegressorMixin = self._setup_estimator()
         roll_model = roll_model.fit(X_train_rolling, y_train)
-        yhat_roll = roll_model.predict(X_test_rolling)
+        yhat_roll: np.ndarray = roll_model.predict(X_test_rolling)
 
         # compute r-squareds
-        r2_base = r2_score(y_test, yhat_base)
-        r2_rollings = r2_score(y_test, yhat_roll)
+        r2_base: float = r2_score(y_test, yhat_base)
+        r2_rollings: float = r2_score(y_test, yhat_roll)
 
         return r2_base, r2_rollings, yhat_base, yhat_roll

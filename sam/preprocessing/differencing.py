@@ -1,18 +1,20 @@
-import pandas as pd
-import numpy as np
 import warnings
+from typing import Union
+
+import numpy as np
+import pandas as pd
 
 
-def make_shifted_target(y, use_diff_of_y=False, lags=1, newcol_prefix=None):
-    '''
-    Creates a target dataframe by performing shifting on a series
-
-    Given some features, it may be desirable to predict future values of the target.
-    Also, it may be desirable to have either one or multiple targets. To preserve consistency,
-    this function returns a dataframe either way.
-
-    This function creates a dataframe with columns 'TARGET_lead_x', where `x` are the lags,
-    and TARGET is the name of the input series.
+def make_shifted_target(
+    y: pd.Series,
+    use_diff_of_y: bool = False,
+    lags: Union[int, list] = 1,
+    newcol_prefix: str = None,
+):
+    """
+    Creates a target dataframe by performing shifting or differencing (once or multiple times)
+    on a monospaced series. The dataframe contains columns 'TARGET_lead_x', where `x` are the
+    lags and TARGET is the name of the input series.
 
     Parameters
     ----------
@@ -20,16 +22,16 @@ def make_shifted_target(y, use_diff_of_y=False, lags=1, newcol_prefix=None):
         A series containing the target data. Must be monospaced in time, for the shifting
         to work correctly.
     use_diff_of_y: boolean, optional (default=False)
-        A boolean option that decides if the difference between the target now
-        and the shifted target is calculated and returned, or just the shifted target itself.
+        If true, the difference between the target now and the shifted target is used,
+        else just uses the shifted target itself.
     lags: array-like or int, optional (default=1)
         A list of integers, or a single integer describing what lags should be used to look in the
         future. For example, if this is `[1, 2, 3]`, the output will have three columns, performing
         shifting on 1, 2, and 3 timesteps in the future.
         If this is a list, the output will be a dataframe. If this is a scalar, the output will
-        be a series
+        be a pd.Series
     newcol_prefix: str, optional (default=None)
-        The prefix that the output columns will have. If not given, `y.name` is used instead.
+        The prefix that the output columns will have. If None, `y.name` is used instead.
 
     Returns
     -------
@@ -66,7 +68,7 @@ def make_shifted_target(y, use_diff_of_y=False, lags=1, newcol_prefix=None):
     1 	30.0
     2 	50.0
     3 	NaN
-    '''
+    """
 
     if newcol_prefix is None:
         newcol_prefix = y.name
@@ -84,12 +86,12 @@ def make_shifted_target(y, use_diff_of_y=False, lags=1, newcol_prefix=None):
             raise ValueError("All lags must be integers")
 
     # Lagging to the future means negative lags
-    if (use_diff_of_y):
+    if use_diff_of_y:
         result = pd.concat([-1 * y.diff(-1 * lag) for lag in lags], axis=1)
-        names = ['{}_diff_{}'.format(newcol_prefix, lag) for lag in lags]
+        names = ["{}_diff_{}".format(newcol_prefix, lag) for lag in lags]
     else:
         result = pd.concat([y.shift(-1 * lag) for lag in lags], axis=1)
-        names = ['{}_lead_{}'.format(newcol_prefix, lag) for lag in lags]
+        names = ["{}_lead_{}".format(newcol_prefix, lag) for lag in lags]
 
     result.columns = names
     if series_output:
@@ -98,17 +100,13 @@ def make_shifted_target(y, use_diff_of_y=False, lags=1, newcol_prefix=None):
     return result
 
 
-def make_differenced_target(y, lags=1, newcol_prefix=None):
-    '''
-    Creates a target dataframe by performing differencing on a series
-
-    Given some features, it may be desirable to predict future values of the target.
-    In this case, it is often desirable to perform differencing.
-    Also, it may be desirable to have either one or multiple targets. To preserve consistency,
-    this function returns a dataframe either way.
-
-    This function creates a dataframe with columns 'TARGET_diff_x', where `x` are the lags,
-    and TARGET is the name of the input series.
+def make_differenced_target(
+    y: pd.Series, lags: Union[int, list] = 1, newcol_prefix: str = None
+):
+    """
+    Creates a target dataframe by performing differencing (once or multiple times)
+    on a monospaced series. The dataframe contains columns 'TARGET_lead_x', where `x` are the
+    lags and TARGET is the name of the input series.
 
     Parameters
     ----------
@@ -120,9 +118,9 @@ def make_differenced_target(y, lags=1, newcol_prefix=None):
         future. For example, if this is `[1, 2, 3]`, the output will have three columns, performing
         differencing on 1, 2, and 3 timesteps in the future.
         If this is a list, the output will be a dataframe. If this is a scalar, the output will
-        be a series
+        be a pd.Series
     newcol_prefix: str, optional (default=None)
-        The prefix that the output columns will have. If not given, `y.name` is used instead.
+        The prefix that the output columns will have. If None, `y.name` is used instead.
 
     Returns
     -------
@@ -147,17 +145,21 @@ def make_differenced_target(y, lags=1, newcol_prefix=None):
     1 	30.0
     2 	50.0
     3 	NaN
-    '''
-    warnings.warn("make_differenced_target will be deprecated and replaced by make_shifted_target",
-                  PendingDeprecationWarning)
+    """
+    warnings.warn(
+        "make_differenced_target will be deprecated and replaced by make_shifted_target",
+        PendingDeprecationWarning,
+    )
 
-    result = make_shifted_target(y=y, use_diff_of_y=True, lags=lags, newcol_prefix=newcol_prefix)
+    result = make_shifted_target(
+        y=y, use_diff_of_y=True, lags=lags, newcol_prefix=newcol_prefix
+    )
 
     return result
 
 
-def inverse_differenced_target(predictions, y):
-    '''
+def inverse_differenced_target(predictions: pd.DataFrame, y: pd.Series):
+    """
     Inverses differencing by adding the current values to the prediction.
 
     This function will take differenced target(s) and the current values, and return the actual
@@ -210,7 +212,7 @@ def inverse_differenced_target(predictions, y):
     >>> # This means that at timestep 0, we predict that the next two values will be 25 and 60
     >>> # At timestep 1, we predict the next two values will be 45 and 105
     >>> # At timestep 2, we predict the next two values will be 84 and unknown, etcetera.
-    '''
+    """
     result = predictions.add(y, axis=0)
     # Series lose their name on pd.Series.add, so put the name back
     if isinstance(result, pd.Series):
