@@ -6,6 +6,13 @@ From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
 - y for new features
 - z for bugfixes
 
+## Version 2.5.1
+
+### Bugfix
+
+- `read_knmi_station_data`
+  - Added a with statement to close API connection, which caused errors if used too many times  
+
 ## Version 2.5.0
 
 ### General changes
