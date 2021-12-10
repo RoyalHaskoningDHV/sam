@@ -226,7 +226,8 @@ def read_knmi_station_data(
     params = dict(start=start_date, end=end_date, vars=vars, stns=stns, fmt="csv")
 
     # get data
-    response = req.get(url, params=params)
+    with req.Session() as s:
+        response = s.get(url, params=params)
     # get text from response if executed correctly
     if response.status_code == 200:
         knmi_raw = response.text
