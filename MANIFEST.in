@@ -1,0 +1,7 @@
+recursive-include docs
+recursive-include examples
+
+include .config.example
+
+exclude pipelines
+exclude pipelines/*.yml
