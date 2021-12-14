@@ -5,7 +5,6 @@ from sklearn.base import BaseEstimator, RegressorMixin
 
 # Keep package independent of statsmodels
 try:
-    import statsmodels.api as smapi
     from statsmodels.regression.quantile_regression import QuantReg
 except ImportError:
     pass
@@ -30,7 +29,7 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     fit_intercept: bool, default=True
         Whether to calculate the intercept for this model. If set to false,
         no intercept will be used in calculations (e.g. data is expected to be
-        already centered). Default is True. 
+        already centered).
 
     Attributes
     ----------
@@ -56,7 +55,7 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     """
 
     def __init__(
-        self, 
+        self,
         quantiles: list = [0.05, 0.95],
         tol: float = 1e-3,
         max_iter: int = 1000,

@@ -12,7 +12,6 @@ from sam.models import LinearQuantileRegression
 # Is statsmodels not available, skip these unittests
 skipstatsmodels = False
 try:
-    import statsmodels.api as smapi  # noqa: F401
     from statsmodels.regression.quantile_regression import QuantReg  # noqa: F401
 except ImportError:
     skipstatsmodels = True
@@ -46,8 +45,11 @@ class TestLinearQuantileRegression(unittest.TestCase):
         pred = model.predict(self.X)
         score = model.score(self.X, self.y)
 
-        assert_almost_equal(model.models_[0].params.x1 / 13, 1, decimal=1)
-        assert_almost_equal(model.models_[0].params.const / 42, 1, decimal=1)
+        assert_almost_equal(model.coef_[0].x1 / 13, 1, decimal=1)
+        assert_almost_equal(model.coef_[0].const / 42, 1, decimal=1)
+
+        assert_almost_equal(model.coef_[0].x1 / 13, 1, decimal=1)
+        assert_almost_equal(model.coef_[0].const / 42, 1, decimal=1)
 
         self.assertEqual(model.prediction_cols, ["predict_q_0.5"])
         self.assertEqual(pred.columns, ["predict_q_0.5"])
