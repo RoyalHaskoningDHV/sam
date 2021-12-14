@@ -6,6 +6,15 @@ From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
 - y for new features
 - z for bugfixes
 
+## Version 2.5.2
+
+### Bugfix
+- `LinearQuantileRegression` only contains parameters and pvalues, and data is no longer stored in
+the class. This was unwanted.
+
+### New features
+- `LinearQuantileRegression` accepts `fit_intercept` parameter, similar to `sklearn.LinearRegression`.
+
 ## Version 2.5.1
 
 ### Bugfix
