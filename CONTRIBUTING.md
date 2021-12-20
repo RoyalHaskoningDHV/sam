@@ -1,12 +1,14 @@
 # Contributing
 
-sam is an internal package being developed by Royal HaskoningDHV. For any new code, code review by a software developer is required!
+sam is (currently) an internal package being developed by Royal HaskoningDHV. Anyone is free to submit bug/feature request [here](https://dev.azure.com/corporateroot/SAM/_workitems/recentlyupdated/) and propose Pull requests, see instructions below for how to install a develop version. Every Pull request needs to be checked by employees from both Data Solutions and Aquasuite.
+
+Please note that we are working hard on making this package open-source, more info will follow soon.
 
 ## Bug Reports and Feature Requests
 
-The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://dev.azure.com/ynformed/SAM/_backlogs/backlog/SAM%20Team/Epics) No permission is needed to create a card, so go nuts! I kindly ask you prefix your cards with `[bug]` or `[feature]`, and alert one of the developers since we don't check the board every day!
+The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://dev.azure.com/corporateroot/SAM/_workitems/) No permission is needed to create a card, so go nuts! Please use user stories for feature requests and add `[Feature]` in the title and use bug reports for bugs. Be as clear as you can in the description and alert one of the developers since we don't check the board every day!
 
-Bug reports are most helpful if you send us a script which reproduces the problem.
+In the case of bug reports please fill in a small script to reproduce the problem in the bug report.
 
 ## Developing
 
@@ -44,6 +46,8 @@ pip install pytest-cov
 pip install pytest-mpl
 pip install fastparquet
 ```
+
+Then run the unit tests using `pytest`.
 
 ## Documentation
 

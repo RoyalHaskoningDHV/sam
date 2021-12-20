@@ -11,15 +11,15 @@ version = (
 setup(
     name="sam",
     version=version,
-    description="Ynformed package for smart asset management",
+    description="Time series anomaly detection and forecasting",
     long_description=open("README.md").read(),
-    url="https://dev.ynformed.nl/diffusion/78/",
-    author="Ynformed",
-    author_email="fenno@ynformed.nl",
+    url="https://dev.azure.com/corporateroot/SAM",
+    author="Royal HaskoningDHV",
+    author_email="arjan.bontsema@rhdhv.com",
     license="",
     packages=find_packages(exclude=["*tests"]),
     zip_safe=True,
-    install_requires=["pandas>=1.1.0", "numpy>=1.13", "scikit-learn>=0.21"],
+    install_requires=["pandas>=1.1.0", "numpy>=1.13", "scikit-learn<0.24.0"],
     extras_require={
         "all": [
             "matplotlib",
@@ -47,4 +47,5 @@ setup(
             "statsmodels",
         ],
     },
+    tests_require=["pytest", "pytest-cov", "pytest-mpl", "fastparquet"],
 )

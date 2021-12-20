@@ -1,10 +1,15 @@
 # Changelog
 
-From version 2.1.0 on, versioning scheme should be as follows: Version x.y.z
+From version 2.5.0 on, we use the [semantic versioning](https://semver.org/) scheme:
 
-- x change for breaking changes
-- y for new features
-- z for bugfixes
+Version X.Y.Z stands for:
+- X = Major version: if any backwards incompatible changes are introduced to the public API
+- Y = Minor version: if new, backwards compatible functionality is introduced to the public API
+- Z = Patch version: if only backwards compatible bug fixes are introduced
+
+## Version 2.5.1
+- Scikit-learn version had to be <0.24.0 for certain features, TODO: update dependencies in the near future
+- Updated README, setup.py and CONTRIBUTING in preparation for going open-source.
 
 ## Version 2.5.1
 
