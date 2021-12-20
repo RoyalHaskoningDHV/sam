@@ -71,7 +71,7 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
         # otherwise the models will not fit an intercept
         X = X.copy()
         if self.fit_intercept:
-            X = X.assign(const=1)
+            X = X.assign(const=1)  # f(x) = a + bX = a*const + b*X
         model_ = QuantReg(y, X)
         model_result_ = model_.fit(q, p_tol=self.tol, max_iter=self.max_iter)
         coef = model_result_.params
