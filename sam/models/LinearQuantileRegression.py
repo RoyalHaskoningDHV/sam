@@ -86,7 +86,6 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
             X.columns = [f"X{i}" for i in range(1, X.shape[1] + 1)]
         return X
 
-
     def fit(self, X: np.array, y: np.array):
         """
         Fit a Linear Quantile Regression using statsmodels

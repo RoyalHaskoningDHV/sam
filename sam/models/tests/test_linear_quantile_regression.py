@@ -53,7 +53,7 @@ class TestLinearQuantileRegression(unittest.TestCase):
         else:
             X, y = self.X, self.y
             colname = "x1"
-    
+
         model, pred, score = _train_quantile_regression(X, y)
 
         # test if fitted coefficients are as expected for example
@@ -72,6 +72,7 @@ class TestLinearQuantileRegression(unittest.TestCase):
 
     def test_linear_quantile_regression_numpy(self):
         self.test_linear_quantile_regression(use_numpy=True)
+
 
 if __name__ == "__main__":
     unittest.main()
