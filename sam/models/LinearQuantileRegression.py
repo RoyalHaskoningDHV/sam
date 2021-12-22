@@ -78,6 +78,15 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
         pvalues = model_result_.pvalues
         return coef, pvalues
 
+    def _array_to_df(self, X):
+        """ Transform to dataframe
+        """
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+            X.columns = [f"X{i}" for i in range(1, X.shape[1] + 1)]
+        return X
+
+
     def fit(self, X: np.array, y: np.array):
         """
         Fit a Linear Quantile Regression using statsmodels
@@ -92,15 +101,18 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
                 f"should be a float or list of floats"
             )
         self.prediction_cols = [f"predict_q_{q}" for q in self.quantiles]
+
+        X = self._array_to_df(X)
+        self.feature_names_in_ = X.columns.tolist()
         models_ = [self._fit_single_model(X, y, q) for q in self.quantiles]
-        self.coef_ = [m[0] for m in models_]
-        self.pvalue_ = [m[1] for m in models_]
+        self.coef_, self.pvalue_ = zip(*models_)
         return self
 
     def predict(self, X: np.array):
         """
         Predict / estimate quantiles
         """
+        X = self._array_to_df(X)
         preds = [X.assign(const=1).multiply(c).sum(axis=1) for c in self.coef_]
         preds_df = pd.concat(preds, axis=1)
         preds_df.columns = self.prediction_cols
