@@ -11,6 +11,15 @@ Version X.Y.Z stands for:
 - Scikit-learn version had to be <0.24.0 for certain features, TODO: update dependencies in the near future
 - Updated README, setup.py and CONTRIBUTING in preparation for going open-source.
 
+## Version 2.5.2
+
+### Bugfix
+- `LinearQuantileRegression` only contains parameters and pvalues, and data is no longer stored in
+the class. This was unwanted.
+
+### New features
+- `LinearQuantileRegression` accepts `fit_intercept` parameter, similar to `sklearn.LinearRegression`.
+
 ## Version 2.5.1
 
 ### Bugfix
