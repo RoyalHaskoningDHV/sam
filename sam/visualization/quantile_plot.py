@@ -99,13 +99,13 @@ def sam_quantile_plot(
     fig: matplotlib.pyplot.figure if interactive=False else go.Figure
     """
 
-    assert not (
-        outlier_min_q is not None and outliers is not None
-    ), "outlier_min_q and outliers cannot be used simultaneously"
+    if outlier_min_q is not None and outliers is not None:
+        raise ValueError(
+            "outlier_min_q and outliers cannot be used simultaneously"
+        )
 
-    assert not (
-        ignore_value is not None and res is None
-    ), "ignore value should only be set when using resampling (res should not be None)"
+    if ignore_value is not None and res is None:
+        raise ValueError("ignore value should only be set when using resampling (res should not be None)")
 
     if (y_title == "") and y_true.name:
         y_title = y_true.name

@@ -304,9 +304,11 @@ class SamQuantileMLP(BaseEstimator):
         self.r2_callback_report = r2_callback_report
         self.average_type = average_type
 
-        assert not (
-            (self.average_type == "median") and (0.5 in self.quantiles)
-        ), "average_type is median, but 0.5 is also in quantiles"
+        if not (self.average_type == "median" and 0.5 in self.quantiles):
+            raise ValueError(
+                "average_type is mean, but 0.5 is also in quantiles. "
+                "Either set average_type to mean or add 0.5 to quantiles"
+            )
 
     def get_feature_engineer(self) -> Pipeline:
         """
@@ -595,9 +597,8 @@ class SamQuantileMLP(BaseEstimator):
         X_transformed = X_transformed.loc[~targetnanrows]
         y_transformed = y_transformed.loc[~targetnanrows]
 
-        assert (
-            X_transformed.isna().sum().sum() == 0
-        ), "Data cannot contain nans. Imputation not supported for now"
+        if X_transformed.isna().any().any():
+            raise ValueError("Data cannot contain nans. Imputation not supported for now")
 
         self.model_ = self.get_untrained_model()
 
@@ -742,9 +743,8 @@ class SamQuantileMLP(BaseEstimator):
             whether to return only the prediction, or to return both the prediction and the
             transformed input (X) dataframe.
         """
-        assert (
-            self.predict_ahead == 0 or y is not None
-        ), "When predict_ahead > 0, y is needed for prediction"
+        if self.predict_ahead > 0 and y is None:
+            raise ValueError("When predict_ahead > 0, y is needed for prediction")
 
         if y is not None:
             SamQuantileMLP.verify_same_indexes(X, y)

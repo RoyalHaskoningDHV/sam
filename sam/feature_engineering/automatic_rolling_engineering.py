@@ -276,16 +276,23 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                 # otherwise we assume it is a scipy.stats distribution
                 interval: tuple = window_size.interval(1)
 
-            assert interval[0] >= 0, "window_size must be greater than 0"
+            if interval[0] < 0:
+                raise ValueError(
+                    "window_size must be greater than 0, but is %d" % interval[0]
+                )
 
-            assert X_shape[0] > interval[1], (
-                "number of samples too small for maximum window_size "
-                + "(should be smaller than X.shape[0])"
-            )
+            if X_shape[0] <= interval[1]:
+                raise ValueError(
+                    "number of samples too small for maximum window_size " +
+                    "(should be smaller than X.shape[0])"
+                )
 
-        assert "ewm" not in self.rolling_types, "rolling_type cannot be ewm"
-        assert self.n_iter_per_param > 0, "n_iter_per_param must be greater than 0"
-        assert self.cv > 1, "cv must be greater than 1"
+        if "ewm" in self.rolling_types:
+            raise ValueError("rolling_type cannot be ewm")
+        if self.n_iter_per_param <= 0:
+            raise ValueError("n_iter_per_param must be greater than 0")
+        if self.cv <= 1:
+            raise ValueError("cv must be greater than 1")
 
     def _add_time_features(self, X: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
         """
@@ -346,8 +353,10 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             with shape [n_samples]
         """
 
-        assert has_strictly_increasing_index(X), INPUT_VALIDATION_ERR_MESSAGE
-        assert has_strictly_increasing_index(y), INPUT_VALIDATION_ERR_MESSAGE
+        if not has_strictly_increasing_index(X):
+            raise ValueError(INPUT_VALIDATION_ERR_MESSAGE)
+        if not has_strictly_increasing_index(y):
+            raise ValueError(INPUT_VALIDATION_ERR_MESSAGE)
 
         # save feature names here before adding timefeatures
         original_features: list = X.columns
@@ -452,7 +461,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             with shape [n_samples x n_features]
         """
 
-        assert has_strictly_increasing_index(X), INPUT_VALIDATION_ERR_MESSAGE
+        if not has_strictly_increasing_index(X):
+            raise ValueError(INPUT_VALIDATION_ERR_MESSAGE)
 
         check_is_fitted(self, "feature_names_")
 
@@ -516,10 +526,14 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             prediction for the model including rollings
         """
 
-        assert has_strictly_increasing_index(X_train), INPUT_VALIDATION_ERR_MESSAGE
-        assert has_strictly_increasing_index(X_test), INPUT_VALIDATION_ERR_MESSAGE
-        assert has_strictly_increasing_index(y_train), INPUT_VALIDATION_ERR_MESSAGE
-        assert has_strictly_increasing_index(y_test), INPUT_VALIDATION_ERR_MESSAGE
+        if not has_strictly_increasing_index(X_train):
+            raise ValueError(INPUT_VALIDATION_ERR_MESSAGE)
+        if not has_strictly_increasing_index(X_test):
+            raise ValueError(INPUT_VALIDATION_ERR_MESSAGE)
+        if not has_strictly_increasing_index(y_train):
+            raise ValueError(INPUT_VALIDATION_ERR_MESSAGE)
+        if not has_strictly_increasing_index(y_test):
+            raise ValueError(INPUT_VALIDATION_ERR_MESSAGE)
 
         check_is_fitted(self, "feature_names_")
 

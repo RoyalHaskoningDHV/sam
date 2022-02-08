@@ -87,10 +87,13 @@ def compute_quantile_crossings(
     # switch mean with 0.5 for ease in rest of function
     if qs is None:
         qs = [float(c.split("_")[-1]) for c in pred.columns if "mean" not in c] + [0.5]
-        assert (np.array(qs) == 0.5).sum() == 1, '0.5 and "mean" cannot both be in qs'
+        if qs.count(0.5) > 1:
+            raise ValueError("0.5 and 'mean' cannot both be in qs")
     else:
-        assert not (0.5 in qs and "mean" in qs), '0.5 and "mean" cannot both be in qs'
-        qs = [float(str(q).replace("mean", "0.5")) for q in qs]
+        if 0.5 in qs and "mean" in qs:
+            raise ValueError("0.5 and 'mean' cannot both be in qs")
+        qs = [0.5 if q == "mean" else q for q in qs]
+
 
     # now replace the 'mean' part with 0.5 in the predictions
     pred.columns = [c.replace("mean", "q_0.5") for c in pred.columns]

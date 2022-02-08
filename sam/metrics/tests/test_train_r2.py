@@ -98,11 +98,14 @@ class TestTrainR2(unittest.TestCase):
             r2 = train_mean_r2(true_array, predicted_array, np.nanmedian(true_array))
 
             # Verify some things
-            assert r2 == 0.5
-            assert len(w) == 1
-            assert issubclass(w[-1].category, DeprecationWarning)
-            assert "DEPRECATED" in str(w[-1].message)
-
+            if r2 != 0.5:
+                raise AssertionError("r2 is not 0.5")
+            if len(w) != 1:
+                raise AssertionError("len(w) is not 1")
+            if not issubclass(w[-1].category, DeprecationWarning):
+                raise AssertionError("Warning is not DeprecationWarning")
+            if "DEPRECATED" not in str(w[-1].message):
+                raise AssertionError("Warning message does not contain DEPRECATED")
 
 if __name__ == "__main__":
     unittest.main()
