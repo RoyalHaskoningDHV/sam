@@ -107,5 +107,6 @@ class TestTrainR2(unittest.TestCase):
             if "DEPRECATED" not in str(w[-1].message):
                 raise AssertionError("Warning message does not contain DEPRECATED")
 
+
 if __name__ == "__main__":
     unittest.main()

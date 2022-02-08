@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, List, Tuple, Union
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -132,16 +132,10 @@ def decompose_datetime(
     3   2018-12-30  2           2018        6
     """
 
-    def make_list_if_none(obj: Any) -> Union[Any, List]:
-        if obj is None:
-            return []
-        else:
-            return obj
-
-    components = make_list_if_none(components)
-    cyclicals = make_list_if_none(cyclicals)
-    onehots = make_list_if_none(onehots)
-    cyclical_maxes = make_list_if_none(cyclical_maxes)
+    components = [] if components is None else components
+    cyclicals = [] if cyclicals is None else cyclicals
+    onehots = [] if onehots is None else onehots
+    cyclical_maxes = [] if cyclical_maxes is None else cyclical_maxes
 
     if np.any([c in cyclicals for c in onehots]):
         raise ValueError("cyclicals and onehots are not mutually exclusive")
@@ -460,8 +454,7 @@ def _validate_and_prepare_components(
         The minimums that your data can reach.
     """
 
-    if not column == "":
-        column = column + "_"
+    column = column + "_" if column != "" else column
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df should be pandas dataframe")
     if not isinstance(cols, list):
