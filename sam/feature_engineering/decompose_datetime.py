@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, List, Tuple, Type, Union
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
