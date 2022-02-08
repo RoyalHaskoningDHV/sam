@@ -8,7 +8,7 @@ from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import R2Evaluation, keras_joint_mse_tilted_loss
 from sam.models import create_keras_quantile_mlp
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
-from sam.utils import FunctionTransformerWithNames
+from sam.utils import FunctionTransformerWithNames, assert_contains_nans
 from sklearn import __version__ as skversion
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
@@ -559,7 +559,6 @@ class SamQuantileMLP(BaseEstimator):
 
         # buildrollingfeatures
         self.rolling_cols_ = [col for col in X if col != self.timecol]
-
         self.feature_engineer_ = self.get_feature_engineer()
 
         # Apply feature engineering
@@ -597,8 +596,9 @@ class SamQuantileMLP(BaseEstimator):
         X_transformed = X_transformed.loc[~targetnanrows]
         y_transformed = y_transformed.loc[~targetnanrows]
 
-        if X_transformed.isna().any().any():
-            raise ValueError("Data cannot contain nans. Imputation not supported for now")
+        assert_contains_nans(
+            X_transformed, "Data cannot contain nans. Imputation not supported for now"
+        )
 
         self.model_ = self.get_untrained_model()
 

@@ -116,3 +116,33 @@ def has_strictly_increasing_index(df: pd.DataFrame, linear: bool = True):
             return True
     else:
         return False
+
+
+def contains_nans(df):
+    """
+    Utility function to check if a dataframe contains any NaN values.
+
+    Parameters
+    ----------
+    df: dataframe
+       The dataframe whose index needs to be checked
+
+    Returns
+    -------
+    bool
+        Whether the dataframe contains any NaN values
+    """
+    return df.isnull().values.any()
+
+
+def assert_contains_nans(df: pd.DataFrame, msg: str = "Data cannot contain nans"):
+    """
+    Utility function to check if a dataframe contains any NaN values.
+
+    Parameters
+    ----------
+    df: dataframe
+       The dataframe whose index needs to be checked
+    """
+    if contains_nans(df):
+        raise ValueError(msg)

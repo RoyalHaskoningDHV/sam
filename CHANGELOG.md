@@ -7,9 +7,11 @@ Version X.Y.Z stands for:
 - Y = Minor version: if new, backwards compatible functionality is introduced to the public API
 - Z = Patch version: if only backwards compatible bug fixes are introduced
 
-## Version 2.5.1
-- Scikit-learn version had to be <0.24.0 for certain features, TODO: update dependencies in the near future
-- Updated README, setup.py and CONTRIBUTING in preparation for going open-source.
+## Version 2.5.3
+
+### New features
+- No more bandit linting errors: replace `assert` statements
+- Function `sam.utils.contains_nan` and `sam.utils.assert_contains_nan` are added for validation
 
 ## Version 2.5.2
 
@@ -21,6 +23,9 @@ the class. This was unwanted.
 - `LinearQuantileRegression` accepts `fit_intercept` parameter, similar to `sklearn.LinearRegression`.
 
 ## Version 2.5.1
+- Scikit-learn version had to be <0.24.0 for certain features, TODO: update dependencies in the near future
+- Updated README, setup.py and CONTRIBUTING in preparation for going open-source.
+
 
 ### Bugfix
 
