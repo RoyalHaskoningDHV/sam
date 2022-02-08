@@ -65,20 +65,20 @@ class TestTrainR2(unittest.TestCase):
     def test_train_r2_shapes(self):
         # the function cannot handle data with multiple dimensions. It does however ravel
         # empty dimensions (x, 1).
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(np.random.random(size=(12, 2)), np.random.random(size=(12, 2)), 0)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(np.random.random(size=(12, 1)), np.random.random(size=(12, 2)), 0)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(np.random.random(size=(12, 2)), np.random.random(size=(12, 1)), 0)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(
                 np.random.random(size=(12, 1)),
                 np.random.random(size=(12, 1)),
                 np.random.random(size=(12, 2)),
             )
         # benchmark array has to be same size as true array
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(
                 np.random.random(size=(12, 1)),
                 np.random.random(size=(12, 1)),

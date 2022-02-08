@@ -64,7 +64,7 @@ class TestAutomaticRollingEngineering(unittest.TestCase):
         """Should raise AssertionError if index is not a DatetimeIndex"""
         self.X = self.X.reset_index(drop=True)
 
-        with self.assertRaises(AssertionError) as cm:
+        with self.assertRaises(ValueError) as cm:
             self.runAutomaticRollingEngineer()
 
         self.assertEqual(cm.exception.args[0], INPUT_VALIDATION_ERR_MESSAGE)
@@ -76,7 +76,7 @@ class TestAutomaticRollingEngineering(unittest.TestCase):
         self.X = self.X.reset_index(drop=True)
         self.X.index = index
 
-        with self.assertRaises(AssertionError) as cm:
+        with self.assertRaises(ValueError) as cm:
             self.runAutomaticRollingEngineer()
 
         self.assertEqual(cm.exception.args[0], INPUT_VALIDATION_ERR_MESSAGE)
