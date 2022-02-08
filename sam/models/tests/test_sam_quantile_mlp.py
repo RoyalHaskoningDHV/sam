@@ -419,7 +419,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         self.assertRaises(ValueError, model.fit, self.X, self.y)
 
         # Cannot use y as feature when predict_ahead is 0
-        modesl = SamQuantileMLP(predict_ahead=0, use_y_as_feature=True, timecol="TIME")
+        model = SamQuantileMLP(predict_ahead=0, use_y_as_feature=True, timecol="TIME")
         self.assertRaises(ValueError, model.fit, self.X, self.y)
 
         # make the index of X and y not match
