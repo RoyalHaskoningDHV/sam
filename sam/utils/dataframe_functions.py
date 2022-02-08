@@ -142,7 +142,9 @@ def assert_contains_nans(df: pd.DataFrame, msg: str = "Data cannot contain nans"
     Parameters
     ----------
     df: dataframe
-       The dataframe whose index needs to be checked
+        The dataframe whose index needs to be checked
+    msg: str, optional (default="Data cannot contain nans")
+        The error message to raise if the dataframe contains nans
     """
     if contains_nans(df):
         raise ValueError(msg)
