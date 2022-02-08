@@ -105,7 +105,10 @@ def sam_quantile_plot(
         )
 
     if ignore_value is not None and res is None:
-        raise ValueError("ignore value should only be set when using resampling (res should not be None)")
+        raise ValueError(
+            "ignore value should only be set when "
+            "using resampling (res should not be None)"
+        )
 
     if (y_title == "") and y_true.name:
         y_title = y_true.name

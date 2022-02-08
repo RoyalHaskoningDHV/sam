@@ -94,7 +94,6 @@ def compute_quantile_crossings(
             raise ValueError("0.5 and 'mean' cannot both be in qs")
         qs = [0.5 if q == "mean" else q for q in qs]
 
-
     # now replace the 'mean' part with 0.5 in the predictions
     pred.columns = [c.replace("mean", "q_0.5") for c in pred.columns]
 
