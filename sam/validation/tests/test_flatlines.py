@@ -1,4 +1,3 @@
-from cgi import test
 import unittest
 
 import pandas as pd
