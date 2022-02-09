@@ -304,7 +304,7 @@ class SamQuantileMLP(BaseEstimator):
         self.r2_callback_report = r2_callback_report
         self.average_type = average_type
 
-        if not (self.average_type == "median" and 0.5 in self.quantiles):
+        if (self.average_type == "median" and 0.5 in self.quantiles):
             raise ValueError(
                 "average_type is mean, but 0.5 is also in quantiles. "
                 "Either set average_type to mean or add 0.5 to quantiles"
@@ -743,7 +743,7 @@ class SamQuantileMLP(BaseEstimator):
             whether to return only the prediction, or to return both the prediction and the
             transformed input (X) dataframe.
         """
-        if self.predict_ahead > 0 and y is None:
+        if self.predict_ahead != 0 and y is None:
             raise ValueError("When predict_ahead > 0, y is needed for prediction")
 
         if y is not None:
