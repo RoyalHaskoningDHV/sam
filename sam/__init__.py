@@ -29,10 +29,12 @@ config.read(".config")
 
 __all__ = [
     "data_sources",
+    "exploration",
     "feature_engineering",
-    "feature_extraction",
     "metrics",
+    "models",
     "preprocessing",
     "utils",
+    "validation",
     "visualization",
 ]
