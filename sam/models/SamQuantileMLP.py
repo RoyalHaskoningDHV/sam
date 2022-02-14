@@ -8,7 +8,7 @@ from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import R2Evaluation, keras_joint_mse_tilted_loss
 from sam.models import create_keras_quantile_mlp
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
-from sam.utils import FunctionTransformerWithNames
+from sam.utils import FunctionTransformerWithNames, assert_contains_nans
 from sklearn import __version__ as skversion
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
@@ -304,9 +304,11 @@ class SamQuantileMLP(BaseEstimator):
         self.r2_callback_report = r2_callback_report
         self.average_type = average_type
 
-        assert not (
-            (self.average_type == "median") and (0.5 in self.quantiles)
-        ), "average_type is median, but 0.5 is also in quantiles"
+        if (self.average_type == "median" and 0.5 in self.quantiles):
+            raise ValueError(
+                "average_type is mean, but 0.5 is also in quantiles. "
+                "Either set average_type to mean or add 0.5 to quantiles"
+            )
 
     def get_feature_engineer(self) -> Pipeline:
         """
@@ -557,7 +559,6 @@ class SamQuantileMLP(BaseEstimator):
 
         # buildrollingfeatures
         self.rolling_cols_ = [col for col in X if col != self.timecol]
-
         self.feature_engineer_ = self.get_feature_engineer()
 
         # Apply feature engineering
@@ -595,9 +596,9 @@ class SamQuantileMLP(BaseEstimator):
         X_transformed = X_transformed.loc[~targetnanrows]
         y_transformed = y_transformed.loc[~targetnanrows]
 
-        assert (
-            X_transformed.isna().sum().sum() == 0
-        ), "Data cannot contain nans. Imputation not supported for now"
+        assert_contains_nans(
+            X_transformed, "Data cannot contain nans. Imputation not supported for now"
+        )
 
         self.model_ = self.get_untrained_model()
 
@@ -742,9 +743,8 @@ class SamQuantileMLP(BaseEstimator):
             whether to return only the prediction, or to return both the prediction and the
             transformed input (X) dataframe.
         """
-        assert (
-            self.predict_ahead == 0 or y is not None
-        ), "When predict_ahead > 0, y is needed for prediction"
+        if self.predict_ahead != 0 and y is None:
+            raise ValueError("When predict_ahead > 0, y is needed for prediction")
 
         if y is not None:
             SamQuantileMLP.verify_same_indexes(X, y)

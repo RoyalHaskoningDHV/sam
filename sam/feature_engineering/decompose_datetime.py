@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, List, Tuple, Union
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -132,20 +132,13 @@ def decompose_datetime(
     3   2018-12-30  2           2018        6
     """
 
-    def make_list_if_none(obj: Any) -> Union[Any, List]:
-        if obj is None:
-            return []
-        else:
-            return obj
+    components = [] if components is None else components
+    cyclicals = [] if cyclicals is None else cyclicals
+    onehots = [] if onehots is None else onehots
+    cyclical_maxes = [] if cyclical_maxes is None else cyclical_maxes
 
-    components = make_list_if_none(components)
-    cyclicals = make_list_if_none(cyclicals)
-    onehots = make_list_if_none(onehots)
-    cyclical_maxes = make_list_if_none(cyclical_maxes)
-
-    assert np.all(
-        [c not in cyclicals for c in onehots]
-    ), "cyclicals and onehots are not mutually exclusive"
+    if np.any([c in cyclicals for c in onehots]):
+        raise ValueError("cyclicals and onehots are not mutually exclusive")
 
     if keep_original:
         result = df.copy()
@@ -181,7 +174,8 @@ def decompose_datetime(
     log_dataframe_characteristics(result, logging.DEBUG)
 
     # convert cyclicals
-    assert isinstance(cyclicals, list), "cyclicals must be of type list"
+    if not isinstance(cyclicals, list):
+        raise TypeError("cyclicals must be a list")
     if cyclicals:
         result = recode_cyclical_features(
             result,
@@ -290,7 +284,8 @@ def recode_cyclical_features(
         # prepend column name (like TIME) to match df column names
         col: str = column + col
 
-        assert col in df.columns, f"{col} is not in input dataframe"
+        if col not in df.columns:
+            raise ValueError(f"{col} is not in input dataframe")
 
         # rescale feature so it runs from 0 to 2*pi:
         # Features that exceed the maximum are rolled over by the sine/cosine:
@@ -386,7 +381,8 @@ def recode_onehot_features(
     for onehot_min, onehot_max, col in zip(onehot_mins, onehot_maxes, cols):
         col: str = column + col
 
-        assert col in df.columns, f"{col} is not in input dataframe"
+        if col not in df.columns:
+            raise ValueError(f"{col} is not in input dataframe")
 
         # get the onehot encoded dummies
         dummies: pd.DataFrame = pd.get_dummies(df[col], prefix=col).astype(int)
@@ -458,12 +454,13 @@ def _validate_and_prepare_components(
         The minimums that your data can reach.
     """
 
-    if not column == "":
-        column = column + "_"
-
-    assert isinstance(df, pd.DataFrame), "df should be pandas dataframe"
-    assert isinstance(cols, list), "cols should be a list of columns to convert"
-    assert isinstance(remove_categorical, bool)
+    column = column + "_" if column != "" else column
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("df should be pandas dataframe")
+    if not isinstance(cols, list):
+        raise TypeError("cols should be a list of columns to convert")
+    if not isinstance(remove_categorical, bool):
+        raise TypeError("remove_categorical should be a boolean")
 
     if component_maxes is None or not component_maxes:
         component_maxes: List[int] = CyclicalMaxes.get_maxes_from_strings(cols)

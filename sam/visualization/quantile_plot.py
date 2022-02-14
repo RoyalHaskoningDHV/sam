@@ -99,13 +99,14 @@ def sam_quantile_plot(
     fig: matplotlib.pyplot.figure if interactive=False else go.Figure
     """
 
-    assert not (
-        outlier_min_q is not None and outliers is not None
-    ), "outlier_min_q and outliers cannot be used simultaneously"
+    if outlier_min_q is not None and outliers is not None:
+        raise ValueError("outlier_min_q and outliers cannot be used simultaneously")
 
-    assert not (
-        ignore_value is not None and res is None
-    ), "ignore value should only be set when using resampling (res should not be None)"
+    if ignore_value is not None and res is None:
+        raise ValueError(
+            "ignore value should only be set when "
+            "using resampling (res should not be None)"
+        )
 
     if (y_title == "") and y_true.name:
         y_title = y_true.name
@@ -119,25 +120,30 @@ def sam_quantile_plot(
 
     # apply date range to data to speed up the rest
     if date_range is None:
-        date_range = [y_true.index.min(), y_true.index.max()]
-    y_true = y_true.loc[date_range[0] : date_range[1]]
-    y_hat = y_hat.loc[date_range[0] : date_range[1]]
+        start, end = y_true.index.min(), y_true.index.max()
+    else:
+        start, end = date_range[0], date_range[1]
+    y_true = y_true.loc[start:end]
+    y_hat = y_hat.loc[start:end]
+
+    # set ignore_values to nan so they are ignored in the resampling
+    if ignore_value is None:
+        ignore_timepoints = y_true.apply(lambda x: False)
+    else:
+        ignore_timepoints = y_true == ignore_value
+
+    y_true.loc[ignore_timepoints] = np.nan
+    y_hat.loc[ignore_timepoints] = np.nan
 
     # same pre-processing steps for the benchmark
     if benchmark is not None:
         benchmark = benchmark.copy()
         benchmark = benchmark.shift(predict_ahead)
-        benchmark = benchmark.loc[date_range[0] : date_range[1]]
+        benchmark = benchmark.loc[start:end]
+        benchmark.loc[ignore_timepoints] = np.nan
 
     # resample to desired resolution
     if res is not None:
-        # set ignore_values to nan so they are ignored in the resampling
-        if ignore_value is not None:
-            ignore_timepoints = y_true == ignore_value
-            y_true.loc[ignore_timepoints] = np.nan
-            y_hat.loc[ignore_timepoints] = np.nan
-            if benchmark is not None:
-                benchmark.loc[ignore_timepoints] = np.nan
         y_true = y_true.resample(res).mean()
         y_hat = y_hat.resample(res).mean()
         if benchmark is not None:
@@ -145,41 +151,27 @@ def sam_quantile_plot(
 
     # create figure
     if interactive:
-        fig = _interactive_quantile_plot(
-            y_true=y_true,
-            y_hat=y_hat,
-            title=title,
-            y_title=y_title,
-            data_prop=data_prop,
-            y_range=y_range,
-            date_range=date_range,
-            colors=colors,
-            outlier_min_q=outlier_min_q,
-            predict_ahead=predict_ahead,
-            outliers=outliers,
-            outlier_window=outlier_window,
-            outlier_limit=outlier_limit,
-            benchmark=benchmark,
-            benchmark_color=benchmark_color,
-        )
+        _plot_func = _interactive_quantile_plot
     else:
-        fig = _static_quantile_plot(
-            y_true=y_true,
-            y_hat=y_hat,
-            title=title,
-            y_title=y_title,
-            data_prop=data_prop,
-            y_range=y_range,
-            date_range=date_range,
-            colors=colors,
-            outlier_min_q=outlier_min_q,
-            predict_ahead=predict_ahead,
-            outliers=outliers,
-            outlier_window=outlier_window,
-            outlier_limit=outlier_limit,
-            benchmark=benchmark,
-            benchmark_color=benchmark_color,
-        )
+        _plot_func = _static_quantile_plot
+
+    fig = _plot_func(
+        y_true=y_true,
+        y_hat=y_hat,
+        title=title,
+        y_title=y_title,
+        data_prop=data_prop,
+        y_range=y_range,
+        date_range=date_range,
+        colors=colors,
+        outlier_min_q=outlier_min_q,
+        predict_ahead=predict_ahead,
+        outliers=outliers,
+        outlier_window=outlier_window,
+        outlier_limit=outlier_limit,
+        benchmark=benchmark,
+        benchmark_color=benchmark_color,
+    )
 
     return fig
 

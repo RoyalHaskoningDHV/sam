@@ -82,7 +82,8 @@ def read_regenradar(
 
     # convert to milliseconds, which the regenradar needs
     window = int(pd.tseries.frequencies.to_offset(freq).nanos / 1000000)
-    assert window >= 300 * 1000, "The minimum window for read_regenradar is 300000"
+    if window < 300 * 1000:
+        raise ValueError("The minimum window for read_regenradar is 300000")
 
     # will raise exception if the section does not appear in the config file
     user = config["regenradar"]["user"]

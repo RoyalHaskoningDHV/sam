@@ -65,20 +65,20 @@ class TestTrainR2(unittest.TestCase):
     def test_train_r2_shapes(self):
         # the function cannot handle data with multiple dimensions. It does however ravel
         # empty dimensions (x, 1).
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(np.random.random(size=(12, 2)), np.random.random(size=(12, 2)), 0)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(np.random.random(size=(12, 1)), np.random.random(size=(12, 2)), 0)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(np.random.random(size=(12, 2)), np.random.random(size=(12, 1)), 0)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(
                 np.random.random(size=(12, 1)),
                 np.random.random(size=(12, 1)),
                 np.random.random(size=(12, 2)),
             )
         # benchmark array has to be same size as true array
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             train_r2(
                 np.random.random(size=(12, 1)),
                 np.random.random(size=(12, 1)),
@@ -98,10 +98,14 @@ class TestTrainR2(unittest.TestCase):
             r2 = train_mean_r2(true_array, predicted_array, np.nanmedian(true_array))
 
             # Verify some things
-            assert r2 == 0.5
-            assert len(w) == 1
-            assert issubclass(w[-1].category, DeprecationWarning)
-            assert "DEPRECATED" in str(w[-1].message)
+            if r2 != 0.5:
+                raise AssertionError("r2 is not 0.5")
+            if len(w) != 1:
+                raise AssertionError("len(w) is not 1")
+            if not issubclass(w[-1].category, DeprecationWarning):
+                raise AssertionError("Warning is not DeprecationWarning")
+            if "DEPRECATED" not in str(w[-1].message):
+                raise AssertionError("Warning message does not contain DEPRECATED")
 
 
 if __name__ == "__main__":

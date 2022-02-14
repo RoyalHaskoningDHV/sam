@@ -75,7 +75,8 @@ def top_n_correlations(
     36           RAIN#lag_9             0.944911           RAIN
     """
 
-    assert goal_feature in df.columns, "Goal feature not found in columns!"
+    if goal_feature not in df.columns:
+        raise ValueError("Goal feature not found in columns!")
 
     logging.debug(
         "Retrieving top n variables with goal variable {}, n={}, grouped={}".format(
@@ -154,7 +155,8 @@ def top_score_correlations(df: pd.DataFrame, goal_feature: str, score: float = 0
             4 	DEBIET_A#lag_0 	        0.838591
     """
 
-    assert goal_feature in df.columns, "Goal feature not found in columns!"
+    if goal_feature not in df.columns:
+        raise ValueError("Goal feature not found in columns!")
     logging.debug(
         "Retrieving top n variables with goal variable {}, score={}".format(
             goal_feature, score

@@ -337,7 +337,8 @@ def read_knmi(
     6	0	69	2018-01-01 06:00:00
     """
 
-    assert freq in ["hourly", "daily"]
+    if freq not in ["hourly", "daily"]:
+        raise ValueError("freq must be 'hourly' or 'daily'")
     logger.debug(
         (
             "Getting KNMI historic data: start_date={}, end_date={}, latitude={}, "

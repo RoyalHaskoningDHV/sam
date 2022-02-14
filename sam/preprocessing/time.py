@@ -110,7 +110,9 @@ def average_winter_time(data: pd.DataFrame, tmpcol: str = "tmp_UNID"):
     4   2019-10-27 02:45:00 7.5
     5   2019-10-27 03:00:00 9.0
     """
-    assert tmpcol not in data.columns
+    if tmpcol in data.columns:
+        raise ValueError("tmpcol already exists in dataframe")
+
     logging.debug("Now averaging wintertime")
 
     # Prevent side effects because this function makes inplace changes

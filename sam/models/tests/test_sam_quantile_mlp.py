@@ -581,7 +581,7 @@ class TestSamQuantileMLP(unittest.TestCase):
     def test_average_type(self):
 
         self.assertRaises(
-            AssertionError, SamQuantileMLP, average_type="median", quantiles=[0.5]
+            ValueError, SamQuantileMLP, average_type="median", quantiles=[0.5]
         )
 
 

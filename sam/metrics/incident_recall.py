@@ -43,9 +43,8 @@ def incident_recall(
     >>> incident_recall(y_incidents, y_pred, range_pred)
     0.5
     """
-    assert (
-        range_pred[0] >= 0 and range_pred[1] >= 0
-    ), "prediction window must be positive"
+    if range_pred[0] < 0 or range_pred[1] < 0:
+        raise ValueError("Prediction window range_pred must be positive")
     y_pred, y_incidents = pd.Series(y_pred), pd.Series(y_incidents)
     # A prediction has effect on the future, so lag to the future
     y_pred = range_lag_column(y_pred, (-1 * range_pred[0], -1 * range_pred[1]))
@@ -200,9 +199,9 @@ def precision_incident_recall_curve(
     >>> t
     array([0.1, 0.2, 0.4, 0.5, 0.6])
     """
-    assert (
-        range_pred[0] >= 0 and range_pred[1] >= 0
-    ), "prediction window must be positive"
+    if range_pred[0] < 0 or range_pred[1] < 0:
+        raise ValueError("prediction window range_pred must be positive")
+
     y_lagged = range_lag_column(y_incidents, range_pred)
     precision, _, thresholds_p = precision_recall_curve(y_lagged, y_pred)
 

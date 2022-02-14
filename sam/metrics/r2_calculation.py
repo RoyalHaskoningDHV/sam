@@ -39,22 +39,21 @@ def train_r2(
 
     if len(true.shape) > 1:
         true_ravel = np.ravel(true)
-        assert true_ravel.size == true.shape[0], "true argument must be 1 dimensional"
+        if true_ravel.size > true.shape[0]:
+            raise ValueError("true argument must be 1 dimensional")
+
         true = true_ravel
     if isinstance(benchmark, (pd.Series, np.ndarray)) and len(benchmark.shape) > 1:
         benchmark_ravel = np.ravel(benchmark)
-        assert benchmark_ravel.size == benchmark.shape[0], (
-            "benchmark argument must be " "1 dimensional"
-        )
-        assert (
-            benchmark_ravel.size == true.size
-        ), "benchmark array must be same size as true array"
+        if benchmark_ravel.size > benchmark.shape[0]:
+            raise ValueError("benchmark argument must be 1 dimensional")
+        if benchmark_ravel != true.size:
+            raise ValueError("benchmark array must be same size as true array")
         benchmark = benchmark_ravel
     if len(predicted.shape) > 1:
         predicted_ravel = np.ravel(predicted)
-        assert predicted_ravel.size == predicted.shape[0], (
-            "predicted argument must be " "1 dimensional"
-        )
+        if predicted_ravel.size > predicted.shape[0]:
+            raise ValueError("predicted argument must be 1 dimensional")
         predicted = predicted_ravel
 
     num = np.nansum((true - predicted) ** 2)

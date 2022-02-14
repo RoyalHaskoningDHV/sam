@@ -24,11 +24,11 @@ class NumericAssertions:
 
     def assertAllNotNaN(self, value, msg=None):
         """
-        Fail if provided value is NaN
+        Fail if provided value contains any NaN
         """
-        standardMsg = "There is at least 1 NaN in provided series"
+        standardMsg = "At least one value is NaN"
         try:
-            if np.all(~np.isnan(value)):
+            if np.any(np.isnan(value)):
                 self.fail(self._formatMessage(msg, standardMsg))
         except Exception:
-            pass
+            self.fail(self._formatMessage(msg, standardMsg))

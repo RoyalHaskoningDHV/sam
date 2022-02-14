@@ -14,7 +14,11 @@ def _interpolate_pattern(bigtime, smalltime=None, pattern=0, length=1):
     """
     if isinstance(pattern, (int, float)):
         pattern = np.random.uniform(0, pattern, length)
-    assert isinstance(pattern[0], (int, float))
+    else:
+        for value in pattern:
+            if not isinstance(value, (int, float)):
+                raise TypeError("pattern must be a list of int or float")
+
     spline = np.full(bigtime.size, np.nan)
     for ix, value in enumerate(pattern):
         if smalltime is None:
@@ -157,8 +161,8 @@ def synthetic_timeseries(
     >>> ax.plot(dates[600:700], rnd[600:700])
     >>> fig.autofmt_xdate()
     """
-
-    assert dates.size > 1, "There must be at least 2 datetimes to generate a timeseries"
+    if dates.size < 2:
+        raise ValueError("There must be at least 2 datetimes to generate a timeseries")
     if seed is not None:
         np.random.seed(seed)
     data = np.zeros(dates.size)
@@ -281,7 +285,8 @@ def synthetic_date_range(
           dtype='datetime64[ns]')
     """
     index = pd.date_range(start, end, freq=freq).to_series()
-    assert index.size > 0, "End time must be after start time."
+    if index.size == 0:
+        raise ValueError("End time must be after start time.")
     if seed is not None:
         np.random.seed(seed)
 
