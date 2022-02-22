@@ -268,7 +268,9 @@ def _evaluate_performance(
         r2 = train_r2(y_true, y_hat, benchmark)
         metric_list.append(r2 * 100)
     elif metric == "MAE":
-        illegal_idx = y_true.isin([np.nan, -np.inf, np.inf])
+        illegal_idx = y_true.isin([np.nan, -np.inf, np.inf]) | y_hat.isin(
+            [np.nan, -np.inf, np.inf]
+        )
         mae = mean_absolute_error(y_true[~illegal_idx], y_hat[~illegal_idx])
         metric_list.append(mae)
     else:

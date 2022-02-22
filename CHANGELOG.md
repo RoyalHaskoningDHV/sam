@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.5.6
+
+### Changes
+- `sam.visualization._evaluate_performance` now checks for nan in both `y_hat` and `y_true`.
+
 ## Version 2.5.5
 
 ### Changes
