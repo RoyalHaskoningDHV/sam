@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.5.5
+
+### Changes
+- `sam.visualization.performance_evaluation_fixed_predict_ahead` accepts `metric` parameter that indicates what metric to evaluate the performance with: 'R2' or 'MAE' (mean absolute error). Default metric is 'R2'.
+
 ## Version 2.5.4
 
 ### Changes

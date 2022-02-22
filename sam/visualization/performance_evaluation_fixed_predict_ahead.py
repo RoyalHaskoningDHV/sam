@@ -4,6 +4,7 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 from sam.metrics import train_r2
+from sklearn.metrics import mean_absolute_error
 
 
 def performance_evaluation_fixed_predict_ahead(
@@ -14,6 +15,7 @@ def performance_evaluation_fixed_predict_ahead(
     resolutions: list = [None],
     predict_ahead: int = 0,
     train_avg_func: Callable = np.nanmean,
+    metric: str = "R2",
 ):
     """
     This function evaluates model performance over time for a single given predict ahead.
@@ -44,19 +46,25 @@ def performance_evaluation_fixed_predict_ahead(
         Predict_ahead to display performance for
     train_avg_func: func - Callable (default=np.nanmean)
         Optional argument to pass function to calculate the train set average, by default the
-        mean is used.
+        mean is used. This average is used for calculating the r2 metric.
+    metric: str (default='R2')
+        Optional argument to define the metric to evaluate the performance of the train and test
+        set. Options:
+        - 'R2': conventional r2, best used for regression
+        - 'MAE': mean absolute error, best used for forecasting
+        By default the 'R2' metric is used.
 
     Returns
     ------
-    r2_df: pd.DataFrame
-        Dataframe that contains the r2 values per test/train set and resolution combination.
-        columns: ['R2', 'dataset', 'resolution']
+    metric_df: pd.DataFrame
+        Dataframe that contains the metric (r2 or mae) values per test/train set and resolution
+        combination. Contains columns: ['R2' or 'MAE', 'dataset', 'resolution']
     bar_fig: matplotlib figure
-        Figure object that displays these r-squareds.
+        Figure object that displays the metrics for each resolution and data set.
     scatter_fig: matplotlib figure
         Figure object that displays predicted vs true data for the different resolutions.
     best_res: string
-        The resolution with the maximum R2 in the train set.
+        The resolution with the maximum metric value in the train set.
 
     Example
     -------
@@ -91,13 +99,11 @@ def performance_evaluation_fixed_predict_ahead(
     scatter_fig = plt.figure(figsize=(len(resolutions) * 3, 6))
 
     # select and shift the requested predict ahead
-    y_hat_train = y_hat_train["predict_lead_%d_mean" % predict_ahead].shift(
-        predict_ahead
-    )
+    y_hat_train = y_hat_train["predict_lead_%d_mean" % predict_ahead].shift(predict_ahead)
     y_hat_test = y_hat_test["predict_lead_%d_mean" % predict_ahead].shift(predict_ahead)
 
-    # compute the r-squared (r2) for the different temporal resolutions, for train and test data
-    r2_list, dataset_list, resolution_list = [], [], []
+    # compute the metrics for the different temporal resolutions, for train and test data
+    metric_list, dataset_list, resolution_list = [], [], []
     for ri, res in enumerate(resolutions):
 
         # resample data to desired resolution of requested
@@ -114,21 +120,29 @@ def performance_evaluation_fixed_predict_ahead(
             y_true_test_res = y_true_test
             y_hat_test_res = y_hat_test
 
-        # compute r2 with custom r2 function (in sam.metrics)
-        try:
-            benchmark = train_avg_func(y_true_train_res)
-        except Exception:
-            e = sys.exc_info()[0]
-            raise ValueError(f"Supplied train_avg_func resulted in error: {e}")
+        # train set performance
+        metric_list = _evaluate_performance(
+            y_true_train_res,
+            y_hat_train_res,
+            y_true_train_res,
+            train_avg_func,
+            metric,
+            metric_list,
+        )
 
-        test_set_r2 = train_r2(y_true_test_res, y_hat_test_res, benchmark)
-        train_set_r2 = train_r2(y_true_train_res, y_hat_train_res, benchmark)
+        # test set performance
+        metric_list = _evaluate_performance(
+            y_true_test_res,
+            y_hat_test_res,
+            y_true_train_res,
+            train_avg_func,
+            metric,
+            metric_list,
+        )
 
         # append results to lists
-        r2_list.append(train_set_r2 * 100)
         dataset_list.append("train")
         resolution_list.append(res_label)
-        r2_list.append(test_set_r2 * 100)
         dataset_list.append("test")
         resolution_list.append(res_label)
 
@@ -173,20 +187,91 @@ def performance_evaluation_fixed_predict_ahead(
     sns.despine()
     plt.tight_layout()
 
-    # create bar plot of different r-squareds
-    r2_df = pd.DataFrame(
-        {"R2": r2_list, "dataset": dataset_list, "resolution": resolution_list}
+    # create bar plot of different metrics
+    metric_df = pd.DataFrame(
+        {metric: metric_list, "dataset": dataset_list, "resolution": resolution_list}
     )
     bar_fig = plt.figure(figsize=(6, 4))
     plt.axhline(0, c="k")
-    sns.barplot(data=r2_df, x="resolution", y="R2", hue="dataset")
-    plt.ylabel("Variance Explained (%)")
+    sns.barplot(data=metric_df, x="resolution", y=metric, hue="dataset")
+    if metric == "R2":
+        plt.ylabel("Variance Explained (%)")
+        plt.ylim(0, 100)
+    elif metric == "MAE":
+        plt.ylabel("Mean Absolute Error (mm)")
     sns.despine()
-    plt.ylim(0, 100)
 
-    # calculate best resolution as the maximum resolution R2 in the train set
-    best_res = r2_df.iloc[r2_df.loc[r2_df["dataset"] == "train", "R2"].idxmax()][
-        "resolution"
-    ]
+    # calculate best resolution as the optimal resolution metric in the train set
+    if metric == "R2":
+        best_res = metric_df.iloc[metric_df.loc[metric_df["dataset"] == "train", metric].idxmax()][
+            "resolution"
+        ]
+    elif metric == "MAE":
+        best_res = metric_df.iloc[metric_df.loc[metric_df["dataset"] == "train", metric].idxmin()][
+            "resolution"
+        ]
 
-    return r2_df, bar_fig, scatter_fig, best_res
+    return metric_df, bar_fig, scatter_fig, best_res
+
+
+def _evaluate_performance(
+    y_true: pd.Series,
+    y_hat: pd.Series,
+    y_benchmark: pd.Series = None,
+    avg_func: Callable = np.nanmean,
+    metric: str = "R2",
+    metric_list: list = None,
+):
+    """
+    This function evaluates model performance using the specified metric.
+
+    Parameters
+    ----------
+    y_true: pd.Series
+        Series that contains the true values.
+    y_hat: pd.Series
+        Series that contains the predicted values.
+    y_benchmark: pd.Series (default=None)
+        Series that serves as a benchmark for r2 evaluation, required for calculating the r2 metric
+    avg_func: func - Callable (default=np.nanmean)
+        Optional argument to pass function to calculate the y_benchmark average, by default the
+        mean is used. This average function is required for calculating the r2 metric.
+    metric: str (default='R2')
+        Optional argument to define the metric to evaluate the performance of the train and test
+        set. Options:
+        - 'R2': conventional r2, best used for regression
+        - 'MAE': mean absolute error, best used for forecasting
+        By default the 'R2' metric is used.
+    metric_list: list (default=None)
+        Optional argument to define a list that is appended with the performance results.
+
+    Returns
+    ------
+    metric_list: list
+        List with performance result
+    """
+
+    if metric_list is None:
+        metric_list = []
+
+    if metric == "R2":
+        if y_benchmark is None:
+            raise ValueError("y_benchmark needs to be supplied")
+        else:
+            # compute r2 with custom r2 function (in sam.metrics)
+            try:
+                benchmark = avg_func(y_benchmark)
+            except Exception:
+                e = sys.exc_info()[0]
+                raise ValueError(f"Supplied avg_func resulted in error: {e}")
+
+        r2 = train_r2(y_true, y_hat, benchmark)
+        metric_list.append(r2 * 100)
+    elif metric == "MAE":
+        illegal_idx = y_true.isin([np.nan, -np.inf, np.inf])
+        mae = mean_absolute_error(y_true[~illegal_idx], y_hat[~illegal_idx])
+        metric_list.append(mae)
+    else:
+        raise ValueError(f"Unknown metric '{metric}'")
+
+    return metric_list
