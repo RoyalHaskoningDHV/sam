@@ -16,6 +16,7 @@ setup(
     license="BSD-3-Clause",
     description="Time series anomaly detection and forecasting",
     long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     url="https://github.com/RoyalHaskoningDHV/sam",
     project_urls={
         "Q&A": "https://github.com/RoyalHaskoningDHV/sam/discussions",
