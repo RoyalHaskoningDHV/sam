@@ -9,7 +9,7 @@ Version X.Y.Z stands for:
 
 -------------
 
-## Version 2.5.6
+## Version 2.5.7
 
 ### Changes
 - BSD-3 License 
