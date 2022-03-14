@@ -139,3 +139,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Exceptions
+!LICENSE.txt

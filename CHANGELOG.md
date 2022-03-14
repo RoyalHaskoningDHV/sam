@@ -46,6 +46,13 @@ Version X.Y.Z stands for:
 ## Version 2.5.6
 
 ### Changes
+- BSD-3 License 
+- `pyproject.toml` provides settings for building package (required for PyPI)
+- Additional information in `setup.py` for open source release
+
+## Version 2.5.6
+
+### Changes
 - `sam.visualization._evaluate_performance` now checks for nan in both `y_hat` and `y_true`.
 
 ## Version 2.5.5
