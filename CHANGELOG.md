@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.8.4
+
+### Changes
+- `pyproject.toml` provides settings for building package (required for PyPI)
+- Additional information in `setup.py` for open source release
+
 ## 2.8.3
 
 ### Changes
@@ -42,13 +48,6 @@ Version X.Y.Z stands for:
 
 ### Changes
 - Added a new abstract base class for all SAM models called `SamQuantileRegressor`, that contains some required abstract methods (fit, train, score, dump, load) any subclass needs to implement as well as some default implementations like a standard feature engineer. `SamQuantileMLP` is now a subclass of this new abstract base class, new classes will follow soon. 
-
-## Version 2.5.6
-
-### Changes
-- BSD-3 License 
-- `pyproject.toml` provides settings for building package (required for PyPI)
-- Additional information in `setup.py` for open source release
 
 ## Version 2.5.6
 
