@@ -11,13 +11,23 @@ version = (
 setup(
     name="sam",
     version=version,
-    description="Time series anomaly detection and forecasting",
-    long_description=open("README.md").read(),
-    url="https://dev.azure.com/corporateroot/SAM",
     author="Royal HaskoningDHV",
     author_email="arjan.bontsema@rhdhv.com",
-    license="",
+    license="BSD-3-Clause",
+    description="Time series anomaly detection and forecasting",
+    long_description=open("README.md").read(),
+    url="https://github.com/RoyalHaskoningDHV/sam",
+    project_urls={
+        "Q&A": "https://github.com/RoyalHaskoningDHV/sam/discussions",
+        "Issues": "https://github.com/RoyalHaskoningDHV/sam/issues",
+    },
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
     packages=find_packages(exclude=["*tests"]),
+    python_requires=">=3.6",
     zip_safe=True,
     install_requires=["pandas>=1.1.0", "numpy>=1.13", "scikit-learn<0.24.0"],
     extras_require={
