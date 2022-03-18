@@ -1,16 +1,16 @@
-import warnings
 from pathlib import Path
-from typing import Any, Callable, Tuple, Union
+from typing import Callable, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
 from sam.metrics import R2Evaluation, keras_joint_mse_tilted_loss
 from sam.models import create_keras_quantile_mlp
-from sam.preprocessing import inverse_differenced_target, make_shifted_target
-from sam.utils import FunctionTransformerWithNames, assert_contains_nans
+from sam.models.base_model import BaseTimeseriesRegressor
+from sam.preprocessing import make_shifted_target
+from sam.utils import FunctionTransformerWithNames
 from sklearn import __version__ as skversion
-from sklearn.base import BaseEstimator
+from sklearn.base import TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -43,7 +43,7 @@ class SamShapExplainer(object):
             fit = None
             use_y_as_feature = model.use_y_as_feature
             feature_names_ = model.get_feature_names()
-            preprocess_before_predict = SamQuantileMLP.preprocess_before_predict
+            preprocess_predict = SamQuantileMLP.preprocess_predict
 
         self.model = SamProxyModel()
         # Trick sklearn into thinking this is a fitted variable
@@ -66,7 +66,7 @@ class SamShapExplainer(object):
         y: pd.Series, optional (default=None)
             Target data used to 'train' the explainer.
         """
-        X_transformed = self.model.preprocess_before_predict(X, y, dropna=False)
+        X_transformed = self.model.preprocess_predict(X, y, dropna=False)
         return self.explainer.shap_values(X_transformed, *args, **kwargs)
 
     def attributions(
@@ -99,13 +99,13 @@ class SamShapExplainer(object):
         y: pd.Series, optional (default=None)
             Target data used to 'train' the explainer.
         """
-        X_transformed = self.model.preprocess_before_predict(X, y, dropna=False)
+        X_transformed = self.model.preprocess_predict(X, y, dropna=False)
         return pd.DataFrame(
             X_transformed, columns=self.model.feature_names_, index=X.index
         )
 
 
-class SamQuantileMLP(BaseEstimator):
+class SamQuantileMLP(BaseTimeseriesRegressor):
     """
     This is an example class for how the SAM skeleton can work. This is not the final/only model,
     there are some notes:
@@ -133,9 +133,9 @@ class SamQuantileMLP(BaseEstimator):
 
     Parameters
     ----------
-    predict_ahead: integer, optional (default=[1])
-        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
-        2 timesteps into the future. If [0], predict the present. If not equal to [0],
+    predict_ahead: integer, optional (default=(1))
+        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
+        2 timesteps into the future. If (0), predict the present. If not equal to (0),
         predict the future, with differencing.
         A single integer is also allowed, in which case the value is converted to a singleton list.
     quantiles: array-like, optional (default=())
@@ -177,10 +177,10 @@ class SamQuantileMLP(BaseEstimator):
     epochs: integer, optional (default=20)
         The number of epochs to use in the model, see :ref:`create_keras_quantile_mlp
         <create-keras-quantile-mlp>`
-    lr: integer, optional (default=0.001)
+    lr: float, optional (default=0.001)
         The learning rate to use in the model, see :ref:`create_keras_quantile_mlp
         <create-keras-quantile-mlp>`
-    dropout: integer, optional (default=None)
+    dropout: float, optional (default=None)
         The type of dropout to use in the model, see :ref:`create_keras_quantile_mlp
         <create-keras-quantile-mlp>`
     momentum: integer, optional (default=None)
@@ -230,9 +230,9 @@ class SamQuantileMLP(BaseEstimator):
     >>> # easy to predict the weather 1 hour ahead, so the model should do even better.
     >>> model = SamQuantileMLP(predict_ahead=1, use_y_as_feature=True, timecol='TIME',
     >>>                       quantiles=[0.25, 0.75], epochs=5,
-    >>>                       time_components=['hour', 'month', 'weekday'],
-    >>>                       time_cyclicals=['hour', 'month', 'weekday'],
-    >>>                       rolling_window_size=[1,5,6])
+    >>>                       time_components=('hour', 'month', 'weekday'),
+    >>>                       time_cyclicals=('hour', 'month', 'weekday'),
+    >>>                       rolling_window_size=(1,5,6))
     >>>
     >>> # fit returns a keras history callback object, which can be used as normally
     >>> history = model.fit(X_train, y_train)
@@ -259,40 +259,41 @@ class SamQuantileMLP(BaseEstimator):
 
     def __init__(
         self,
-        predict_ahead=1,
-        quantiles=(),
-        use_y_as_feature=True,
-        use_diff_of_y=True,
-        timecol=None,
-        y_scaler=None,
-        time_components=["minute", "hour", "day", "weekday"],
-        time_cyclicals=["minute", "hour", "day"],
-        time_onehots=["weekday"],
-        rolling_window_size=(12,),
-        rolling_features=["mean"],
-        n_neurons=200,
-        n_layers=2,
-        batch_size=16,
-        epochs=20,
-        lr=0.001,
-        dropout=None,
-        momentum=None,
-        verbose=1,
-        r2_callback_report=False,
-        average_type="mean",
+        predict_ahead: int = (1,),
+        quantiles: Sequence[float] = (),
+        use_y_as_feature: bool = True,
+        use_diff_of_y: bool = True,
+        timecol: str = None,
+        y_scaler: TransformerMixin = None,
+        time_components: Sequence[str] = ("minute", "hour", "day", "weekday"),
+        time_cyclicals: Sequence[str] = ("minute", "hour", "day"),
+        time_onehots: Sequence[str] = ("weekday",),
+        rolling_window_size: Sequence[int] = (12,),
+        rolling_features: Sequence[str] = ("mean",),
+        n_neurons: int = 200,
+        n_layers: int = 2,
+        batch_size: int = 16,
+        epochs: int = 20,
+        lr: float = 0.001,
+        dropout: float = None,
+        momentum: float = None,
+        verbose: int = 1,
+        r2_callback_report: bool = False,
+        average_type: str = "mean",
     ) -> None:
-
-        self.predict_ahead = predict_ahead
-        self.quantiles = quantiles
-        self.use_y_as_feature = use_y_as_feature
-        self.use_diff_of_y = use_diff_of_y
-        self.timecol = timecol
-        self.y_scaler = y_scaler
-        self.time_components = time_components
-        self.time_cyclicals = time_cyclicals
-        self.time_onehots = time_onehots
-        self.rolling_features = rolling_features
-        self.rolling_window_size = rolling_window_size
+        super().__init__(
+            predict_ahead=predict_ahead,
+            quantiles=quantiles,
+            use_y_as_feature=use_y_as_feature,
+            use_diff_of_y=use_diff_of_y,
+            timecol=timecol,
+            y_scaler=y_scaler,
+            time_components=time_components,
+            time_cyclicals=time_cyclicals,
+            time_onehots=time_onehots,
+            rolling_features=rolling_features,
+            rolling_window_size=rolling_window_size,
+        )
         self.n_neurons = n_neurons
         self.n_layers = n_layers
         self.batch_size = batch_size
@@ -304,7 +305,7 @@ class SamQuantileMLP(BaseEstimator):
         self.r2_callback_report = r2_callback_report
         self.average_type = average_type
 
-        if (self.average_type == "median" and 0.5 in self.quantiles):
+        if self.average_type == "median" and 0.5 in self.quantiles:
             raise ValueError(
                 "average_type is mean, but 0.5 is also in quantiles. "
                 "Either set average_type to mean or add 0.5 to quantiles"
@@ -322,6 +323,8 @@ class SamQuantileMLP(BaseEstimator):
 
         The imputer is passed in case some datapoints are missing.
         The scaler is used to improve the MLP performance
+
+        Overwrites the abstract method from SamQuantileRegressor
 
         Returns
         -------
@@ -386,6 +389,8 @@ class SamQuantileMLP(BaseEstimator):
         """
         Returns a simple 2d keras model.
         This is just a wrapper for sam.models.create_keras_quantile_mlp
+
+        Overwrites the abstract method from SamQuantileRegressor
         """
 
         return create_keras_quantile_mlp(
@@ -399,115 +404,6 @@ class SamQuantileMLP(BaseEstimator):
             dropout=self.dropout,
             average_type=self.average_type,
         )
-
-    def validate_predict_ahead(self):
-        """
-        Perform checks to validate the predict_ahead attribute
-        """
-        if np.isscalar(self.predict_ahead):
-            self.predict_ahead = [self.predict_ahead]
-
-        if not all([p >= 0 for p in self.predict_ahead]):
-            raise ValueError("All values of predict_ahead must be 0 or larger!")
-
-        if self.predict_ahead == [0] and self.use_diff_of_y:
-            raise ValueError("use_diff_of_y must be false when predict_ahead is 0")
-
-        if self.predict_ahead == [0] and self.use_y_as_feature:
-            raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
-
-        if len(np.unique(self.predict_ahead)) != len(self.predict_ahead):
-            raise ValueError("predict_ahead contains double values")
-
-    def validate_data(self, X: pd.DataFrame) -> None:
-        """
-        Validates the data and raises an exception if:
-        - There is no time columns
-        - The data is not monospaced
-        - There is not enought data
-
-        Parameters
-        ----------
-        x: pd.DataFrame
-            The dataframe to validate
-        """
-        if self.timecol is None:
-            warnings.warn(
-                (
-                    "No timecolumn given. Make sure the data is"
-                    "monospaced when given to this model!"
-                ),
-                UserWarning,
-            )
-        else:
-            monospaced = X[self.timecol].diff()[1:].unique().size == 1
-            if not monospaced:
-                raise ValueError(
-                    "Data is not monospaced, which is required for"
-                    "this model. fit/predict is not possible"
-                )
-
-        enough_data = len(self.rolling_window_size) == 0 or X.shape[0] > max(
-            self.rolling_window_size
-        )
-        if not enough_data:
-            warnings.warn(
-                "Not enough data given to calculate rolling features. "
-                "Output will be entirely missing values.",
-                UserWarning,
-            )
-
-    def prepare_input_and_target(
-        self, X: pd.DataFrame, y: pd.Series
-    ) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Prepares the input dataframe X and target series y by:
-        - Scaling y
-        - Adding target as feature to input
-        - Transforming the target
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The independent variables used to 'train' the model
-        y: pd.Series
-            Target data (dependent variable) used to 'train' the model
-
-        Returns
-        -------
-        X: pd.DataFrame:
-            The (enriched) training input dataframe
-        y_transformed: pd.Series
-            The transformed target series
-        """
-        if self.y_scaler is not None:
-            y = pd.Series(
-                self.y_scaler.fit_transform(y.values.reshape(-1, 1)).ravel(),
-                index=y.index,
-                name=y.name,
-            )
-
-        if self.use_y_as_feature:
-            X = X.assign(y_=y.copy())
-
-        # Create the actual target
-        if self.predict_ahead != [0]:
-            y_transformed = make_shifted_target(
-                y, self.use_diff_of_y, self.predict_ahead
-            )
-        else:
-            # Dataframe with 1 column. Will use y's index and name
-            y_transformed = pd.DataFrame(y.copy()).astype(float)
-
-        return X, y_transformed
-
-    @staticmethod
-    def verify_same_indexes(X: pd.DataFrame, y: pd.Series, y_can_be_none=True):
-        """
-        Verify that X and y have the same index
-        """
-        if not y.index.equals(X.index):
-            raise ValueError("For training, X and y must have an identical index")
 
     def fit(
         self,
@@ -529,6 +425,8 @@ class SamQuantileMLP(BaseEstimator):
         - Optionally, preprocess validation data to give to the fit
         - Pass through any other fit_kwargs to the fit function
 
+        Overwrites the abstract method from SamQuantileRegressor
+
         Parameters
         ----------
         X: pd.DataFrame
@@ -543,108 +441,16 @@ class SamQuantileMLP(BaseEstimator):
         tf.keras.callbacks.History:
             The history object after fitting the keras model
         """
-
-        SamQuantileMLP.verify_same_indexes(X, y)
-        self.validate_predict_ahead()
-        self.validate_data(X)
-
-        # Update the input and target depending on settings
-        X, y_transformed = self.prepare_input_and_target(X, y)
-
-        # Index where target is nan, cannot be trained on.
-        targetnanrows = y_transformed.isna().any(axis=1)
-
-        # Save input columns names
-        self._set_input_cols(X)
-
-        # buildrollingfeatures
-        self.rolling_cols_ = [col for col in X if col != self.timecol]
-        self.feature_engineer_ = self.get_feature_engineer()
-
-        # Apply feature engineering
-        X_transformed = self.feature_engineer_.fit_transform(X)
-
-        # Now we have fitted the feature engineer, we can set the feature names
-        self.set_feature_names(X, X_transformed)
-
-        # Now feature names are set, we can start using self.get_feature_names()
-        X_transformed = pd.DataFrame(
-            X_transformed, columns=self.get_feature_names(), index=X.index
-        )
-
-        self.n_inputs_ = len(self.get_feature_names())
-
-        # Create output column names. In this model, our outputs are assumed to have the
-        # form: [quantile_1_output_1, quantile_1_output_2, ... ,
-        # quantile_n_output_1, quantile_n_output_2, ..., mean_output_1, mean_output_2]
-        # Where n_output (1 or 2 in this example) is decided by self.predict_ahead
-        self.prediction_cols_ = [
-            "predict_lead_{}_q_{}".format(p, q)
-            for q in self.quantiles
-            for p in self.predict_ahead
-        ]
-        self.prediction_cols_ += [
-            "predict_lead_{}_mean".format(p) for p in self.predict_ahead
-        ]
-        self.n_outputs_ = len(self.prediction_cols_)
-
-        # Remove the first n rows because they are nan anyway because of rolling features
-        if len(self.rolling_window_size) > 0:
-            X_transformed = X_transformed.iloc[max(self.rolling_window_size) :]
-            y_transformed = y_transformed.iloc[max(self.rolling_window_size) :]
-        # Filter rows where the target is unknown
-        X_transformed = X_transformed.loc[~targetnanrows]
-        y_transformed = y_transformed.loc[~targetnanrows]
-
-        assert_contains_nans(
-            X_transformed, "Data cannot contain nans. Imputation not supported for now"
-        )
+        (
+            X_transformed,
+            y_transformed,
+            X_val_transformed,
+            y_val_transformed,
+        ) = self.preprocess_fit(X, y, validation_data)
 
         self.model_ = self.get_untrained_model()
 
-        # Apply transformations to validation data if provided:
         if validation_data is not None:
-            X_val, y_val = validation_data
-
-            self.validate_data(X_val)
-
-            if self.y_scaler is not None:
-                y_val = pd.Series(
-                    self.y_scaler.transform(y_val.values.reshape(-1, 1)).ravel(),
-                    index=y_val.index,
-                    name=y_val.name,
-                )
-
-            # This does not affect training: it only calls transform, not fit
-            X_val_transformed = self.preprocess_before_predict(X_val, y_val)
-            X_val_transformed = pd.DataFrame(
-                X_val_transformed, columns=self.get_feature_names(), index=X_val.index
-            )
-            if self.predict_ahead != [0]:
-                y_val_transformed = make_shifted_target(
-                    y_val, self.use_diff_of_y, self.predict_ahead
-                )
-            else:
-                # Dataframe with 1 column. Will use y's index and name
-                y_val_transformed = pd.DataFrame(y_val.copy()).astype(float)
-
-            # Remove the first n rows because they are nan anyway because of rolling features
-            if len(self.rolling_window_size) > 0:
-                X_val_transformed = X_val_transformed.iloc[
-                    max(self.rolling_window_size) :
-                ]
-                y_val_transformed = y_val_transformed.iloc[
-                    max(self.rolling_window_size) :
-                ]
-            # The lines below are only to deal with nans in the validation set
-            # These should eventually be replaced by Arjans/Fennos function for removing nan rows
-            # So that this code will be much more readable
-            targetnanrows = y_val_transformed.isna().any(axis=1)
-
-            # Filter rows where the target is unknown
-            X_val_transformed = X_val_transformed.loc[~targetnanrows]
-            y_val_transformed = y_val_transformed.loc[~targetnanrows]
-            # Until here
             validation_data = (X_val_transformed, y_val_transformed)
 
         if self.r2_callback_report:
@@ -686,38 +492,6 @@ class SamQuantileMLP(BaseEstimator):
         )
         return history
 
-    def preprocess_before_predict(
-        self, X: pd.DataFrame, y: pd.Series, dropna: bool = False
-    ) -> pd.DataFrame:
-        """
-        Transform a DataFrame X so it can be fed to self.model_.
-        This is useful for several usecases, where you want to use the underlying
-        keras model as opposed to the wrapper. For example shap, eli5, and even just
-        implementing the `predict` function.
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The training input samples.
-        y: pd.Series
-            The target values
-        dropna: bool, optional (default=False)
-            If True, delete the rows that contain NaN values
-        """
-        # This function only works if the estimator is fitted
-        check_is_fitted(self, "feature_engineer_")
-
-        if y is not None:
-            SamQuantileMLP.verify_same_indexes(X, y)
-
-        if self.use_y_as_feature:
-            X = X.assign(y_=y.copy())
-
-        X_transformed = self.feature_engineer_.transform(X)
-        if dropna:
-            X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
-        return X_transformed
-
     def predict(
         self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
@@ -733,6 +507,8 @@ class SamQuantileMLP(BaseEstimator):
         data from 00:00-12:00, and are predicting 4 hours into the future, it will predict what
         the value will be at 4:00-16:00
 
+        Overwrites the abstract method from SamQuantileRegressor
+
         Parameters
         ----------
         X: pd.DataFrame
@@ -742,154 +518,34 @@ class SamQuantileMLP(BaseEstimator):
         return_data: bool, optional (default=False)
             whether to return only the prediction, or to return both the prediction and the
             transformed input (X) dataframe.
+
+        Returns
+        -------
+        prediction: pd.DataFrame
+            The predictions coming from the model
+        X_transformed: pd.DataFrame, optional
+            The transformed input data, when return_data is True, otherwise None
         """
         if self.predict_ahead != 0 and y is None:
             raise ValueError("When predict_ahead > 0, y is needed for prediction")
 
-        if y is not None:
-            SamQuantileMLP.verify_same_indexes(X, y)
-
         self.validate_data(X)
 
-        X_transformed = self.preprocess_before_predict(X, y)
+        X_transformed = self.preprocess_predict(X, y)
         prediction = self.model_.predict(X_transformed)
 
-        # Put the predictions in a dataframe so we can undo the differencing
-        prediction = pd.DataFrame(
-            prediction, columns=self.prediction_cols_, index=X.index
-        )
-        # If we performed differencing, we undo it here
-        if self.use_diff_of_y:
-            prediction = inverse_differenced_target(prediction, y)
-
-        if prediction.shape[1] == 1:
-            # If you just wanted to predict a single value without quantiles,
-            # just return a series. Easier to work with.
-            prediction = prediction.iloc[:, 0]
-
-            if self.y_scaler is not None:
-                prediction = pd.Series(
-                    self.y_scaler.inverse_transform(prediction.values).ravel(),
-                    index=prediction.index,
-                    name=prediction.name,
-                )
-
-        else:
-            if self.y_scaler is not None:
-                inv_pred = np.zeros_like(prediction)
-                for i in range(prediction.shape[1]):
-                    inv_pred[:, i] = self.y_scaler.inverse_transform(
-                        prediction.iloc[:, i].values.reshape(-1, 1)
-                    ).ravel()
-                prediction = pd.DataFrame(
-                    inv_pred, columns=prediction.columns, index=prediction.index
-                )
+        prediction = self.postprocess_predict(prediction, X, y)
 
         if return_data:
             return prediction, X_transformed
         else:
             return prediction
 
-    def set_feature_names(self, X: Any, X_transformed: Any) -> None:
-        """
-        Default function for setting self._feature_names
-
-        For the default feature engineer, it outputs features like 'mean__Q#mean_1'
-        Which is much easier to interpret if we remove the 'mean__'
-
-        Parameters
-        ----------
-        X: Unused
-        X_transformed: Unused
-        """
-        names = self.feature_engineer_.named_steps["columns"].get_feature_names()
-        names = [colname.split("__")[1] for colname in names]
-        self._feature_names = names
-
-    def get_feature_names(self) -> list:
-        """
-        Function for obtaining feature names. Generally used instead of the attribute, and more
-        compatible with the sklearn API.
-
-        Returns
-        -------
-        list:
-            list of feature names
-        """
-        check_is_fitted(self, "_feature_names")
-        return self._feature_names
-
-    def _set_input_cols(self, X: pd.DataFrame) -> None:
-        """
-        Function to set the attribute self._input_cols (input column names).
-        Only used internally right before the feature building.
-        Time column is not included, since time is always a dependency
-        This can be used to determine model dependencies
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The DataFrame that contains the input columns
-        """
-        col_names = X.columns.values
-        col_names = col_names[col_names != self.timecol]
-        self._input_cols = col_names
-
-    def get_input_cols(self) -> np.array:
-        """
-        Function to obtain the input column names.
-        This can be used to determine model dependencies
-        Time column is not included, since time is always a dependency
-
-        Returns
-        -------
-        list:
-            The input column names
-        """
-        check_is_fitted(self, "_input_cols")
-        return self._input_cols
-
-    def get_actual(self, y: pd.Series) -> Union[pd.Series, pd.DataFrame]:
-        """
-        Convenience function for getting the actual values (perfect prediction).
-        Mainly useful for scoring the model. This essentially does and undoes differencing
-        on y, meaning this function will output what a perfect model would have outputted.
-        If predict_ahead is 0, no differencing is done anyway, so y is just returned unchanged.
-
-        Returns a Series of a Dataframe depending on the number of values in self.predict_ahead
-
-        Parameters
-        -------
-        y:
-            The target values
-
-        Returns
-        -------
-        pd.Series or pd.DataFrame:
-            y after applying differencing and undoing the process (if self.use_diff_of_y)
-            If self.predict_ahead is a single value, this function will return a series.
-            If self.predict_ahead has multiple values (list), this function will return a
-            dataframe.
-        """
-        # This function only works if the estimator is fitted
-        check_is_fitted(self, "model_")
-        if len(self.predict_ahead) == 1:
-            pred = self.predict_ahead[0]
-        else:
-            pred = self.predict_ahead
-
-        if self.predict_ahead != [0]:
-            actual = make_shifted_target(y, self.use_diff_of_y, pred)
-            if self.use_diff_of_y:
-                actual = inverse_differenced_target(actual, y)
-        else:
-            actual = y.copy().astype(float)
-
-        return actual
-
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
         """
         Default score function. Uses sum of mse and tilted loss
+
+        Overwrites the abstract method from SamQuantileRegressor
 
         Parameters
         ----------
@@ -898,7 +554,8 @@ class SamQuantileMLP(BaseEstimator):
         y: pd.Series
             The target values
 
-        Returns:
+        Returns
+        -------
         float:
             The score
         """
@@ -960,6 +617,8 @@ class SamQuantileMLP(BaseEstimator):
         to the folder given by foldername. prefix is configurable, and is
         'model' by default
 
+        Overwrites the abstract method from SamQuantileRegressor
+
         Parameters
         ----------
         foldername: str
@@ -996,6 +655,8 @@ class SamQuantileMLP(BaseEstimator):
         from the folder given by foldername. prefix is configurable, and is
         'model' by default
         Output is an entire instance of the fitted model that was saved
+
+        Overwrites the abstract method from SamQuantileRegressor
 
         Returns
         -------
@@ -1140,7 +801,7 @@ class SamQuantileMLP(BaseEstimator):
                 elif self.average_type == "mean":
                     return np.mean((y - model.predict(X)[:, -1]) ** 2)
 
-        X_transformed = self.preprocess_before_predict(X, y)
+        X_transformed = self.preprocess_predict(X, y)
 
         if self.predict_ahead != [0]:
             y_target = make_shifted_target(
@@ -1212,7 +873,7 @@ class SamQuantileMLP(BaseEstimator):
         """
         import shap
 
-        X_transformed = self.preprocess_before_predict(X, y, dropna=True)
+        X_transformed = self.preprocess_predict(X, y, dropna=True)
         if sample_n is not None:
             # Sample some rows to increase performance later
             sampled = np.random.choice(X_transformed.shape[0], sample_n, replace=False)

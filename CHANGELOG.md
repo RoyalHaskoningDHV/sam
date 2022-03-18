@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.6.0
+
+### Changes
+- Added a new abstract base class for all SAM models called `SamQuantileRegressor`, that contains some required abstract methods (fit, train, score, dump, load) any subclass needs to implement as well as some default implementations like a standard feature engineer. `SamQuantileMLP` is now a subclass of this new abstract base class, new classes will follow soon. 
+
 ## Version 2.5.6
 
 ### Changes

@@ -122,7 +122,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         )
 
         # Try the preprocessing
-        X_transformed = model.preprocess_before_predict(self.X_test, self.y_test)
+        X_transformed = model.preprocess_predict(self.X_test, self.y_test)
         # Should have the same number of columns as model.get_feature_names()
         self.assertEqual(X_transformed.shape[1], len(model.get_feature_names()))
 
@@ -300,7 +300,7 @@ class TestSamQuantileMLP(unittest.TestCase):
             ],
         )
 
-        X_transformed = model.preprocess_before_predict(self.X_test, self.y_test)
+        X_transformed = model.preprocess_predict(self.X_test, self.y_test)
         # Should have the same number of columns as model.get_feature_names()
         self.assertEqual(X_transformed.shape[1], len(model.get_feature_names()))
 
@@ -361,7 +361,7 @@ class TestSamQuantileMLP(unittest.TestCase):
             ],
         )
 
-        X_transformed = model.preprocess_before_predict(self.X_test, self.y_test)
+        X_transformed = model.preprocess_predict(self.X_test, self.y_test)
         # Should have the same number of columns as model.get_feature_names()
         self.assertEqual(X_transformed.shape[1], len(model.get_feature_names()))
 
@@ -403,7 +403,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         self.assertEqual(model.prediction_cols_[0], pred.name)
         self.assertEqual(pred.name, "predict_lead_1_mean")
 
-        X_transformed = model.preprocess_before_predict(self.X_test, self.y_test)
+        X_transformed = model.preprocess_predict(self.X_test, self.y_test)
         # Should have the same number of columns as model.get_feature_names()
         self.assertEqual(X_transformed.shape[1], len(model.get_feature_names()))
 
