@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.6.1
+
+### Changes
+- Added a SPC model to SAM called `SPCRegressor`, which uses the `SamQuantileRegressor` base class and can be used as a fall back or benchmark model
+
+### Fixes
+- `SamQuantileMLP` now accepts Sequence types for some of its init parameters (like quantiles, time_cyclicals etc.) and the default value is changed to tuples to prevent the infamous "Mutable default argument" issue. 
 ## Version 2.6.0
 
 ### Changes
