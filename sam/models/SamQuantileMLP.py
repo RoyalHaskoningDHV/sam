@@ -229,9 +229,10 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
     >>> # expect this the persistence benchmark to score decently high, but also it should be
     >>> # easy to predict the weather 1 hour ahead, so the model should do even better.
     >>> model = SamQuantileMLP(predict_ahead=1, use_y_as_feature=True, timecol='TIME',
-    >>>                       quantiles=[0.25, 0.75], epochs=5,
+    >>>                       quantiles=(0.25, 0.75), epochs=5,
     >>>                       time_components=('hour', 'month', 'weekday'),
     >>>                       time_cyclicals=('hour', 'month', 'weekday'),
+    >>>                       time_onehots=None,
     >>>                       rolling_window_size=(1,5,6))
     >>>
     >>> # fit returns a keras history callback object, which can be used as normally

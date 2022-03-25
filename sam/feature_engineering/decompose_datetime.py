@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Sequence
 
 import numpy as np
 import pandas as pd
@@ -151,9 +151,9 @@ def decompose_datetime(
     )
 
     # We should check first if the column has a compatible type
-    pandas_functions: list = [f for f in dir(df[column].dt) if not f.startswith("_")]
+    pandas_functions = [f for f in dir(df[column].dt) if not f.startswith("_")]
 
-    custom_functions: list = ["secondofday"]
+    custom_functions = ["secondofday"]
     for component in components:
         if component in pandas_functions:
             result[column + "_" + component] = getattr(df[column].dt, component)
@@ -174,8 +174,8 @@ def decompose_datetime(
     log_dataframe_characteristics(result, logging.DEBUG)
 
     # convert cyclicals
-    if not isinstance(cyclicals, list):
-        raise TypeError("cyclicals must be a list")
+    if not isinstance(cyclicals, Sequence):
+        raise TypeError("cyclicals must be a sequence type")
     if cyclicals:
         result = recode_cyclical_features(
             result,
@@ -202,12 +202,12 @@ def decompose_datetime(
 
 def recode_cyclical_features(
     df: pd.DataFrame,
-    cols: List[str],
+    cols: Sequence[str],
     column: str = "",
     remove_categorical: bool = True,
     keep_original: bool = True,
-    cyclical_maxes: List[int] = None,
-    cyclical_mins: List[int] = [0],
+    cyclical_maxes: Sequence[int] = None,
+    cyclical_mins: Sequence[int] = (0),
 ) -> pd.DataFrame:
     """
     Convert cyclical features (like day of week, hour of day) to continuous variables, so that
@@ -311,12 +311,12 @@ def recode_cyclical_features(
 
 def recode_onehot_features(
     df: pd.DataFrame,
-    cols: List[str],
+    cols: Sequence[str],
     column: str = "",
     remove_categorical: bool = True,
     keep_original: bool = True,
-    onehot_maxes: List[int] = None,
-    onehot_mins: List[int] = [0],
+    onehot_maxes: Sequence[int] = None,
+    onehot_mins: Sequence[int] = (0),
 ) -> pd.DataFrame:
     """
     Convert time features (like day of week, hour of day) to onehot variables (1 or 0 for each
@@ -406,13 +406,13 @@ def recode_onehot_features(
 
 def _validate_and_prepare_components(
     df: pd.DataFrame,
-    cols: List[str],
+    cols: Sequence[str],
     column: str,
     remove_categorical: bool,
     keep_original: bool,
-    component_maxes: List[int],
-    component_mins: List[int],
-) -> Tuple[pd.DataFrame, str, List[int], List[int]]:
+    component_maxes: Sequence[int],
+    component_mins: Sequence[int],
+) -> Tuple[pd.DataFrame, str, Sequence[int], Sequence[int]]:
     """
     Validates and prepares the dataframe, component (onehot or cyclical) parameters and min/max
     component bounds.
@@ -457,17 +457,17 @@ def _validate_and_prepare_components(
     column = column + "_" if column != "" else column
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df should be pandas dataframe")
-    if not isinstance(cols, list):
-        raise TypeError("cols should be a list of columns to convert")
+    if not isinstance(cols, Sequence):
+        raise TypeError("cols should be a sequence of columns to convert")
     if not isinstance(remove_categorical, bool):
         raise TypeError("remove_categorical should be a boolean")
 
     if component_maxes is None or not component_maxes:
-        component_maxes: List[int] = CyclicalMaxes.get_maxes_from_strings(cols)
+        component_maxes = CyclicalMaxes.get_maxes_from_strings(cols)
 
     if np.isscalar(component_mins):
         component_mins = [component_mins] * len(component_maxes)
-    elif isinstance(component_mins, (list, tuple, np.ndarray)):
+    elif isinstance(component_mins, (Sequence, np.ndarray)):
         if len(component_mins) == 1:
             component_mins *= len(component_maxes)
     else:
