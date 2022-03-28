@@ -63,7 +63,7 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
         cols: list = None,
         window: Union[int, str] = 1,
         pvalue: float = None,
-        margin: int = 0,
+        margin: float = 0,
         backfill: bool = True,
     ):
 
