@@ -147,6 +147,6 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
             )
 
             # now replace with nans
-            data_r[col].iloc[flatliners] = np.nan
+            data_r.loc[flatliners, col] = np.nan
 
         return data_r
