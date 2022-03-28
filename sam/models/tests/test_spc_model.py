@@ -51,10 +51,14 @@ class TestSPCRegressor(unittest.TestCase):
         """
         model = SPCRegressor(timecol="TIME")
         model.fit(self.X_train, self.y_train)
-        _ = model.predict(self.X_test, self.y_test)
+        preds = model.predict(self.X_test, self.y_test)
 
         score = model.score(self.X_test, self.y_test)
-        self.assertEqual(score, 0)
+        # Loss score should be equal to the MSE, since there are no quantiles
+        expected_score = np.sum(
+            np.mean((model.get_actual(self.y_test) - preds) ** 2, axis=0)
+        )
+        self.assertEqual(score, expected_score)
 
     def test_normal_use(self):
         """Test if the SPC model performs normally with some quantiles"""

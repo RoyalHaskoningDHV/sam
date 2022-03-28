@@ -300,26 +300,6 @@ class SPCRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def score(self, X: pd.DataFrame, y: pd.Series) -> float:
-        """Return the score of the SPC model
-
-        Since the SPC model is used as benchmark model and by definition,
-        it's R2 is always zero, so instead of calculating that, just return 0
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The independent variables used to predict. Not used in this function.
-        y: pd.Series
-            The target values. Not used in this function.
-
-        Returns
-        -------
-        float:
-            The R2 score (always 0 for this model)
-        """
-        return 0
-
     def dump(self, foldername: str, prefix: str = "model") -> None:
         """
         Writes the instanced model to foldername/prefix.pkl

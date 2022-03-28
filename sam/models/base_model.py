@@ -616,13 +616,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         return actual
 
-    @abstractmethod
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
         """
-        This abstract method needs to be implemented by any class inheriting from
-        SamQuantileRegressor. This function receives preprocessed input data, predicts
-        new values and compares the predicted values with the actual values, using some
-        metric.
+        Default score function. Uses sum of mse and tilted loss
 
         Parameters
         ----------
@@ -636,7 +632,54 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         float:
             The score
         """
-        return None
+        # This function only works if the estimator is fitted
+        check_is_fitted(self, "model_")
+        # We need a dataframe, regardless of if these functions outputs a series or dataframe
+        prediction = pd.DataFrame(self.predict(X, y))
+        actual = pd.DataFrame(self.get_actual(y))
+
+        # scale these predictions back to get a score that is in same units as keras loss
+        if self.y_scaler is not None:
+            pred_scaled = np.zeros_like(prediction)
+            for i in range(prediction.shape[1]):
+                pred_scaled[:, i] = self.y_scaler.transform(
+                    prediction.iloc[:, i].values.reshape(-1, 1)
+                ).ravel()
+            prediction = pd.DataFrame(
+                pred_scaled, columns=prediction.columns, index=prediction.index
+            )
+
+            actual = pd.DataFrame(
+                self.y_scaler.transform(actual.values).ravel(),
+                index=actual.index,
+                columns=actual.columns,
+            )
+
+        # actual usually has some missings at the end
+        # prediction usually has some missings at the beginning
+        # We ignore the rows with missings
+        missings = actual.isna().any(axis=1) | prediction.isna().any(axis=1)
+        actual = actual.loc[~missings]
+        prediction = prediction.loc[~missings]
+
+        # self.prediction_cols_[-1] defines the mean prediction
+        # For n outputs, we need the last n columns instead
+        # Therefore, this line calculates the mse of the mean prediction
+        mean_prediction = prediction[
+            self.prediction_cols_[-1 * len(self.predict_ahead) :]
+        ].values
+        # Calculate the MSE of all the predictions, and tilted loss of quantile predictions,
+        # then sum them at the end
+        loss = np.sum(np.mean((actual - mean_prediction) ** 2, axis=0))
+        for i, q in enumerate(self.quantiles):
+            startcol = len(self.predict_ahead) * i
+            endcol = startcol + len(self.predict_ahead)
+            e = np.array(
+                actual - prediction[self.prediction_cols_[startcol:endcol]].values
+            )
+            # Calculate all the quantile losses, and sum them at the end
+            loss += np.sum(np.mean(np.max([q * e, (q - 1) * e], axis=0), axis=0))
+        return loss
 
     @abstractmethod
     def dump(self, foldername: str, prefix: str = "model") -> None:
