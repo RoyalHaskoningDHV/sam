@@ -584,6 +584,13 @@ class TestSamQuantileMLP(unittest.TestCase):
             ValueError, SamQuantileMLP, average_type="median", quantiles=[0.5]
         )
 
+    def test_default_params(self):
+        """Sanity check if default params work
+        """
+        model = SamQuantileMLP(timecol="TIME")
+        model.fit(self.X_train, self.y_train)
+        _ = model.predict(self.X_test, self.y_test)
+
 
 if __name__ == "__main__":
     unittest.main()

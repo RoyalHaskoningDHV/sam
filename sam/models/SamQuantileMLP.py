@@ -216,45 +216,45 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
     >>> from sam.data_sources import read_knmi
     >>> from sklearn.model_selection import train_test_split
     >>> from sklearn.metrics import mean_squared_error
-    >>>
+    >>> import tensorflow as tf
+    >>> tf.random.set_seed(42)
     >>> # Prepare data
     >>> data = read_knmi('2018-02-01', '2019-10-01', latitude=52.11, longitude=5.18, freq='hourly',
-    >>>                 variables=['FH', 'FF', 'FX', 'T', 'TD', 'SQ', 'Q', 'DR', 'RH', 'P',
-    >>>                            'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
+    ...                  variables=['FH', 'FF', 'FX', 'T', 'TD', 'SQ', 'Q', 'DR', 'RH', 'P',
+    ...                             'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
     >>> y = data['T']
     >>> X = data.drop('T', axis=1)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
-    >>>
     >>> # We are predicting the weather 1 hour ahead. Since weather is highly autocorrelated, we
     >>> # expect this the persistence benchmark to score decently high, but also it should be
     >>> # easy to predict the weather 1 hour ahead, so the model should do even better.
     >>> model = SamQuantileMLP(predict_ahead=1, use_y_as_feature=True, timecol='TIME',
-    >>>                       quantiles=[0.25, 0.75], epochs=5,
-    >>>                       time_components=('hour', 'month', 'weekday'),
-    >>>                       time_cyclicals=('hour', 'month', 'weekday'),
-    >>>                       rolling_window_size=(1,5,6))
-    >>>
+    ...                        quantiles=(0.25, 0.75), epochs=5, verbose=0,
+    ...                        time_components=('hour', 'month', 'weekday'),
+    ...                        time_cyclicals=('hour', 'month', 'weekday'),
+    ...                        time_onehots=None,
+    ...                        rolling_window_size=(1,5,6))
     >>> # fit returns a keras history callback object, which can be used as normally
     >>> history = model.fit(X_train, y_train)
     >>> pred = model.predict(X_test, y_test).dropna()
-    >>>
     >>> actual = model.get_actual(y_test).dropna()
     >>> # Because of impossible to know values, some rows have to be dropped. After dropping
     >>> # them, make sure the indexes still match by dropping the same rows from each side
     >>> pred, actual = pred.reindex(actual.index).dropna(), actual.reindex(pred.index).dropna()
-    >>> mean_squared_error(actual, pred.iloc[:, -1])  # last column contains mean prediction
-    114.50628975834859
-    >>>
+    >>> mse_score = mean_squared_error(actual, pred.iloc[:, -1])  # last column contains mean preds
+    >>> print(round(mse_score, 2))
+    66.08
     >>> # Persistence corresponds to predicting the present, so use ytest
     >>> persistence_prediction = y_test.reindex(actual.index).dropna()
-    >>> mean_squared_error(actual, persistence_prediction)
-    149.35018919848642
-    >>>
+    >>> persistence_mse_score = mean_squared_error(actual, persistence_prediction)
+    >>> print(round(persistence_mse_score, 2))
+    149.45
     >>> # As we can see, the model performs significantly better than the persistence benchmark
     >>> # Mean benchmark, which does much worse:
     >>> mean_prediction = pd.Series(y_test.mean(), index = actual)
-    >>> mean_squared_error(actual, mean_prediction)
-    2410.20138157309
+    >>> bench_mse_score = mean_squared_error(actual, mean_prediction)
+    >>> print(round(bench_mse_score, 2))
+    2410.59
     """
 
     def __init__(
@@ -540,73 +540,6 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             return prediction, X_transformed
         else:
             return prediction
-
-    def score(self, X: pd.DataFrame, y: pd.Series) -> float:
-        """
-        Default score function. Uses sum of mse and tilted loss
-
-        Overwrites the abstract method from SamQuantileRegressor
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The independent variables used to predict.
-        y: pd.Series
-            The target values
-
-        Returns
-        -------
-        float:
-            The score
-        """
-        # This function only works if the estimator is fitted
-        check_is_fitted(self, "model_")
-        # We need a dataframe, regardless of if these functions outputs a series or dataframe
-        prediction = pd.DataFrame(self.predict(X, y))
-        actual = pd.DataFrame(self.get_actual(y))
-
-        # scale these predictions back to get a score that is in same units as keras loss
-        if self.y_scaler is not None:
-            pred_scaled = np.zeros_like(prediction)
-            for i in range(prediction.shape[1]):
-                pred_scaled[:, i] = self.y_scaler.transform(
-                    prediction.iloc[:, i].values.reshape(-1, 1)
-                ).ravel()
-            prediction = pd.DataFrame(
-                pred_scaled, columns=prediction.columns, index=prediction.index
-            )
-
-            actual = pd.DataFrame(
-                self.y_scaler.transform(actual.values).ravel(),
-                index=actual.index,
-                columns=actual.columns,
-            )
-
-        # actual usually has some missings at the end
-        # prediction usually has some missings at the beginning
-        # We ignore the rows with missings
-        missings = actual.isna().any(axis=1) | prediction.isna().any(axis=1)
-        actual = actual.loc[~missings]
-        prediction = prediction.loc[~missings]
-
-        # self.prediction_cols_[-1] defines the mean prediction
-        # For n outputs, we need the last n columns instead
-        # Therefore, this line calculates the mse of the mean prediction
-        mean_prediction = prediction[
-            self.prediction_cols_[-1 * len(self.predict_ahead) :]
-        ].values
-        # Calculate the MSE of all the predictions, and tilted loss of quantile predictions,
-        # then sum them at the end
-        loss = np.sum(np.mean((actual - mean_prediction) ** 2, axis=0))
-        for i, q in enumerate(self.quantiles):
-            startcol = len(self.predict_ahead) * i
-            endcol = startcol + len(self.predict_ahead)
-            e = np.array(
-                actual - prediction[self.prediction_cols_[startcol:endcol]].values
-            )
-            # Calculate all the quantile losses, and sum them at the end
-            loss += np.sum(np.mean(np.max([q * e, (q - 1) * e], axis=0), axis=0))
-        return loss
 
     def dump(self, foldername: str, prefix: str = "model") -> None:
         """

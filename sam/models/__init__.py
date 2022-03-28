@@ -13,3 +13,4 @@ from .keras_templates import (  # noqa: F401
 from .LinearQuantileRegression import LinearQuantileRegression  # noqa: F401
 from .SamQuantileMLP import SamQuantileMLP  # noqa: F401
 from .base_model import BaseTimeseriesRegressor  # noqa: F401
+from .spc_model import SPCRegressor  # noqa: F401
