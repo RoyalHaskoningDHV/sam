@@ -34,14 +34,14 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
         Only used if ``window="auto"``
         Small pvalues lead to a larger threshold, hence less flatlines will be removed
     margin: int (default = 0)
-        maximum difference between consecutive samples to consider them equal.
+        Maximum absolute difference between consecutive samples to consider them equal.
         Default is 0, which means that consecutive samples must be exactly equal
         to form a flatline.
     backfill: bool (default = True)
         whether to label all within the window, even before the first detected
         data point. This is useful if you want to remove flatlines from the
-        beginning of a signal. Make sure this cannot cause any leakage of
-        information.
+        beginning of a signal. However, that is not always representative of
+        for a real-time application, so one might want to set this to False.
 
     Examples
     --------
@@ -51,11 +51,11 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
     >>> # with one clear outlier
     >>> test_df = pd.DataFrame()
     >>> test_df['values'] = data
-    >>> # now detect extremes
+    >>> # now detect flatlines
     >>> cols_to_check = ['values']
     >>> RF = RemoveFlatlines(
-    >>>     cols=cols_to_check,
-    >>>     window="auto")
+    ...     cols=cols_to_check,
+    ...     window=3)
     >>> data_corrected = RF.fit_transform(test_df)
     >>> fig = diagnostic_flatline_removal(RF, test_df, 'values')
     """
@@ -98,7 +98,7 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
             self.window_dict[col] = threshold
         return self
 
-    def transform(self, data):
+    def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Transforms the data
 
