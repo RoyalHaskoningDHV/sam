@@ -34,7 +34,9 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
         Only used if ``window="auto"``
         Small pvalues lead to a larger threshold, hence less flatlines will be removed
     margin: int (default = 0)
-        maximum difference between consecutive samples to consider them equal
+        maximum difference between consecutive samples to consider them equal.
+        Default is 0, which means that consecutive samples must be exactly equal
+        to form a flatline.
     backfill: bool (default = True)
         whether to label all within the window, even before the first detected
         data point. This is useful if you want to remove flatlines from the
