@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.7.1
+
+### Changes
+- New (optional) parameters for  `sam.validation.RemoveFlatlines`: `backfill` and `margin`
+- Simplified `sam.validation.RemoveFlatlines` to use `pandas.DataFrame.rolling` functions
+
 ## Version 2.7.0
 
 ### Changes
