@@ -128,7 +128,7 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
 
             # check if all sequential values are equal within window
             window = self.window_dict[col]
-            flatliners = no_change.rolling(self.window).min().fillna(0)
+            flatliners = no_change.rolling(window).min().fillna(0)
 
             # apply backfill if needed: label all points within flatline window
             # as invalid. This requires a forward looking window
