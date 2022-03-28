@@ -322,11 +322,9 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     def dump(self, foldername: str, prefix: str = "model") -> None:
         """
-        Writes the following file:
-        * prefix.pkl
+        Writes the instanced model to foldername/prefix.pkl
 
-        to the folder given by foldername. prefix is configurable, and is
-        'model' by default
+        prefix is configurable, and is 'model' by default
 
         Overwrites the abstract method from SamQuantileRegressor
 
@@ -350,11 +348,9 @@ class SPCRegressor(BaseTimeseriesRegressor):
     @classmethod
     def load(cls, foldername, prefix="model") -> Callable:
         """
-        Reads the following files:
-        * prefix.pkl
+        Reads and loads the model located at foldername/prefix.pkl
 
-        from the folder given by foldername. prefix is configurable, and is
-        'model' by default
+        prefix is configurable, and is 'model' by default
         Output is an entire instance of the fitted model that was saved
 
         Overwrites the abstract method from SamQuantileRegressor

@@ -18,11 +18,13 @@ class TestSPCTemplate(unittest.TestCase):
 
 class TestSPCRegressor(unittest.TestCase):
     def setUp(self):
-        # We are deliberately creating an extremely easy, linear problem here
-        # the target is literally 17 times one of the features
-        # This is because we just want to see if the model works at all, in a short time, on very
-        # little data.
-        # With a high enough learning rate, it should be almost perfect after a few iterations
+        """
+        We are deliberately creating an extremely easy, linear problem here
+        the target is literally 17 times one of the features
+        This is because we just want to see if the model works at all, in a short time, on very
+        little data.
+        With a high enough learning rate, it should be almost perfect after a few iterations
+        """
 
         self.n_rows = 100
         self.train_size = int(self.n_rows * 0.8)
