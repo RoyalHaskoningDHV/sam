@@ -33,6 +33,13 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
         Threshold for likelihood of multiple consecutive flatline samples
         Only used if ``window="auto"``
         Small pvalues lead to a larger threshold, hence less flatlines will be removed
+    margin: int (default = 0)
+        maximum difference between consecutive samples to consider them equal
+    backfill: bool (default = True)
+        whether to label all within the window, even before the first detected
+        data point. This is useful if you want to remove flatlines from the
+        beginning of a signal. Make sure this cannot cause any leakage of
+        information.
 
     Examples
     --------
@@ -52,53 +59,19 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
     """
 
     def __init__(
-        self, cols: list = None, window: Union[int, str] = 1, pvalue: float = None
+        self,
+        cols: list = None,
+        window: Union[int, str] = 1,
+        pvalue: float = None,
+        margin: int = 0,
+        backfill: bool = True,
     ):
 
         self.cols = cols
         self.window = window
         self.pvalue = pvalue
-
-    def _search_sequence_numpy(self, arr: np.array, seq: np.array):
-        """
-        This function returns the indices in the array arr that match the sequence seq.
-        For example, with arr = [2, 0, 0, 1, 0, 1, 0, 0] and seq = [0, 0],
-        this returns [1, 2, 6, 7].
-
-        Parameters
-        ----------
-        arr: np.array or list of scalars
-            the array you want to search
-        seq: np.array or list of scalars
-            the sequence you want to find
-
-        Output
-        ------
-        Output : 1D Array of indices in the input array that
-        match the input sequence in the input array.
-        In case of no match, an empty list is returned.
-        """
-
-        # cast to np.array (changes nothing if they already were)
-        arr = np.array(arr)
-        seq = np.array(seq)
-
-        # Store sizes of input array and sequence
-        Na, Nseq = arr.size, seq.size
-
-        # Range of sequence
-        r_seq = np.arange(Nseq)
-
-        # Create a 2D array of sliding indices across the entire length
-        # of input array. Match up with the input sequence & get
-        # the matching starting indices.
-        M = (arr[np.arange(Na - Nseq + 1)[:, None] + r_seq] == seq).all(1)
-
-        # Get the range of those indices as final output
-        if M.any() > 0:
-            return np.where(np.convolve(M, np.ones((Nseq), dtype=int)) > 0)[0]
-        else:
-            return np.array([])  # No match found
+        self.margin = margin
+        self.backfill = backfill
 
     def fit(self, data: pd.DataFrame):
         """If window size is 'auto', derive thresholds for each column
@@ -148,20 +121,19 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
 
             these_data = data.loc[:, col]
 
-            # to start, use window of 1
-            flatliners = np.array((these_data.shift(1) - these_data) == 0)
+            # check if sequential values are equal
+            no_change = these_data.diff().abs() <= self.margin
 
-            # now see if they expand across the self.window n samples
+            # check if all sequential values are equal within window
             window = self.window_dict[col]
-            for w in range(2, window + 1):
-                flatliners &= np.array((these_data.shift(w) - these_data) == 0)
+            flatliners = no_change.rolling(self.window).all()
 
-            # prepend all nans with window amount of nans
-            seq = np.hstack([np.zeros(window), [1]])
-            indices = self._search_sequence_numpy(flatliners.astype(int), seq)
-
-            if len(indices) > 0:
-                flatliners[indices] = True
+            # apply backfill if needed: label all points within flatline window
+            # as invalid. This requires a forward looking window
+            if self.backfill:
+                inv_flatliners = flatliners.iloc[::-1]
+                inv_flatliners = inv_flatliners.rolling(window).any()
+                flatliners = inv_flatliners.iloc[::-1]
 
             # save to self for later plot
             self.invalids[col] = flatliners
