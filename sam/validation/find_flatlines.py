@@ -124,18 +124,20 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
             these_data = data.loc[:, col]
 
             # check if sequential values are equal
-            no_change = these_data.diff().abs() <= self.margin
+            no_change = (these_data.diff().abs() <= self.margin).astype(int)
 
             # check if all sequential values are equal within window
             window = self.window_dict[col]
-            flatliners = no_change.rolling(self.window).all()
+            flatliners = no_change.rolling(self.window).min().fillna(0)
 
             # apply backfill if needed: label all points within flatline window
             # as invalid. This requires a forward looking window
             if self.backfill:
                 inv_flatliners = flatliners.iloc[::-1]
-                inv_flatliners = inv_flatliners.rolling(window).any()
+                inv_flatliners = inv_flatliners.rolling(window + 1, min_periods=1).max()
                 flatliners = inv_flatliners.iloc[::-1]
+
+            flatliners = flatliners.astype(bool)
 
             # save to self for later plot
             self.invalids[col] = flatliners
