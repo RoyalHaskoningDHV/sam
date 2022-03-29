@@ -9,7 +9,7 @@ Version X.Y.Z stands for:
 
 -------------
 
-## 2.7.1
+## Version 2.7.1
 
 ### Changes
 - New (optional) parameters for  `sam.validation.RemoveFlatlines`: `backfill` and `margin`
