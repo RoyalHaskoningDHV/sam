@@ -57,7 +57,6 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
     ...     cols=cols_to_check,
     ...     window=3)
     >>> data_corrected = RF.fit_transform(test_df)
-    >>> fig = diagnostic_flatline_removal(RF, test_df, 'values')
     """
 
     def __init__(
