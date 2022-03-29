@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.8.0
+
+### Changes
+- `SamQuantileMLP.predict` now accepts `force_monotonic_quantiles` to force quantiles to be monotonic using a postprocessing step.
+
 ## Version 2.7.0
 
 ### Changes

@@ -6,7 +6,7 @@ from sam.logging import log_new_columns
 logger = logging.getLogger(__name__)
 
 
-def sum_grouped_columns(df: pd.DataFrame, sep: str = "#", skipna: bool = True):
+def sum_grouped_columns(df: pd.DataFrame, sep: str = "#", skipna: bool = True) -> pd.DataFrame:
     """
     Utility function to sum columns together based on groups. The column names are assumed to look
     like groupname#suffix. For example: GROUP1#lag_1_day, or GROUP2#sum_1_week. In these
@@ -64,26 +64,22 @@ def sum_grouped_columns(df: pd.DataFrame, sep: str = "#", skipna: bool = True):
     >>> # make a force plot to explain the first instance
     >>> shap.force_plot(explainer.expected_value, summed_shaps.values[0,:], empty_X.iloc[0,:])
     """
-    logger.debug(
-        "Now running sum_grouped_columns with sep={}, skipna={}".format(sep, skipna)
-    )
+    logger.debug("Now running sum_grouped_columns with sep={}, skipna={}".format(sep, skipna))
     foo = df.copy()
     groups = foo.columns.str.extract(r"^([^{}]*)".format(sep)).values.reshape(-1)
     if skipna:
         result = foo.groupby(groups, axis=1).sum()
     else:
-        result = foo.groupby(groups, axis=1).apply(
-            lambda x: x.sum(skipna=False, axis=1)
-        )
+        result = foo.groupby(groups, axis=1).apply(lambda x: x.sum(skipna=False, axis=1))
     log_new_columns(result, df)
     return result
 
 
-def has_strictly_increasing_index(df: pd.DataFrame, linear: bool = True):
+def has_strictly_increasing_index(df: pd.DataFrame, linear: bool = True) -> bool:
     """
     Utility function to validate the index of a dataframe:
     - Check if it is a DatetimeIndex
-    - Check if it is strictly monotonically increasing
+    - Check if it is strictly increasing
     - Optional: check if increases are constant over the index
 
     Parameters
@@ -118,7 +114,46 @@ def has_strictly_increasing_index(df: pd.DataFrame, linear: bool = True):
         return False
 
 
-def contains_nans(df):
+def make_df_monotonic(df: pd.DataFrame, aggregate_func: str = "max") -> pd.DataFrame:
+    """
+    Utility function to force monotonicity over the columns of a dataframe.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe containing the columns over which we want to force monotonicity
+    aggregate_func : str, optional
+        Parameter to aggregate columns together. For instance, max, min, mean, etc, see full
+        list here: https://pandas.pydata.org/docs/reference/window.html.
+        By default, "max" which results in a monotonic increasing over the columns (left to right).
+        Set to "min" to force monotonic decreasing over the columns (left to right).
+
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe that is now monotonic over the columns.
+
+    Raises
+    ------
+    ValueError
+        If the aggregate_func raises an exception.
+    """
+    if df.empty:
+        return df
+
+    df_copy = df.copy()
+
+    for idx, col in enumerate(df_copy.columns):
+        if idx > 0:
+            try:
+                df_copy[col] = getattr(df_copy.iloc[:, : idx + 1], aggregate_func)(axis=1)
+            except (AttributeError, ValueError) as e:
+                raise ValueError(f"{aggregate_func=} raised error {e}")
+
+    return df_copy
+
+
+def contains_nans(df: pd.DataFrame) -> pd.DataFrame:
     """
     Utility function to check if a dataframe contains any NaN values.
 
@@ -135,7 +170,7 @@ def contains_nans(df):
     return df.isnull().values.any()
 
 
-def assert_contains_nans(df: pd.DataFrame, msg: str = "Data cannot contain nans"):
+def assert_contains_nans(df: pd.DataFrame, msg: str = "Data cannot contain nans") -> None:
     """
     Utility function to check if a dataframe contains any NaN values.
 
