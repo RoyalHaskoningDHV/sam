@@ -519,8 +519,8 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             it is possible that individual quantile regression lines over-lap, or in other words,
             a quantile regression line fitted to a lower quantile predicts higher that a line
             fitted to a higher quantile. If this occurs for a certain prediction, the output
-            distribution is invalid. In this function we force monotonicity by making the outer
-            quantiles at least as high as the inner quantiles.
+            distribution is invalid. We can force monotonicity by making the outer quantiles
+            at least as high as the inner quantiles.
 
         Returns
         -------

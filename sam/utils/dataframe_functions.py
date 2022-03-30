@@ -12,7 +12,7 @@ def sum_grouped_columns(df: pd.DataFrame, sep: str = "#", skipna: bool = True) -
     like groupname#suffix. For example: GROUP1#lag_1_day, or GROUP2#sum_1_week. In these
     examples, the groups are GROUP1 and GROUP2 respectively. This function will find all the
     groups, and sum all the columns in the same group together. If a column does not contain the
-    separatos `sep`, the entire column name is assumed to be the groupname. This means columns like
+    separator `sep`, the entire column name is assumed to be the groupname. This means columns like
     GROUP2 and GROUP2#lag_0 will be assumed to be in the same group.
 
     This function is mainly useful when dealing with a dataframe filled with shapley values. In
@@ -29,7 +29,7 @@ def sum_grouped_columns(df: pd.DataFrame, sep: str = "#", skipna: bool = True) -
        The dataframe whose columns will be added together
     sep: str, optional (default='#')
        The seperator character. The group of a column is defined as everything before the first
-       occurence of this character
+       occurrence of this character
     skipna: boolean, optional (default=True)
        Whether or not to ignore missing values in columns. If true, missing values are treated as
        0. Else, missing values are not ignored and the sum for that particular group/row
@@ -125,8 +125,8 @@ def make_df_monotonic(df: pd.DataFrame, aggregate_func: str = "max") -> pd.DataF
     aggregate_func : str, optional
         Parameter to aggregate columns together. For instance, max, min, mean, etc, see full
         list here: https://pandas.pydata.org/docs/reference/window.html.
-        By default, "max" which results in a monotonic increasing over the columns (left to right).
-        Set to "min" to force monotonic decreasing over the columns (left to right).
+        By default, "max" which results in a monotonic increase over the columns (left to right).
+        Set to "min" to force monotonic decrease over the columns (left to right).
 
     Returns
     -------
@@ -148,7 +148,7 @@ def make_df_monotonic(df: pd.DataFrame, aggregate_func: str = "max") -> pd.DataF
             try:
                 df_copy[col] = getattr(df_copy.iloc[:, : idx + 1], aggregate_func)(axis=1)
             except (AttributeError, ValueError) as e:
-                raise ValueError(f"{aggregate_func=} raised error {e}")
+                raise ValueError(f"aggregate_func={aggregate_func} raised error {e}")
 
     return df_copy
 
