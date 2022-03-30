@@ -123,8 +123,7 @@ def make_df_monotonic(df: pd.DataFrame, aggregate_func: str = "max") -> pd.DataF
     df : pd.DataFrame
         Dataframe containing the columns over which we want to force monotonicity
     aggregate_func : str, optional
-        Parameter to aggregate columns together. For instance, max, min, mean, etc, see full
-        list here: https://pandas.pydata.org/docs/reference/window.html.
+        Parameter to aggregate columns together.
         By default, "max" which results in a monotonic increase over the columns (left to right).
         Set to "min" to force monotonic decrease over the columns (left to right).
 
@@ -143,12 +142,15 @@ def make_df_monotonic(df: pd.DataFrame, aggregate_func: str = "max") -> pd.DataF
 
     df_copy = df.copy()
 
+    _LEGAL_AGG_FUNC = ("min", "max")
+    if aggregate_func not in _LEGAL_AGG_FUNC:
+        raise ValueError(
+            f"Illegal aggregate_func={aggregate_func}, please choose from {_LEGAL_AGG_FUNC}"
+        )
+
     for idx, col in enumerate(df_copy.columns):
         if idx > 0:
-            try:
-                df_copy[col] = getattr(df_copy.iloc[:, : idx + 1], aggregate_func)(axis=1)
-            except (AttributeError, ValueError) as e:
-                raise ValueError(f"aggregate_func={aggregate_func} raised error {e}")
+            df_copy[col] = getattr(df_copy.iloc[:, : idx + 1], aggregate_func)(axis=1)
 
     return df_copy
 

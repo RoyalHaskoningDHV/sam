@@ -537,12 +537,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 )
 
             if force_monotonic_quantiles:
-                prediction = BaseTimeseriesRegressor.make_prediction_monotonic(prediction)
+                prediction = self.make_prediction_monotonic(prediction)
 
         return prediction
 
-    @staticmethod
-    def make_prediction_monotonic(prediction: pd.DataFrame) -> pd.DataFrame:
+    def make_prediction_monotonic(self, prediction: pd.DataFrame) -> pd.DataFrame:
         """
         When fitting multiple quantile regressions it is possible that individual quantile
         regression lines over-lap, or in other words, a quantile regression line fitted to a lower
@@ -560,23 +559,20 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         pd.DataFrame
             Prediction for which the quantiles are (now) monotonic
         """
-        # Parse columns and split them by group (predict ahead)
-        parsed_cols = {}
-        for col in prediction.columns:
-            if "_q_" in col:
-                col_chunks = col.split("_")
-                predict_ahead = col_chunks[2]
-                pair = [float(col_chunks[-1]), col]
-                if predict_ahead in parsed_cols:
-                    parsed_cols[predict_ahead].append(pair)
-                else:
-                    parsed_cols[predict_ahead] = [pair]
+        # Retrieve prediction columns and split them by group (predict ahead)
+        grouped_cols = {}
+        for p in self.predict_ahead:
+            grouped_cols[p] = [
+                [q, "predict_lead_{}_q_{}".format(p, q)]
+                for q in self.quantiles
+                if "predict_lead_{}_q_{}".format(p, q) in prediction.columns
+            ]
 
         # Divide and order ascending
         lower_band_groups = []
         upper_band_groups = []
-        for predict_ahead in parsed_cols:
-            sorted_cols = parsed_cols[predict_ahead]
+        for predict_ahead in grouped_cols:
+            sorted_cols = grouped_cols[predict_ahead]
             sorted_cols.sort(key=itemgetter(0))
             upper_band = [x[1] for x in sorted_cols if x[0] > 0.5]
             lower_band = [x[1] for x in sorted_cols if x[0] < 0.5][::-1]
