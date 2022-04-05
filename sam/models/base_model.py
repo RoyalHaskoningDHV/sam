@@ -1,11 +1,12 @@
 import warnings
 from abc import ABC, abstractmethod
+from operator import itemgetter
 from typing import Any, Callable, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
-from sam.utils import assert_contains_nans
+from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.pipeline import Pipeline
 from sklearn.utils.validation import check_is_fitted
@@ -220,9 +221,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         # Create the actual target
         if self.predict_ahead != [0]:
-            y_transformed = make_shifted_target(
-                y, self.use_diff_of_y, self.predict_ahead
-            )
+            y_transformed = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
         else:
             # Dataframe with 1 column. Will use y's index and name
             y_transformed = pd.DataFrame(y.copy()).astype(float)
@@ -310,13 +309,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # quantile_n_output_1, quantile_n_output_2, ..., mean_output_1, mean_output_2]
         # Where n_output (1 or 2 in this example) is decided by self.predict_ahead
         self.prediction_cols_ = [
-            "predict_lead_{}_q_{}".format(p, q)
-            for q in self.quantiles
-            for p in self.predict_ahead
+            "predict_lead_{}_q_{}".format(p, q) for q in self.quantiles for p in self.predict_ahead
         ]
-        self.prediction_cols_ += [
-            "predict_lead_{}_mean".format(p) for p in self.predict_ahead
-        ]
+        self.prediction_cols_ += ["predict_lead_{}_mean".format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
         # Remove the first n rows because they are nan anyway because of rolling features
@@ -359,12 +354,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
             # Remove the first n rows because they are nan anyway because of rolling features
             if len(self.rolling_window_size) > 0:
-                X_val_transformed = X_val_transformed.iloc[
-                    max(self.rolling_window_size) :
-                ]
-                y_val_transformed = y_val_transformed.iloc[
-                    max(self.rolling_window_size) :
-                ]
+                X_val_transformed = X_val_transformed.iloc[max(self.rolling_window_size) :]
+                y_val_transformed = y_val_transformed.iloc[max(self.rolling_window_size) :]
             # The lines below are only to deal with nans in the validation set
             # These should eventually be replaced by Arjans/Fennos function for removing nan rows
             # So that this code will be much more readable
@@ -467,9 +458,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         X: pd.DataFrame
             The training input samples.
         y: pd.Series
-            The target values
+            The target values.
         dropna: bool, optional (default=False)
-            If True, delete the rows that contain NaN values
+            If True, delete the rows that contain NaN values.
         """
         # This function only works if the estimator is fitted
         check_is_fitted(self, "feature_engineer_")
@@ -485,11 +476,39 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
         return X_transformed
 
-    def postprocess_predict(self, prediction, X, y):
+    def postprocess_predict(
+        self,
+        prediction: pd.DataFrame,
+        X: pd.DataFrame,
+        y: pd.Series,
+        force_monotonic_quantiles: bool = False,
+    ) -> pd.DataFrame:
+        """
+        Postprocessing function for the prediction result.
+
+        Parameters
+        ----------
+        prediction : pd.DataFrame
+            Dataframe containing the prediction.
+        X : pd.DataFrame
+            The training input samples.
+        y : pd.Series
+            The target values.
+        force_monotonic_quantiles : bool, optional (default=False)
+            whether to force quantiles to not overlap. When fitting multiple quantile regressions
+            it is possible that individual quantile regression lines over-lap, or in other words,
+            a quantile regression line fitted to a lower quantile predicts higher that a line
+            fitted to a higher quantile. If this occurs for a certain prediction, the output
+            distribution is invalid. In this function we force monotonicity by making the outer
+            quantiles at least as high as the inner quantiles.
+
+        Returns
+        -------
+        pd.DataFrame
+            Postprocessed predictions.
+        """
         # Put the predictions in a dataframe so we can undo the differencing
-        prediction = pd.DataFrame(
-            prediction, columns=self.prediction_cols_, index=X.index
-        )
+        prediction = pd.DataFrame(prediction, columns=self.prediction_cols_, index=X.index)
         # If we performed differencing, we undo it here
         if self.use_diff_of_y:
             prediction = inverse_differenced_target(prediction, y)
@@ -516,6 +535,58 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 prediction = pd.DataFrame(
                     inv_pred, columns=prediction.columns, index=prediction.index
                 )
+
+            if force_monotonic_quantiles:
+                prediction = self.make_prediction_monotonic(prediction)
+
+        return prediction
+
+    def make_prediction_monotonic(self, prediction: pd.DataFrame) -> pd.DataFrame:
+        """
+        When fitting multiple quantile regressions it is possible that individual quantile
+        regression lines over-lap, or in other words, a quantile regression line fitted to a lower
+        quantile predicts higher that a line fitted to a higher quantile. If this occurs for a
+        certain prediction, the output distribution is invalid. In this function we force
+        monotonicity by making the outer quantiles at least as high as the inner quantiles.
+
+        Parameters
+        ----------
+        prediction : pd.DataFrame
+            Dataframe containing a prediction containing several quantiles
+
+        Returns
+        -------
+        pd.DataFrame
+            Prediction for which the quantiles are (now) monotonic
+        """
+        # Retrieve prediction columns and split them by group (predict ahead)
+        grouped_cols = {}
+        for p in self.predict_ahead:
+            grouped_cols[p] = [
+                [q, "predict_lead_{}_q_{}".format(p, q)]
+                for q in self.quantiles
+                if "predict_lead_{}_q_{}".format(p, q) in prediction.columns
+            ]
+
+        # Divide and order ascending
+        lower_band_groups = []
+        upper_band_groups = []
+        for predict_ahead in grouped_cols:
+            sorted_cols = grouped_cols[predict_ahead]
+            sorted_cols.sort(key=itemgetter(0))
+            upper_band = [x[1] for x in sorted_cols if x[0] > 0.5]
+            lower_band = [x[1] for x in sorted_cols if x[0] < 0.5][::-1]
+            if upper_band:
+                upper_band_groups.append(upper_band)
+            if lower_band:
+                lower_band_groups.append(lower_band)
+
+        # Upper band quantiles should monotonic increase, and lower band quantiles should
+        # monotonic decrease
+        for g in upper_band_groups:
+            prediction[g] = make_df_monotonic(prediction[g], aggregate_func="max")
+        for g in lower_band_groups:
+            prediction[g] = make_df_monotonic(prediction[g], aggregate_func="min")
 
         return prediction
 
@@ -665,18 +736,14 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # self.prediction_cols_[-1] defines the mean prediction
         # For n outputs, we need the last n columns instead
         # Therefore, this line calculates the mse of the mean prediction
-        mean_prediction = prediction[
-            self.prediction_cols_[-1 * len(self.predict_ahead) :]
-        ].values
+        mean_prediction = prediction[self.prediction_cols_[-1 * len(self.predict_ahead) :]].values
         # Calculate the MSE of all the predictions, and tilted loss of quantile predictions,
         # then sum them at the end
         loss = np.sum(np.mean((actual - mean_prediction) ** 2, axis=0))
         for i, q in enumerate(self.quantiles):
             startcol = len(self.predict_ahead) * i
             endcol = startcol + len(self.predict_ahead)
-            e = np.array(
-                actual - prediction[self.prediction_cols_[startcol:endcol]].values
-            )
+            e = np.array(actual - prediction[self.prediction_cols_[startcol:endcol]].values)
             # Calculate all the quantile losses, and sum them at the end
             loss += np.sum(np.mean(np.max([q * e, (q - 1) * e], axis=0), axis=0))
         return loss

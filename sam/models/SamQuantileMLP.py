@@ -51,9 +51,7 @@ class SamShapExplainer(object):
         # Will likely be somewhere around 0
         self.expected_value = explainer.expected_value
 
-    def shap_values(
-        self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs
-    ) -> np.array:
+    def shap_values(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
         """
         Imitates explainer.shap_values, but combined with the preprocessing from the model.
         Returns a similar format as a regular shap explainer: a list of numpy arrays, one
@@ -69,9 +67,7 @@ class SamShapExplainer(object):
         X_transformed = self.model.preprocess_predict(X, y, dropna=False)
         return self.explainer.shap_values(X_transformed, *args, **kwargs)
 
-    def attributions(
-        self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs
-    ) -> np.array:
+    def attributions(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
         """
         Imitates explainer.attributions, which by default just mirrors shap_values
 
@@ -100,9 +96,7 @@ class SamShapExplainer(object):
             Target data used to 'train' the explainer.
         """
         X_transformed = self.model.preprocess_predict(X, y, dropna=False)
-        return pd.DataFrame(
-            X_transformed, columns=self.model.feature_names_, index=X.index
-        )
+        return pd.DataFrame(X_transformed, columns=self.model.feature_names_, index=X.index)
 
 
 class SamQuantileMLP(BaseTimeseriesRegressor):
@@ -381,9 +375,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         imputer = SimpleImputer()
         scaler = StandardScaler()
 
-        return Pipeline(
-            [("columns", engineer), ("impute", imputer), ("scaler", scaler)]
-        )
+        return Pipeline([("columns", engineer), ("impute", imputer), ("scaler", scaler)])
 
     def get_untrained_model(self) -> Callable:
         """
@@ -493,7 +485,11 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         return history
 
     def predict(
-        self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False
+        self,
+        X: pd.DataFrame,
+        y: pd.Series = None,
+        return_data: bool = False,
+        force_monotonic_quantiles: bool = False,
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """
         Make a prediction, and undo differencing in the case it was used
@@ -518,6 +514,13 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         return_data: bool, optional (default=False)
             whether to return only the prediction, or to return both the prediction and the
             transformed input (X) dataframe.
+        force_monotonic_quantiles: bool, optional (default=False)
+            whether to force quantiles to not overlap. When fitting multiple quantile regressions
+            it is possible that individual quantile regression lines over-lap, or in other words,
+            a quantile regression line fitted to a lower quantile predicts higher that a line
+            fitted to a higher quantile. If this occurs for a certain prediction, the output
+            distribution is invalid. We can force monotonicity by making the outer quantiles
+            at least as high as the inner quantiles.
 
         Returns
         -------
@@ -534,7 +537,9 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         X_transformed = self.preprocess_predict(X, y)
         prediction = self.model_.predict(X_transformed)
 
-        prediction = self.postprocess_predict(prediction, X, y)
+        prediction = self.postprocess_predict(
+            prediction, X, y, force_monotonic_quantiles=force_monotonic_quantiles
+        )
 
         if return_data:
             return prediction, X_transformed
@@ -603,9 +608,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             obj = cloudpickle.load(f)
 
         loss = obj._get_loss()
-        obj.model_ = load_model(
-            foldername / (prefix + ".h5"), custom_objects={"mse_tilted": loss}
-        )
+        obj.model_ = load_model(foldername / (prefix + ".h5"), custom_objects={"mse_tilted": loss})
         return obj
 
     def _get_loss(self) -> Union[str, Callable]:
@@ -619,9 +622,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         else:
 
             def mse_tilted(y, f):
-                loss = keras_joint_mse_tilted_loss(
-                    y, f, self.quantiles, len(self.predict_ahead)
-                )
+                loss = keras_joint_mse_tilted_loss(y, f, self.quantiles, len(self.predict_ahead))
                 return loss
 
         return mse_tilted
@@ -737,9 +738,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         X_transformed = self.preprocess_predict(X, y)
 
         if self.predict_ahead != [0]:
-            y_target = make_shifted_target(
-                y, self.use_diff_of_y, self.predict_ahead
-            ).iloc[:, 0]
+            y_target = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead).iloc[:, 0]
 
         else:
             y_target = y.copy().astype(float)

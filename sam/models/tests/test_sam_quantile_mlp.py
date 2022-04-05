@@ -9,6 +9,7 @@ from numpy.testing import assert_array_equal
 from pandas.testing import assert_frame_equal, assert_series_equal
 from sam.models import SamQuantileMLP
 from sam.visualization import sam_quantile_plot
+from scipy import stats as st
 from sklearn.metrics import mean_absolute_error
 
 # If tensorflow is not available, skip these unittests
@@ -91,12 +92,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         # prediction. Likely because mean uses 'mse' whereas quantiles use mae.
         # In this case, I trust the quantiles much more because for this problem, mse seems too
         # strict and can create a local minimum much more often
-        if (
-            abs(
-                pred["predict_lead_2_q_0.3"].mean() - pred["predict_lead_2_mean"].mean()
-            )
-            > 5
-        ):
+        if abs(pred["predict_lead_2_q_0.3"].mean() - pred["predict_lead_2_mean"].mean()) > 5:
             pred["predict_lead_2_mean"] = pred["predict_lead_2_q_0.3"]
 
         results = pd.DataFrame(
@@ -110,16 +106,10 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         mae = mean_absolute_error(results["actual"], results["pred"])
         # Our performance should be better than the performance if we shift the prediction
-        self.assertLess(
-            mae, mean_absolute_error(results["actual"][1:], results["pred"].iloc[:-1])
-        )
-        self.assertLess(
-            mae, mean_absolute_error(results["actual"][:-1], results["pred"].iloc[1:])
-        )
+        self.assertLess(mae, mean_absolute_error(results["actual"][1:], results["pred"].iloc[:-1]))
+        self.assertLess(mae, mean_absolute_error(results["actual"][:-1], results["pred"].iloc[1:]))
         # We should easily be able to outperform the persistence benchmark
-        self.assertLess(
-            mae, mean_absolute_error(results["actual"], results["persistence"])
-        )
+        self.assertLess(mae, mean_absolute_error(results["actual"], results["persistence"]))
 
         # Try the preprocessing
         X_transformed = model.preprocess_predict(self.X_test, self.y_test)
@@ -137,9 +127,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         feature_importances = model.quantile_feature_importances(
             self.X_test, self.y_test, n_iter=2
         )
-        self.assertEqual(
-            feature_importances.columns.tolist(), model.get_feature_names()
-        )
+        self.assertEqual(feature_importances.columns.tolist(), model.get_feature_names())
         self.assertEqual(feature_importances.shape, (2, 4))
 
         # now do the same for summarizing time features.
@@ -195,9 +183,7 @@ class TestSamQuantileMLP(unittest.TestCase):
         self.assertTrue("r2" in history.history.keys())
         self.assertTrue("val_r2" not in history.history.keys())
 
-        history = model.fit(
-            self.X_train, self.y_train, validation_data=(self.X_test, self.y_test)
-        )
+        history = model.fit(self.X_train, self.y_train, validation_data=(self.X_test, self.y_test))
 
         self.assertTrue("r2" in history.history.keys())
         self.assertTrue("val_r2" in history.history.keys())
@@ -580,16 +566,129 @@ class TestSamQuantileMLP(unittest.TestCase):
 
     def test_average_type(self):
 
-        self.assertRaises(
-            ValueError, SamQuantileMLP, average_type="median", quantiles=[0.5]
-        )
+        self.assertRaises(ValueError, SamQuantileMLP, average_type="median", quantiles=[0.5])
 
     def test_default_params(self):
-        """Sanity check if default params work
-        """
+        """Sanity check if default params work"""
         model = SamQuantileMLP(timecol="TIME")
         model.fit(self.X_train, self.y_train)
         _ = model.predict(self.X_test, self.y_test)
+
+
+class TestMakePredictionMonotonic(unittest.TestCase):
+    def setUp(self):
+        """
+        Quantiles are not necessarily monotonic, however we may want to force this behavior.
+        Create a dataframe with 6 mirrored quantiles + a median quantile and a mean column for
+        a predict_ahead=0. Also add quantiles for predict_ahead=1,2 to test the grouping.
+        """
+
+        self.model = SamQuantileMLP(
+            predict_ahead=(0, 1, 2),
+            quantiles=[
+                (1 - st.norm.cdf(5)),
+                (1 - st.norm.cdf(4)),
+                (1 - st.norm.cdf(3.5)),
+                (1 - st.norm.cdf(3)),
+                (1 - st.norm.cdf(2)),
+                (1 - st.norm.cdf(1)),
+                (st.norm.cdf(1)),
+                (st.norm.cdf(2)),
+                (st.norm.cdf(3)),
+                (st.norm.cdf(3.5)),
+                (st.norm.cdf(4)),
+                (st.norm.cdf(5)),
+            ],
+        )
+
+        self.prediction = pd.DataFrame(
+            {
+                "predict_lead_0_q_2.866515719235352e-07": [-5, -5, -5],
+                "predict_lead_0_q_3.167124183311998e-05": [-4, -4, -4],
+                "predict_lead_0_q_0.0002326290790355401": [-3, -3, -3],
+                "predict_lead_0_q_0.0013498980316301035": [-2, -2, -2],
+                "predict_lead_0_q_0.02275013194817921": [-1, -1, -1],
+                "predict_lead_0_q_0.15865525393145707": [0, 0, 0],
+                "predict_lead_0_q_0.5": [-10, 10, -10],
+                "predict_lead_0_q_0.8413447460685429": [1, 1, 1],
+                "predict_lead_0_q_0.9772498680518208": [2, 2, 2],
+                "predict_lead_0_q_0.9986501019683699": [3, 3, 3],
+                "predict_lead_0_q_0.9997673709209645": [4, 4, 4],
+                "predict_lead_0_q_0.9999683287581669": [5, 5, 5],
+                "predict_lead_0_q_0.9999997133484281": [6, 6, 6],
+                "predict_lead_0_mean": [0, 0, 0],
+                "predict_lead_1_q_0.8413447460685429": [3, 3, 3],
+                "predict_lead_1_q_0.9772498680518208": [5, 5, 5],
+                "predict_lead_1_q_0.5": [4, 4, 4],
+                "predict_lead_1_median": [0, 0, 0],
+                "predict_lead_2_q_0.5": [2, 2, 2],
+            },
+            dtype=float,
+        )
+
+    def test_already_monotonic(self):
+        """Sanity check if default params work
+        Quantiles are already monotonic, so prediction should stay the same"""
+
+        result = self.model.make_prediction_monotonic(self.prediction)
+        assert_frame_equal(result, self.prediction)
+
+    def test_not_monotonic_decreasing_lower_quantiles(self):
+        """Check that we force lower quantiles (<0.5) to be monotonic decreasing
+        The quantile breaking the monotonicity should propagate to the larger quantiles
+        """
+        row = 1
+        prediction = self.prediction.copy()
+        prediction["predict_lead_0_q_0.15865525393145707"][row] = -6
+
+        result = self.model.make_prediction_monotonic(prediction)
+
+        expected = self.prediction.copy()
+        expected.loc[
+            row,
+            [
+                "predict_lead_0_q_2.866515719235352e-07",
+                "predict_lead_0_q_3.167124183311998e-05",
+                "predict_lead_0_q_0.0002326290790355401",
+                "predict_lead_0_q_0.0013498980316301035",
+                "predict_lead_0_q_0.02275013194817921",
+                "predict_lead_0_q_0.15865525393145707",
+            ],
+        ] = -6
+        assert_frame_equal(result, expected)
+
+    def test_not_monotonic_increasing_upper_quantiles(self):
+        """Check that we force upper quantiles (>0.5) to be monotonic increasing
+        The quantile breaking the monotonicity should propagate to the larger quantiles, also the
+        quantiles from another predict_ahead value should not have influence.
+        """
+        row = 2
+        prediction = self.prediction.copy()
+        prediction["predict_lead_0_q_0.8413447460685429"][row] = 6
+        prediction["predict_lead_1_q_0.8413447460685429"][row] = 100
+
+        result = self.model.make_prediction_monotonic(prediction)
+
+        expected = self.prediction.copy()
+        expected.loc[
+            row,
+            [
+                "predict_lead_0_q_0.8413447460685429",
+                "predict_lead_0_q_0.9772498680518208",
+                "predict_lead_0_q_0.9986501019683699",
+                "predict_lead_0_q_0.9997673709209645",
+                "predict_lead_0_q_0.9999683287581669",
+                "predict_lead_0_q_0.9999997133484281",
+            ],
+        ] = 6
+        expected.loc[
+            row,
+            [
+                "predict_lead_1_q_0.8413447460685429",
+                "predict_lead_1_q_0.9772498680518208",
+            ],
+        ] = 100
+        assert_frame_equal(result, expected)
 
 
 if __name__ == "__main__":
