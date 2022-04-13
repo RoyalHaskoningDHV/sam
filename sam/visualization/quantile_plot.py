@@ -3,6 +3,8 @@ from typing import List
 import numpy as np
 import pandas as pd
 
+COLORS = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"]
+
 
 def sam_quantile_plot(
     y_true: pd.DataFrame,
@@ -12,7 +14,7 @@ def sam_quantile_plot(
     data_prop: int = None,
     y_range: int = None,
     date_range: list = None,
-    colors: list = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"],
+    colors: list = COLORS,
     outlier_min_q: int = None,
     predict_ahead: int = 0,
     res: str = None,
@@ -104,8 +106,7 @@ def sam_quantile_plot(
 
     if ignore_value is not None and res is None:
         raise ValueError(
-            "ignore value should only be set when "
-            "using resampling (res should not be None)"
+            "ignore value should only be set when using resampling (res should not be None)"
         )
 
     if (y_title == "") and y_true.name:
@@ -184,7 +185,7 @@ def _interactive_quantile_plot(
     data_prop: int = None,
     y_range: int = None,
     date_range: list = None,
-    colors: list = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"],
+    colors: list = COLORS,
     outlier_min_q: int = None,
     predict_ahead: int = 0,
     outliers: np.array = None,
@@ -223,9 +224,9 @@ def _interactive_quantile_plot(
                 mode="lines",
                 line={"width": 0.1},
                 line_color=colors[i],
-                name="%.3f CI" % this_ci,
+                name="%.5f CI" % this_ci,
                 showlegend=False,
-                legendgroup="%.3f CI" % this_ci,
+                legendgroup="%.5f CI" % this_ci,
             )
         )
 
@@ -237,8 +238,8 @@ def _interactive_quantile_plot(
                 mode="lines",
                 line={"width": 0.1},
                 line_color=colors[i],
-                name="%.3f CI" % this_ci,
-                legendgroup="%.3f CI" % this_ci,
+                name="%.5f CI" % this_ci,
+                legendgroup="%.5f CI" % this_ci,
             )
         )
 
@@ -315,7 +316,7 @@ def _static_quantile_plot(
     data_prop: int = None,
     y_range: int = None,
     date_range: list = None,
-    colors: list = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"],
+    colors: list = COLORS,
     outlier_min_q: int = None,
     predict_ahead: int = 0,
     outliers: np.array = None,
@@ -351,7 +352,7 @@ def _static_quantile_plot(
             y_hat[highcol],
             alpha=0.25,
             color=colors[i],
-            label="%.3f CI" % this_ci,
+            label="%.5f CI" % this_ci,
         )
 
     # now draw the mean prediction and actuals
