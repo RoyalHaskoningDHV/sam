@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.8.2
+
+### Changes
+- `sam.visualization.sam_quantile_plot` now displays quantiles in 5 decimals, requirement from Aquasuite with larger quantiles.
+
 ## 2.8.1
 
 ### Changes
