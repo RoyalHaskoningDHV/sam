@@ -33,8 +33,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     Parameters
     ----------
     predict_ahead: integer or list of integers, optional (default=1)
-        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
-        2 timesteps into the future. If (0), predict the present. If not equal to (0),
+        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
+        2 timesteps into the future. If [0], predict the present. If not equal to 0 or [0],
         predict the future, with differencing.
         A single integer is also allowed, in which case the value is converted to a singleton list.
     quantiles: array-like, optional (default=())
