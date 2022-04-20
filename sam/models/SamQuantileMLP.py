@@ -127,9 +127,9 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
     Parameters
     ----------
-    predict_ahead: integer, optional (default=(1))
-        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
-        2 timesteps into the future. If (0), predict the present. If not equal to (0),
+    predict_ahead: integer or list of integers, optional (default=1)
+        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
+        2 timesteps into the future. If [0], predict the present. If not equal to 0 or [0],
         predict the future, with differencing.
         A single integer is also allowed, in which case the value is converted to a singleton list.
     quantiles: array-like, optional (default=())
@@ -253,7 +253,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
     def __init__(
         self,
-        predict_ahead: int = (1,),
+        predict_ahead: Union[int, Sequence[int]] = 1,
         quantiles: Sequence[float] = (),
         use_y_as_feature: bool = True,
         use_diff_of_y: bool = True,
@@ -529,7 +529,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         X_transformed: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
-        if self.predict_ahead != 0 and y is None:
+        if max(self.predict_ahead) > 0 and y is None:
             raise ValueError("When predict_ahead > 0, y is needed for prediction")
 
         self.validate_data(X)

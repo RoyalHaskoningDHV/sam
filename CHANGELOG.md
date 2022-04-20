@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.8.3
+
+### Changes
+- `sam.models.QuantileMLP` requires `predict_ahead` to be int or list, but always casts to lists. Change to tuples in version 2.6.0, but caused inconsistencies and incorrect if statements.
+
 ## 2.8.2
 
 ### Changes

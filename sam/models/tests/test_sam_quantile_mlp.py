@@ -584,7 +584,7 @@ class TestMakePredictionMonotonic(unittest.TestCase):
         """
 
         self.model = SamQuantileMLP(
-            predict_ahead=(0, 1, 2),
+            predict_ahead=[0, 1, 2],
             quantiles=[
                 (1 - st.norm.cdf(5)),
                 (1 - st.norm.cdf(4)),
