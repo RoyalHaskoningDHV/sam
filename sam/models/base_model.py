@@ -32,7 +32,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     Parameters
     ----------
-    predict_ahead: integer, optional (default=(1))
+    predict_ahead: integer or list of integers, optional (default=1)
         how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
         2 timesteps into the future. If (0), predict the present. If not equal to (0),
         predict the future, with differencing.
@@ -77,7 +77,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def __init__(
         self,
-        predict_ahead: int = (1,),
+        predict_ahead: Union[int, Sequence[int]] = 1,
         quantiles: Sequence[float] = (),
         use_y_as_feature: bool = True,
         use_diff_of_y: bool = True,
@@ -89,7 +89,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         rolling_window_size: Sequence[int] = (12,),
         rolling_features: Sequence[str] = ("mean",),
     ) -> None:
-        self.predict_ahead = predict_ahead
+        self.predict_ahead = (
+            predict_ahead if isinstance(predict_ahead, Sequence) else [predict_ahead]
+        )
         self.quantiles = quantiles
         self.use_y_as_feature = use_y_as_feature
         self.use_diff_of_y = use_diff_of_y
