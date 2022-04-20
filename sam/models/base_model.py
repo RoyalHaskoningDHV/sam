@@ -1,7 +1,7 @@
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Any, Callable, Sequence, Tuple, Union
+from typing import Any, Callable, Sequence, Tuple, Union, List
 
 import numpy as np
 import pandas as pd
@@ -77,7 +77,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def __init__(
         self,
-        predict_ahead: Union[int, Sequence[int]] = 1,
+        predict_ahead: Union[int, List[int]] = 1,
         quantiles: Sequence[float] = (),
         use_y_as_feature: bool = True,
         use_diff_of_y: bool = True,
@@ -90,7 +90,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         rolling_features: Sequence[str] = ("mean",),
     ) -> None:
         self.predict_ahead = (
-            predict_ahead if isinstance(predict_ahead, Sequence) else [predict_ahead]
+            predict_ahead if isinstance(predict_ahead, List) else [predict_ahead]
         )
         self.quantiles = quantiles
         self.use_y_as_feature = use_y_as_feature
