@@ -13,7 +13,7 @@ setup(
     version=version,
     author="Royal HaskoningDHV",
     author_email="arjan.bontsema@rhdhv.com",
-    license="BSD-3-Clause",
+    license="",
     description="Time series anomaly detection and forecasting",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -24,11 +24,10 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     packages=find_packages(exclude=["*tests"]),
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     zip_safe=True,
     install_requires=["pandas>=1.1.0", "numpy>=1.13", "scikit-learn<0.24.0"],
     extras_require={
