@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.8.4
+
+### Changes
+- `predict` method from `sam.models.SPCRegressor` now accepts kwargs for compatibility. Now, swapping models with `SamQuantileMLP` with `force_monotonic_quantiles` doesn't cause a failure.
+
 ## 2.8.3
 
 ### Changes

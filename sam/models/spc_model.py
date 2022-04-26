@@ -240,6 +240,8 @@ class SPCRegressor(BaseTimeseriesRegressor):
         This function will preprocess the input data, get the untrained underlying model
         and fits the model.
 
+        For compatibility reasons the method acceps fit_kwargs, that are not used.
+
         Parameters
         ----------
         X: pd.DataFrame
@@ -260,9 +262,10 @@ class SPCRegressor(BaseTimeseriesRegressor):
         return None
 
     def predict(
-        self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False
+        self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False, **predict_kwargs
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
-        """Predict using the SPCRegressor
+        """
+        Predict using the SPCRegressor
 
         This will either predict the static bounds that were fitted during
         fit() or when using `use_diff_of_y` it will predict the last timestep plus
@@ -270,6 +273,8 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
         In the first situation X is only used to determine how many datapoints
         need to be predicted. In the latter case it will use X to undo the differencing.
+
+        For compatibility reasons the method acceps predict_kwargs, that are not used.
 
         Parameters
         ----------
