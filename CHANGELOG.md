@@ -9,11 +9,16 @@ Version X.Y.Z stands for:
 
 -------------
 
-## 2.8.4
+## 2.8.5
 
 ### Changes
 - `pyproject.toml` provides settings for building package (required for PyPI)
 - Additional information in `setup.py` for open source release
+
+## 2.8.4
+
+### Changes
+- `predict` method from `sam.models.SPCRegressor` now accepts kwargs for compatibility. Now, swapping models with `SamQuantileMLP` with `force_monotonic_quantiles` doesn't cause a failure.
 
 ## 2.8.3
 
@@ -62,6 +67,7 @@ Version X.Y.Z stands for:
 ## Version 2.5.4
 
 ### Changes
+
 - No more bandit linting errors: replace `assert` statements
 - Remove faulty try-except-pass constructions
 
