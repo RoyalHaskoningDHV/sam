@@ -161,7 +161,14 @@ class SignalAligner:
         else:
             return pd.concat([df, df_nan], axis=0)
 
-    def align_dataframes(self, df1, df2, col1, col2, reference=None):
+    def align_dataframes(
+        self,
+        df1,
+        df2,
+        col1,
+        col2,
+        reference=None
+    ):
         """Instead of just aligning two numpy array signals, we might want to
         align two pandas data frames based on specific columns.
 
@@ -221,8 +228,8 @@ class SignalAligner:
             df2 = df2.rename(columns={duplicate_name: duplicate_name + '_y'})
 
         df_aligned = pd.concat(
-            [df1.reset_index(drop=True), df2.reset_index(drop=True)], 
-            axis=1
+            [df1.reset_index(drop=True), df2.reset_index(drop=True)],
+            axis=1,
         )
 
         if reference == 0:
