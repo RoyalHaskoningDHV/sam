@@ -20,8 +20,14 @@ def test_signalaligner(N_aligned, N1, N2):
 
     lat = np.random.randn(N_aligned) + np.random.standard_normal(N_aligned)
 
-    lat2 = np.concatenate([np.random.randn(N2 - N_aligned), lat])
-    lat1 = np.concatenate([np.random.randn(N1 - N_aligned), lat])
+    lat1 = np.random.randn(N1)
+    i1 = np.random.randint(N1 - N_aligned)
+    lat1[i1: i1 + N_aligned] = lat
+
+    lat2 = np.random.randn(N2)
+    i2 = np.random.randint(N2 - N_aligned)
+    lat2[i2: i2 + N_aligned] = lat
+
 
     df1 = pd.DataFrame({
         'data': np.random.randn(N1),
@@ -38,16 +44,12 @@ def test_signalaligner(N_aligned, N1, N2):
 
     sa = SignalAligner()
 
-    signal_one, signal_two = sa._preprocess_signals(
-        df1.loc[:, col1].values, df2.loc[:, col2].values
-    )
-    offset, aligned_signal = sa.align_signals(signal_one, signal_two)
-
     offset, df1, df2 = sa.align_dataframes(df1, df2, col1, col2)
 
     N_equal = sum(
         [1 if x1 == x2 else 0 for x1, x2 in zip(df1['lat'].values, df2['lat'].values)]
     )
+
     assert(N_equal == N_aligned), (
         "Unexpectedly unequal length of aligned signal and overlapping signal"
     )
