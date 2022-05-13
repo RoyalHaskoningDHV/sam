@@ -7,7 +7,7 @@ class SignalAligner:
     to be aligned. We assume both signals have the same sampling frequency. For now
     there is no timestamp based alignment, we simply use the cross-correlation of the
     to be aligned signals (thereby assuming equal sampling frequencies).
-    
+
     Parameters
     ----------
     signal_one : np.ndarray (default=None)
@@ -24,9 +24,27 @@ class SignalAligner:
     >>> offset, _ = SignalAligner.align_signals(signal_one, signal_two)
 
     >>> print('Offset =', offset)
-    
+
     # Example 2
-    
+    >>> N1 = 20
+    >>> N2 = 30
+    >>> N_aligned = 15
+
+    >>> lat = np.random.randn(N_aligned) + np.random.standard_normal(N_aligned)
+
+    >>> lat1 = np.random.randn(N1)
+    >>> i1 = np.random.randint(N1 - N_aligned)
+    >>> lat1[i1: i1 + N_aligned] = lat
+
+    >>> lat2 = np.random.randn(N2)
+    >>> i2 = np.random.randint(N2 - N_aligned)
+    >>> lat2[i2: i2 + N_aligned] = lat
+
+    >>> df1 = pd.DataFrame({'data': np.random.randn(N1), 'lat': lat1})
+    >>> df2 = pd.DataFrame({'data': np.random.randn(N2), 'lat': lat2})
+
+    >>> sa = SignalAligner()
+    >>> df, offset = sa.align_dataframes(df1, df2, col1, col2, reference=0)
     """
     def __init__(self, signal_one=None, signal_two=None):
 

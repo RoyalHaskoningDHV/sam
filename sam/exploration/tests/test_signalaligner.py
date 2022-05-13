@@ -21,7 +21,6 @@ def test_signalaligner(N_aligned, N1, N2, reference):
     i2 = np.random.randint(N2 - N_aligned)
     lat2[i2: i2 + N_aligned] = lat
 
-
     df1 = pd.DataFrame({
         'data': np.random.randn(N1),
         'lat': lat1,
