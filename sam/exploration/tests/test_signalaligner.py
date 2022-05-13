@@ -32,24 +32,25 @@ def test_signalaligner(N_aligned, N1, N2):
         'lat': lat1,
         'lon': lon1,
     })
-    df1_orig = df1.copy()
 
     df2 = pd.DataFrame({
         'data': np.random.randn(N2),
         'lat': lat2,
         'lon': lon2,
     })
-    
+
     col1 = 'lat'
     col2 = 'lat'
 
     sa = SignalAligner()
 
-    signal_one, signal_two = sa._preprocess_signals(df1.loc[:, col1].values, df2.loc[:, col2].values)
+    signal_one, signal_two = sa._preprocess_signals(
+        df1.loc[:, col1].values, df2.loc[:, col2].values
+    )
     offset, aligned_signal = sa.align_signals(signal_one, signal_two)
 
     offset, df1, df2 = sa.align_dataframes(df1, df2, col1, col2)
-    
+
     N_equal = sum(
         [1 if x1 == x2 else 0 for x1, x2 in zip(df1['lat'].values, df2['lat'].values)]
     )

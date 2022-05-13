@@ -8,10 +8,10 @@ class SignalAligner:
     there is no timestamp based alignment, we simply use the cross-correlation of the
     to be aligned signals (thereby assuming equal sampling frequencies).
     """
-    
+
     def __init__(self, signal_one=None, signal_two=None):
         """Initialize signal aligner with signals to align.
-        
+
         Parameters
         ----------
         signal_one : np.ndarray (default=None)
@@ -19,21 +19,21 @@ class SignalAligner:
         """
         self.signal_one = signal_one
         self.signal_two = signal_two
-        
+
         if (signal_one is not None) and (signal_two is not None):
             signal_one, signal_two = self._preprocess_signals(signal_one, signal_two)
             self.offset, self.aligned_signal = self.align_signals(signal_one, signal_two)
-        
+
     def _preprocess_signals(self, signal_one, signal_two):
         """Pad signals to have equal length.
-        
+
         NOTE: Assumes we have the same sampling frequency for both signals
-        
+
         Parameters
         ----------
         signal_one : np.ndarray
         signal_two : np.ndarray
-        
+
         Returns
         -------
         signal_one_pp : np.ndarray
@@ -41,7 +41,6 @@ class SignalAligner:
         """
         N1 = len(signal_one)
         N2 = len(signal_two)
-
         if N1 < N2:
             signal_one = self._zeropad(signal_one, N2)
             self.signal_one = signal_one
@@ -54,18 +53,18 @@ class SignalAligner:
         signal_two = np.nan_to_num(signal_two, nan=0.0)
 
         return signal_one, signal_two
-            
+
     def _zeropad(self, signal, N):
         """Zeropad signal to obtain N samples in total.
         We pad the signal at the beginning.
-        
+
         Parameters
         ----------
         signal : np.ndarray
             Input signals
         N : int
             Number of samples to pad to
-        
+
         Returns
         -------
         signal_pad : np.ndarray
@@ -105,7 +104,7 @@ class SignalAligner:
             aligned_signal[:-offset] = signal_one[:-offset]
 
         return offset, aligned_signal
-    
+
     def _pad_df_with_nans(self, df, offset):
         """Pad a dataframe with nan-filled rows either at the
         beginning or the end (depending on the offset).
@@ -134,7 +133,7 @@ class SignalAligner:
     def align_dataframes(self, df1, df2, col1, col2):
         """Instead of just aligning two numpy array signals, we might want to
         align two pandas data frames based on specific columns.
-        
+
         Parameters
         ----------
         df1 : pd.DataFrame
@@ -143,7 +142,7 @@ class SignalAligner:
             Column to align with col2 from df2
         col2 : str
             Column to align with col1 from df1
-            
+
         Returns
         -------
         df_combined : pd.DataFrame
@@ -153,7 +152,7 @@ class SignalAligner:
             df1 = self._pad_df_with_nans(df1, row_diff)
         elif row_diff > 0:
             df2 = self._pad_df_with_nans(df2, row_diff)
-        
+
         offset, aligned_signal = self.align_signals(
             df1.loc[:, col1].fillna(0).values,
             df2.loc[:, col2].fillna(0).values
@@ -171,5 +170,5 @@ class SignalAligner:
             df_nan = pd.DataFrame(nan_array)
             df_nan.columns = df2.columns
             df2 = pd.concat([df_nan, df2], axis=0)
-        
+
         return offset, df1, df2
