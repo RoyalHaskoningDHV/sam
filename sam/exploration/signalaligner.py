@@ -267,4 +267,3 @@ class SignalAligner:
         df_aligned = self._prune_combined_data(df_aligned, col1, col2, reference)
 
         return df_aligned, offset
-
