@@ -301,7 +301,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
         if self.average_type == "median" and 0.5 in self.quantiles:
             raise ValueError(
-                "average_type is mean, but 0.5 is also in quantiles. "
+                "average_type is median, but 0.5 is also in quantiles. "
                 "Either set average_type to mean or add 0.5 to quantiles"
             )
 
