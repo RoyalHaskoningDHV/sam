@@ -47,7 +47,7 @@ class SignalAligner:
         elif N2 < N1:
             signal_two = self._zeropad(signal_two, N1)
             self.signal_two = signal_two
-            
+
         # we cannot allow nans for alignment.
         signal_one = np.nan_to_num(signal_one, nan=0.0)
         signal_two = np.nan_to_num(signal_two, nan=0.0)
