@@ -5,18 +5,11 @@ import pandas as pd
 from ..signalaligner import SignalAligner
 
 
-N_aligned_list = [40, 50, 60]
-N1_list = [60, 90, 120]
-N2_list = [60, 90, 120]
-params = []
-for N_aligned in N_aligned_list:
-    for N1 in N1_list:
-        for N2 in N2_list:
-            params.append((N_aligned, N1, N2))
-
-
-@pytest.mark.parametrize("N_aligned, N1, N2", params)
-def test_signalaligner(N_aligned, N1, N2):
+@pytest.mark.parametrize("N_aligned", [40, 50])
+@pytest.mark.parametrize("N1", [60, 90, 120])
+@pytest.mark.parametrize("N2", [60, 90, 120])
+@pytest.mark.parametrize("reference", [None, 0, 1])
+def test_signalaligner(N_aligned, N1, N2, reference):
 
     lat = np.random.randn(N_aligned) + np.random.standard_normal(N_aligned)
 
@@ -44,12 +37,21 @@ def test_signalaligner(N_aligned, N1, N2):
 
     sa = SignalAligner()
 
-    offset, df1, df2 = sa.align_dataframes(df1, df2, col1, col2)
+    df, offset = sa.align_dataframes(df1, df2, col1, col2, reference=reference)
 
     N_equal = sum(
-        [1 if x1 == x2 else 0 for x1, x2 in zip(df1['lat'].values, df2['lat'].values)]
+        [1 if x1 == x2 else 0 for x1, x2 in zip(df['lat_x'].values, df['lat_y'].values)]
     )
 
     assert(N_equal == N_aligned), (
         "Unexpectedly unequal length of aligned signal and overlapping signal"
     )
+
+    if reference is None:
+        assert (df.shape[0] >= df1.shape[0]) and (df.shape[0] >= df2.shape[0])
+    elif reference == 0:
+        assert df.shape[0] == df1.shape[0]
+        assert df.reset_index().loc[:, col1 + '_x'].equals(df1.reset_index().loc[:, col1])
+    elif reference == 1:
+        assert df.shape[0] == df2.shape[0]
+        assert df.reset_index().loc[:, col2 + '_y'].equals(df2.reset_index().loc[:, col2])
