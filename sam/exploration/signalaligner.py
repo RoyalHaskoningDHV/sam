@@ -7,16 +7,29 @@ class SignalAligner:
     to be aligned. We assume both signals have the same sampling frequency. For now
     there is no timestamp based alignment, we simply use the cross-correlation of the
     to be aligned signals (thereby assuming equal sampling frequencies).
+    
+    Parameters
+    ----------
+    signal_one : np.ndarray (default=None)
+    signal_two : np.ndarray (default=None)
+
+    Examples
+    --------
+    # Example 1
+    >>> import numpy as np
+    >>> from sam.exploration.signalaligner import SignalAligner
+
+    >>> signal_one = np.array([0, 1, 2, 3, 4, 3, 2, 1, 0])
+    >>> signal_two = np.array([0, 0, 0, 0, 0, 1, 2, 3, 4, 3, 2])
+    >>> offset, _ = SignalAligner.align_signals(signal_one, signal_two)
+
+    >>> print('Offset =', offset)
+    
+    # Example 2
+    
     """
-
     def __init__(self, signal_one=None, signal_two=None):
-        """Initialize signal aligner with signals to align.
 
-        Parameters
-        ----------
-        signal_one : np.ndarray (default=None)
-        signal_two : np.ndarray (default=None)
-        """
         self.signal_one = signal_one
         self.signal_two = signal_two
 
@@ -145,7 +158,12 @@ class SignalAligner:
 
         Returns
         -------
-        df_combined : pd.DataFrame
+        df_aligned : pd.DataFrame
+            combined dataframes. We append np.nan for aligning rows.
+        offset : int
+            Number of rows to pad (always takes the absolute value). When
+            negative append nans at the beginning, otherwise append at the end.
+            The direction is completely arbitrary and unnecssary.
         """
         row_diff = df1.shape[0] - df2.shape[0]
         if row_diff < 0:
@@ -171,4 +189,18 @@ class SignalAligner:
             df_nan.columns = df2.columns
             df2 = pd.concat([df_nan, df2], axis=0)
 
-        return offset, df1, df2
+        duplicate_names = []
+        for c in df1.columns:
+            if c in df2.columns:
+                duplicate_names.append(c)
+
+        for duplicate_name in duplicate_names:
+            df1 = df1.rename(columns={duplicate_name: duplicate_name + '_x'})
+            df2 = df2.rename(columns={duplicate_name: duplicate_name + '_y'})
+
+        df_aligned = pd.concat(
+            [df1.reset_index(drop=True), df2.reset_index(drop=True)], 
+            axis=1
+        )
+
+        return df_aligned, offset
