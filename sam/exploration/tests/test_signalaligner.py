@@ -19,24 +19,18 @@ for N_aligned in N_aligned_list:
 def test_signalaligner(N_aligned, N1, N2):
 
     lat = np.random.randn(N_aligned) + np.random.standard_normal(N_aligned)
-    lon = np.random.randn(N_aligned) + np.random.standard_normal(N_aligned)
 
     lat2 = np.concatenate([np.random.randn(N2 - N_aligned), lat])
-    lon2 = np.concatenate([np.random.randn(N2 - N_aligned), lon])
-
     lat1 = np.concatenate([np.random.randn(N1 - N_aligned), lat])
-    lon1 = np.concatenate([np.random.randn(N1 - N_aligned), lon])
 
     df1 = pd.DataFrame({
         'data': np.random.randn(N1),
         'lat': lat1,
-        'lon': lon1,
     })
 
     df2 = pd.DataFrame({
         'data': np.random.randn(N2),
         'lat': lat2,
-        'lon': lon2,
     })
 
     col1 = 'lat'
