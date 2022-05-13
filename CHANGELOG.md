@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.9.0
+
+### Changes
+- Added `sam.exploration.signalaligner.py` containing the `SignalAligner` class: This class can be used to align two numeric signals that are temporally misaligned.
+- Fixed a typo in `sam.models.SamQuantileMLP.py` error message.
+
 ## 2.8.4
 
 ### Changes
