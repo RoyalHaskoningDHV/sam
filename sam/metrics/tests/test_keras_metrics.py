@@ -14,6 +14,8 @@ from sam.metrics import (
 skipkeras = False
 try:
     import tensorflow as tf  # noqa: F401
+    # Necessary for shap DeepExplainer, see: https://github.com/slundberg/shap/issues/2189
+    tf.compat.v1.disable_v2_behavior()
     import tensorflow.keras.backend as K
     from tensorflow.keras.layers import Input
 except ImportError:

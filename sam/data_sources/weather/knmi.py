@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import requests as req
 from sam.data_sources.weather.utils import _haversine, _try_parsing_date
-from sam.logging import log_dataframe_characteristics
+from sam.logging_functions import log_dataframe_characteristics
 
 logger = logging.getLogger(__name__)
 

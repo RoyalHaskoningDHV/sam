@@ -13,7 +13,8 @@ from sklearn.utils.estimator_checks import check_estimator
 class TestSPCTemplate(unittest.TestCase):
     def test_sklearn_estimator(self):
         """Test if default template follows sklearn estimator standards"""
-        check_estimator(SPCTemplate)
+        spc_model = SPCTemplate()
+        check_estimator(spc_model)
 
 
 class TestSPCRegressor(unittest.TestCase):

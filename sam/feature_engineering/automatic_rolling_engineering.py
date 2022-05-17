@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -130,8 +130,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         cv: int = 3,
         estimator_type: str = "lin",
         passthrough: bool = True,
-        cyclicals: List[str] = None,
-        onehots: List[str] = None,
+        cyclicals: Optional[List[str]] = None,
+        onehots: Optional[List[str]] = None,
     ):
 
         self.window_sizes = window_sizes
@@ -381,7 +381,6 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             n_jobs=-1,
             cv=TimeSeriesSplit(self.cv),
             verbose=2,
-            iid=False,
             n_iter=n_iter,
         )
         search.fit(X, y)

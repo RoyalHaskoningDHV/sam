@@ -9,6 +9,15 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.9.0
+
+### Changes
+- Updates package dependencies to no longer use a fixed version, but instead a minimum version
+- Changed logging submodule to logging_functions to prevent overwriting logging package
+- Fixed some mypy errors
+- Added fix for SHAP DeepExplainer: https://github.com/slundberg/shap/issues/2189
+- Fixed some deprecation warnings
+
 ## 2.8.4
 
 ### Changes

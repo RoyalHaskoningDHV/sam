@@ -16,6 +16,8 @@ from sklearn.metrics import mean_absolute_error
 skipkeras = False
 try:
     import tensorflow as tf
+    # Neccesarry for shap DeepExplainer, see: https://github.com/slundberg/shap/issues/2189
+    tf.compat.v1.disable_v2_behavior()
 except ImportError:
     skipkeras = True
 

@@ -1,7 +1,7 @@
 import logging
 
 import pandas as pd
-from sam.logging import log_new_columns
+from sam.logging_functions import log_new_columns
 
 logger = logging.getLogger(__name__)
 

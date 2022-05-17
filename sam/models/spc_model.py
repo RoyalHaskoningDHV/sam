@@ -57,6 +57,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         The fitted model
         """
         X, y = check_X_y(X, y, y_numeric=True)
+        self.n_features_in_ = X.shape[1]
 
         self.spc_median_ = np.median(y)
         self.spc_quantiles_ = np.quantile(y[~np.isnan(y)], q=np.sort(self.quantiles))

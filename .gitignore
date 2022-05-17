@@ -12,6 +12,7 @@
 *.json
 
 data/
+output/
 
 # Documentation is on internal server, not in repo
 docs/build/
@@ -119,7 +120,7 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
-.env
+.env*
 .venv
 env/
 venv/

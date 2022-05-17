@@ -19,6 +19,8 @@ def pytest_configure(config):
 # Tensorflow is an optional dependency
 try:
     import tensorflow as tf
+    # Necessary for shap DeepExplainer, see: https://github.com/slundberg/shap/issues/2189
+    tf.compat.v1.disable_v2_behavior()
     # Force tensorflow to run single-threaded, for further determinism
     # This needs to be done immediately after loading tensorflow
     tf.config.threading.set_intra_op_parallelism_threads(1)
