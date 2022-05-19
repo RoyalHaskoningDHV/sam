@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.8.6
+
+### Changes
+- MIT License added
+- Additional information in `setup.py` and `setup.cfg` for license
+
 ## 2.8.5
 
 ### Changes

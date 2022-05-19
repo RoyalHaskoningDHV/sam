@@ -13,7 +13,7 @@ setup(
     version=version,
     author="Royal HaskoningDHV",
     author_email="arjan.bontsema@rhdhv.com",
-    license="",
+    license="MIT",
     description="Time series anomaly detection and forecasting",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -24,6 +24,7 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     packages=find_packages(exclude=["*tests"]),
