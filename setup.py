@@ -28,7 +28,6 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=find_packages(exclude=["*tests"]),
-    python_requires=">=3.7",
     zip_safe=True,
     python_requires=">=3.8",
     install_requires=["pandas~=1.3", "numpy~=1.21", "scikit-learn~=1.0"],
