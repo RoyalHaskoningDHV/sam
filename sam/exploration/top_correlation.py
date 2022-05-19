@@ -1,7 +1,7 @@
 import logging
 
 import pandas as pd
-from sam.logging import log_dataframe_characteristics
+from sam.logging_functions import log_dataframe_characteristics
 
 logger = logging.getLogger(__name__)
 

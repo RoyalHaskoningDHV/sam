@@ -522,7 +522,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
             if self.y_scaler is not None:
                 prediction = pd.Series(
-                    self.y_scaler.inverse_transform(prediction.values).ravel(),
+                    self.y_scaler.inverse_transform(prediction.values.reshape(-1, 1)).ravel(),
                     index=prediction.index,
                     name=prediction.name,
                 )

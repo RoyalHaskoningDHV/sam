@@ -1,10 +1,10 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Tuple, Sequence
+from typing import List, Optional, Tuple, Sequence
 
 import numpy as np
 import pandas as pd
-from sam.logging import log_dataframe_characteristics, log_new_columns
+from sam.logging_functions import log_dataframe_characteristics, log_new_columns
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class CyclicalMaxes:
     weekday: int = 7
     dayofyear: int = 366
     hour: int = 24
-    microsecond: int = 1e6
+    microsecond: int = 1000000
     minute: int = 60
     month: int = 12
     quarter: int = 4
@@ -58,12 +58,12 @@ class CyclicalMaxes:
 def decompose_datetime(
     df: pd.DataFrame,
     column: str = "TIME",
-    components: List[str] = None,
-    cyclicals: List[str] = None,
-    onehots: List[str] = None,
+    components: Optional[List[str]] = None,
+    cyclicals: Optional[List[str]] = None,
+    onehots: Optional[List[str]] = None,
     remove_categorical: bool = True,
     keep_original: bool = True,
-    cyclical_maxes: List[str] = None,
+    cyclical_maxes: Optional[List[str]] = None,
     cyclical_mins: int = 0,
 ) -> pd.DataFrame:
     """
@@ -206,8 +206,8 @@ def recode_cyclical_features(
     column: str = "",
     remove_categorical: bool = True,
     keep_original: bool = True,
-    cyclical_maxes: Sequence[int] = None,
-    cyclical_mins: Sequence[int] = (0),
+    cyclical_maxes: Optional[Sequence[int]] = None,
+    cyclical_mins: Optional[Sequence[int]] = (0,),
 ) -> pd.DataFrame:
     """
     Convert cyclical features (like day of week, hour of day) to continuous variables, so that

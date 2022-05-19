@@ -27,7 +27,7 @@ def log_dataframe_characteristics(df: pd.DataFrame, level=logging.INFO):
 
     Examples
     --------
-    >>> from sam.logging import log_dataframe_characteristics
+    >>> from sam.logging_functions import log_dataframe_characteristics
     >>> log_dataframe_characteristics(df)
     """
     logger.log(level, "columns: %s", df.shape[0])

@@ -1,9 +1,10 @@
 import logging
-from typing import Any, List, Callable, Union
+from typing import Any, Callable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from sam.logging import log_dataframe_characteristics, log_new_columns
+from sam.logging_functions import (log_dataframe_characteristics,
+                                   log_new_columns)
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 
@@ -231,13 +232,13 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         self,
         rolling_type: str = "mean",
         lookback: int = 1,
-        window_size: str = None,
-        deviation: str = None,
+        window_size: Optional[str] = None,
+        deviation: Optional[str] = None,
         alpha: float = 0.5,
         width: int = 1,
         nfft_ncol: int = 10,
         proportiontocut: float = 0.1,
-        timecol: str = None,
+        timecol: Optional[str] = None,
         keep_original: bool = True,
         add_lookback_to_colname: bool = False,
     ):
