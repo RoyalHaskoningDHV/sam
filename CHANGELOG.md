@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.9.1
+
+### Changes
+- MIT License added
+- Additional information in `setup.py` and `setup.cfg` for license
+
 ## 2.9.0
 
 ### Changes
@@ -17,6 +23,12 @@ Version X.Y.Z stands for:
 - Fixed some mypy errors
 - Added fix for SHAP DeepExplainer: https://github.com/slundberg/shap/issues/2189
 - Fixed some deprecation warnings
+
+## 2.8.5
+
+### Changes
+- `pyproject.toml` provides settings for building package (required for PyPI)
+- Additional information in `setup.py` for open source release
 
 ## 2.8.4
 
@@ -70,6 +82,7 @@ Version X.Y.Z stands for:
 ## Version 2.5.4
 
 ### Changes
+
 - No more bandit linting errors: replace `assert` statements
 - Remove faulty try-except-pass constructions
 
