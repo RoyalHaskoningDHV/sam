@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## 2.10.0
+
+- `decompose_datetime()` now also accepts a timezone argument. This enables the user to use time features in another timezone. For example: If your input data is in UTC, but you're expecting that human behaviour is also important and the model is applied on the Netherlands, you can add `Europe/Amsterdam` to `decompose_datetime` and it will convert the time from UTC to the correct time, also taking into account daylight savings. This only has an effect on the feature engineering, preprocessing and postprecessing should always happen on UTC dates.
+- Fixed mypy errors in decompose_datetime.py
+- Updated docstring examples in decompose_datetime.py (they work now)
 ## Version 2.9.1
 
 ### Changes

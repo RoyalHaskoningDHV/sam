@@ -1,9 +1,10 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Sequence
+from typing import List, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
+import pytz
 from sam.logging_functions import log_dataframe_characteristics, log_new_columns
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class CyclicalMaxes:
     secondofday: int = 86400
 
     @classmethod
-    def get_maxes_from_strings(cls, cyclicals: List[str]) -> List[int]:
+    def get_maxes_from_strings(cls, cyclicals: Sequence[str]) -> List[int]:
         """
         This method retrieves cyclical_maxes for pandas datetime features
         The CyclicalMaxes class contains maxes for those features that are actually cyclical.
@@ -63,8 +64,9 @@ def decompose_datetime(
     onehots: Optional[List[str]] = None,
     remove_categorical: bool = True,
     keep_original: bool = True,
-    cyclical_maxes: Optional[List[str]] = None,
-    cyclical_mins: int = 0,
+    cyclical_maxes: Optional[Sequence[int]] = None,
+    cyclical_mins: Optional[Union[Sequence[int], int]] = (0,),
+    timezone: Optional[str] = None,
 ) -> pd.DataFrame:
     """
     Decomposes a time column to one or more components suitable as features.
@@ -84,10 +86,12 @@ def decompose_datetime(
         The dataframe with source column
     column: str (default='TIME')
         Name of the source column to extract components from. Note: time column should have a
-        datetime format.
+        datetime format. if None, it is assumed that the TIME column will be the index.
     components: list
         List of components to extract from datatime column. All default pandas dt components are
-        supported, and some custom functions: `['secondofday']`.
+        supported, and some custom functions: `['secondofday', 'week']`.
+        Note: `week` was added here since it is deprecated in pandas in favor of
+        `isocalendar().week`
     cyclicals: list
         List of strings of newly created .dt time variables (like hour, month) you want to convert
         to cyclicals using sine and cosine transformations. Cyclicals are variables that do not
@@ -104,13 +108,17 @@ def decompose_datetime(
     keep_original: bool, optional (default=True)
         whether to keep the original columns from the dataframe. If this is False, then the
         returned dataframe will only contain newly generated columns, and none of the original ones
-    cyclical_maxes: list, optional (default=None)
+    cyclical_maxes: sequence, optional (default=None)
         Passed through to recode_cyclical_features. See :ref:`recode_cyclical_features` for more
         information.
-    cyclical_mins: list, optional (default=0)
+    cyclical_mins: sequence or int, optional (default=0)
         Passed through to recode_cyclical_features. See :ref:`recode_cyclical_features` for more
         information.
-
+    timezone: str, optional (default=None)
+        if tz is not None, convert the time to the specified timezone, before creating features.
+        timezone can be any string that is recognized by pytz, for example `Europe/Amsterdam`.
+        We assume that the TIME column is always in UTC,
+        even if the datetime object has no tz info.
     Returns
     -------
     dataframe
@@ -120,18 +128,15 @@ def decompose_datetime(
     --------
     >>> from sam.feature_engineering import decompose_datetime
     >>> import pandas as pd
-    >>>
     >>> df = pd.DataFrame({'TIME': pd.date_range("2018-12-27", periods = 4),
-    >>>                    'OTHER_VALUE': [1, 2, 3,2]})
-    >>>
+    ...                    'OTHER_VALUE': [1, 2, 3, 2]})
     >>> decompose_datetime(df, components= ["year", "dayofweek"])
-        TIME        OTHER_VALUE TIME_year   TIME_dayofweek
-    0   2018-12-27  1           2018        3
-    1   2018-12-28  2           2018        4
-    2   2018-12-29  3           2018        5
-    3   2018-12-30  2           2018        6
+            TIME  OTHER_VALUE  TIME_year  TIME_dayofweek
+    0 2018-12-27            1       2018               3
+    1 2018-12-28            2       2018               4
+    2 2018-12-29            3       2018               5
+    3 2018-12-30            2       2018               6
     """
-
     components = [] if components is None else components
     cyclicals = [] if cyclicals is None else cyclicals
     onehots = [] if onehots is None else onehots
@@ -145,29 +150,30 @@ def decompose_datetime(
     else:
         result = pd.DataFrame(index=df.index)
 
+    if column is None:
+        timecol = df.index.to_series().copy()
+        column = "" if timecol.name is None else timecol.name
+    else:
+        timecol = df[column].copy()
+
     logging.debug(
-        f"Decomposing datetime, number of dates: {len(df[column])}. "
+        f"Decomposing datetime, number of dates: {len(timecol)}. "
         f"Components: {components}"
     )
 
-    # We should check first if the column has a compatible type
-    pandas_functions = [f for f in dir(df[column].dt) if not f.startswith("_")]
-
-    custom_functions = ["secondofday"]
-    for component in components:
-        if component in pandas_functions:
-            result[column + "_" + component] = getattr(df[column].dt, component)
-        elif component in custom_functions:
-            if component == "secondofday":
-                sec_in_min = 60
-                sec_in_hour: int = sec_in_min * 60
-                result[column + "_" + component] = (
-                    df["TIME"].dt.hour * sec_in_hour
-                    + df["TIME"].dt.minute * sec_in_min
-                    + df["TIME"].dt.second
+    # Fix timezone
+    if timezone is not None:
+        if timecol.dt.tz is not None:
+            if timecol.dt.tz != pytz.utc:
+                raise ValueError(
+                    "Data should either be in UTC timezone or it should have no"
+                    " timezone information (assumed to be in UTC)"
                 )
         else:
-            raise NotImplementedError(f"Component {component} not implemented")
+            timecol = timecol.dt.tz_localize("UTC")
+        timecol = timecol.dt.tz_convert(timezone)
+
+    result = _create_time_cols(result, components, timecol, column)
 
     # do this before converting to cyclicals, as this has its own logging:
     log_new_columns(result, df)
@@ -180,7 +186,7 @@ def decompose_datetime(
         result = recode_cyclical_features(
             result,
             cyclicals,
-            column=column,
+            prefix=column,
             remove_categorical=remove_categorical,
             cyclical_maxes=cyclical_maxes,
             cyclical_mins=cyclical_mins,
@@ -190,7 +196,7 @@ def decompose_datetime(
         result = recode_onehot_features(
             result,
             onehots,
-            column=column,
+            prefix=column,
             remove_categorical=remove_categorical,
             onehot_maxes=cyclical_maxes,
             onehot_mins=cyclical_mins,
@@ -203,11 +209,11 @@ def decompose_datetime(
 def recode_cyclical_features(
     df: pd.DataFrame,
     cols: Sequence[str],
-    column: str = "",
+    prefix: str = "",
     remove_categorical: bool = True,
     keep_original: bool = True,
     cyclical_maxes: Optional[Sequence[int]] = None,
-    cyclical_mins: Optional[Sequence[int]] = (0,),
+    cyclical_mins: Optional[Union[Sequence[int], int]] = (0,),
 ) -> pd.DataFrame:
     """
     Convert cyclical features (like day of week, hour of day) to continuous variables, so that
@@ -261,10 +267,10 @@ def recode_cyclical_features(
         each feature).
     """
 
-    new_df, column, cyclical_maxes, cyclical_mins = _validate_and_prepare_components(
+    new_df, prefix, cyclical_maxes, cyclical_mins = _validate_and_prepare_components(
         df=df,
         cols=cols,
-        column=column,
+        column=prefix,
         remove_categorical=remove_categorical,
         keep_original=keep_original,
         component_maxes=cyclical_maxes,
@@ -282,7 +288,7 @@ def recode_cyclical_features(
             )
 
         # prepend column name (like TIME) to match df column names
-        col: str = column + col
+        col = prefix + col
 
         if col not in df.columns:
             raise ValueError(f"{col} is not in input dataframe")
@@ -312,11 +318,11 @@ def recode_cyclical_features(
 def recode_onehot_features(
     df: pd.DataFrame,
     cols: Sequence[str],
-    column: str = "",
+    prefix: str = "",
     remove_categorical: bool = True,
     keep_original: bool = True,
-    onehot_maxes: Sequence[int] = None,
-    onehot_mins: Sequence[int] = (0),
+    onehot_maxes: Optional[Sequence[int]] = None,
+    onehot_mins: Optional[Union[Sequence[int], int]] = (0,),
 ) -> pd.DataFrame:
     """
     Convert time features (like day of week, hour of day) to onehot variables (1 or 0 for each
@@ -343,7 +349,7 @@ def recode_onehot_features(
         The suffixes column names to convert to onehot variables.
         These suffixes will be added to the `column` argument to get the actual column names, with
         a '_' in between.
-    column: string, optional (default='')
+    prefix: string, optional (default='')
         name of original time column in df, e.g. 'TIME'.
         By default, assume the columns in cols literally refer to column names in the data
     remove_categorical: bool, optional (default=True)
@@ -366,10 +372,10 @@ def recode_onehot_features(
         The input dataframe with cols removed, and replaced by the converted features.
     """
 
-    new_df, column, onehot_maxes, onehot_mins = _validate_and_prepare_components(
+    new_df, prefix, onehot_maxes, onehot_mins = _validate_and_prepare_components(
         df=df,
         cols=cols,
-        column=column,
+        column=prefix,
         remove_categorical=remove_categorical,
         keep_original=keep_original,
         component_maxes=onehot_maxes,
@@ -379,7 +385,7 @@ def recode_onehot_features(
     logging.debug(f"onehot converting time columns: {cols}")
 
     for onehot_min, onehot_max, col in zip(onehot_mins, onehot_maxes, cols):
-        col: str = column + col
+        col = prefix + col
 
         if col not in df.columns:
             raise ValueError(f"{col} is not in input dataframe")
@@ -404,14 +410,63 @@ def recode_onehot_features(
     return new_df
 
 
+def _create_time_cols(
+    df: pd.DataFrame, components: Sequence[str], timecol: pd.Series, prefix: str = ""
+) -> pd.DataFrame:
+    """Helper function to create all the neccessary time columns
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The input dataframe in SAM format
+    components : Sequence[str]
+        Time components that need to be added to the data
+    timecol: Series
+        A pandas series containing the datetimes, used for making the time columns
+    prefix : str
+        Prefix of the newly created columns, usually the same as the original time column
+
+    Returns
+    -------
+    pd.DataFrame
+        The dataframe, which includes the time components
+
+    Raises
+    ------
+    NotImplementedError
+        In case the time components are not recognized by pandas or by SAM
+    """
+
+    pandas_functions = [f for f in dir(timecol.dt) if not f.startswith("_")]
+
+    custom_functions = ["secondofday", "week"]
+    for component in components:
+        if component in custom_functions:
+            if component == "week":
+                df[prefix + "_" + component] = timecol.dt.isocalendar().week
+            elif component == "secondofday":
+                sec_in_min = 60
+                sec_in_hour: int = sec_in_min * 60
+                df[prefix + "_" + component] = (
+                    timecol.dt.hour * sec_in_hour
+                    + timecol.dt.minute * sec_in_min
+                    + timecol.dt.second
+                )
+        elif component in pandas_functions:
+            df[prefix + "_" + component] = getattr(timecol.dt, component)
+        else:
+            raise NotImplementedError(f"Component {component} not implemented")
+    return df
+
+
 def _validate_and_prepare_components(
     df: pd.DataFrame,
     cols: Sequence[str],
     column: str,
     remove_categorical: bool,
     keep_original: bool,
-    component_maxes: Sequence[int],
-    component_mins: Sequence[int],
+    component_maxes: Optional[Sequence[int]],
+    component_mins: Optional[Union[Sequence[int], int]],
 ) -> Tuple[pd.DataFrame, str, Sequence[int], Sequence[int]]:
     """
     Validates and prepares the dataframe, component (onehot or cyclical) parameters and min/max
@@ -466,9 +521,10 @@ def _validate_and_prepare_components(
         component_maxes = CyclicalMaxes.get_maxes_from_strings(cols)
 
     if np.isscalar(component_mins):
-        component_mins = [component_mins] * len(component_maxes)
+        component_mins = [cast(int, component_mins)] * len(component_maxes)
     elif isinstance(component_mins, (Sequence, np.ndarray)):
         if len(component_mins) == 1:
+            component_mins = list(component_mins)
             component_mins *= len(component_maxes)
     else:
         raise TypeError("`component_maxes` needs to be a scalar or array-like")
