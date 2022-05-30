@@ -77,9 +77,9 @@ class TestIncidentPrecisionRecallCurve(unittest.TestCase):
         p, r, t = precision_incident_recall_curve(
             y_incidents, y_pred, range_pred=(0, 1)
         )
-        assert_array_almost_equal(p, np.array([0.5, 0.666667, 1, 1, 1]))
-        assert_array_equal(r, np.array([1, 1, 1, 1, 0]))
-        assert_array_equal(t, np.array([0.1, 0.2, 0.3, 0.4]))
+        assert_array_almost_equal(p, np.array([1, 1, 1]))
+        assert_array_equal(r, np.array([1, 1, 0]))
+        assert_array_equal(t, np.array([0.3, 0.4]))
 
     def testCurveAgain(self):
         y_pred = np.array([0.4, 0.4, 0.1, 0.2, 0.6, 0.5, 0.1])

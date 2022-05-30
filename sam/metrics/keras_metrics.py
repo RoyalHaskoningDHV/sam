@@ -9,8 +9,6 @@ try:
         warnings.simplefilter("ignore", category=DeprecationWarning)
         warnings.simplefilter("ignore", category=FutureWarning)
         import tensorflow as tf
-        # Necessary for shap DeepExplainer, see: https://github.com/slundberg/shap/issues/2189
-        tf.compat.v1.disable_v2_behavior()
         import tensorflow.keras.backend as K
 except ImportError:
     # These are optional dependencies so it's not necessary to crash if they aren't found.

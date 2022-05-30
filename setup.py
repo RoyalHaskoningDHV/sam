@@ -30,7 +30,7 @@ setup(
     packages=find_packages(exclude=["*tests"]),
     zip_safe=True,
     python_requires=">=3.8",
-    install_requires=["pandas~=1.3", "numpy~=1.21", "scikit-learn~=1.0"],
+    install_requires=["pandas~=1.3", "numpy>=1.18,<1.22", "scikit-learn>=0.23,<1.1"],
     extras_require={
         "all": [
             "matplotlib",
@@ -40,7 +40,8 @@ setup(
             "requests",
             "scipy",
             "seaborn",
-            "tensorflow~=2.8.0",
+            "tensorflow>=2.3.1,<2.9",
+            "protobuf<=3.20.1",
             "eli5",
             "Jinja2~=3.0.3",
             "shap",
@@ -50,7 +51,7 @@ setup(
         "plotting": ["matplotlib", "plotly", "seaborn"],
         "data_engineering": ["requests", "pymongo"],
         "data_science": [
-            "tensorflow~=2.8.0",
+            "tensorflow>=2.3.1,<2.9",
             "cloudpickle",
             "nfft",
             "scipy",
