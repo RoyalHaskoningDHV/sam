@@ -88,7 +88,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     ...                             'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
     >>> y = data['T'].shift(-1)
     >>> X = data.drop('T', axis=1)
-    >>> fe = SimpleFeatureEngineer(rolling_features=[('T', 'mean', 12), ('T', 'mean', '24')], 
+    >>> fe = SimpleFeatureEngineer(rolling_features=[('T', 'mean', 12), ('T', 'mean', '24')],
     ...                            time_features=[('hour_of_week', 'onehot')])
     >>> X_fe = fe.fit_transform(X, y)
     >>> X_fe.head()
@@ -141,7 +141,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         if self.time_col:
             datetime = X[self.time_col]
         else:
-            datetime = X.index.to_series().copy()        
+            datetime = X.index.to_series().copy()
 
         # Fix timezone
         datetime = self._fix_timezone(datetime)
