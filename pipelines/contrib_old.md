@@ -1,25 +1,16 @@
 # Contributing
 
-This project is a community effort, and everyone is welcome to contribute. The package is moderated by Royal HaskoningDHV. Before contributing, please read this guide.
+sam is (currently) an internal package being developed by Royal HaskoningDHV. Anyone is free to submit bug/feature request [here](https://dev.azure.com/corporateroot/SAM/_workitems/recentlyupdated/) and propose Pull requests, see instructions below for how to install a develop version. Every Pull request needs to be checked by employees from both Data Solutions and Aquasuite.
 
-## Links
+Please note that we are working hard on making this package open-source, more info will follow soon.
 
-- [GitHub repository](https://github.com/RoyalHaskoningDHV/sam)
-- [Documentation](https://samdocs.digitalapps.royalhaskoningdhv.com)
-- [Issues and feature requests](https://github.com/RoyalHaskoningDHV/sam/issues)
-- [Pull requests](https://github.com/RoyalHaskoningDHV/sam/pulls)
-- [Community (discussions, Q&A))](https://github.com/RoyalHaskoningDHV/sam/discussions)
+## Bug Reports and Feature Requests
 
+The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://dev.azure.com/corporateroot/SAM/_workitems/) No permission is needed to create a card, so go nuts! Please use user stories for feature requests and add `[Feature]` in the title and use bug reports for bugs. Be as clear as you can in the description and alert one of the developers since we don't check the board every day!
 
-## Bug reports and feature requests
+In the case of bug reports please fill in a small script to reproduce the problem in the bug report.
 
-The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://github.com/RoyalHaskoningDHV/sam/issues) No permission is needed to create a card, so go nuts! Please use user stories for feature requests. Be as clear as you can in the description.
-
-In the case of bug reports please fill in a small script to reproduce the problem in the bug report. Report your sam version, python version, and the operating system you are using as well.
-
-## Developing.
-
-We recommend to use a virtual environment for a clean slate and to avoid any conflicts with other packages. For example, to create a virtual environment, run `python3 -m venv <env name>`. Then, run `source <env name>/bin/activate`.
+## Developing
 
 If you want to develop this package, you wil need to install a local version using pip. This is done by cloning the repo, going to the root folder of this package, and running `pip install -e .` This will install a development version of the package locally. That means that if you make local changes, the package will automatically reflect them. 
 
