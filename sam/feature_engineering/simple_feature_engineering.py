@@ -31,12 +31,17 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     rolling_features : list or pandas.DataFrame (default=[])
         List of tuples of the form (column, method, window). Can also be provided as a
         dataframe with columns: ['column', 'method', 'window'].
+        The column is the name of the column to be transformed, the method is the
+        method to be used (string), and the window is the window size (integer or string).
         Valid methods are "lag" or any of the pandas rolling methods (e.g. "mean", "median", etc.).
     time_features : list (default=[])
         List of tuples of the form (component, type). Can also be provided as a
         dataframe with columns ['component', 'type'].
         Supported components are:
+            - "second_of_minute"
+            - "second_of_hour"
             - "seconds_of_day"
+            - "minute_of_hour"
             - "minute_of_day"
             - "hour_of_day"
             - "hour_of_week"
@@ -128,8 +133,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
             X_out = pd.DataFrame(index=X.index, columns=[])
 
         # Rolling features
-        for feature in self.rolling_features:
-            col, method, window = feature
+        for col, method, window in self.rolling_features:
             colname = f"{col}_{method}_{window}"
             if method == "lag":
                 X_out[colname] = X[col].shift(window)
@@ -137,14 +141,15 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
                 X_out[colname] = X[col].rolling(window=window).agg(method)
 
         # Time features
-        for feature in self.time_features:
-            component, type = feature
+        for component, type in self.time_features:
             colname = f"{component}_{type}"
             comp_min, comp_max = COMPONENT_RANGE[component]
 
             if type == "onehot":
                 # we do not make a dummy of the last value because of collinearity
-                for value in range(comp_min, comp_max):
+                if self.drop_first:
+                    comp_min += 1
+                for value in range(comp_min, comp_max + 1):
                     comp_series = self._get_time_column(X, component)
                     colname_ = f"{colname}_{value}"
                     X_out[colname_] = (comp_series == value).astype(int)
