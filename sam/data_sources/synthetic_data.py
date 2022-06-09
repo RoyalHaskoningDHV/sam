@@ -64,7 +64,7 @@ def synthetic_timeseries(
     cutoff_values=None,
     negabs=None,
     random_missing=None,
-    seed=None
+    seed=None,
 ):
     """
     Create a synthetic time series, with some temporal patterns, and some noise. There are various
