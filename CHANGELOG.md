@@ -16,6 +16,8 @@ Version X.Y.Z stands for:
 - Added `black` to requirements and linting pipeline
 - All code reformatted with `black` and project configuration
 
+## Version 2.10.1
+
 ### Changes
 - Revert version changes in `scikit-learn` and `tenforflow` due to compatibility issues
 
