@@ -14,8 +14,7 @@ Version X.Y.Z stands for:
 ### Changes
 - Updated `CONTRIBUTING.md` for open source / github contribution guidelines
 - Added `black` to requirements and linting pipeline
-
-## Version 2.10.1
+- All code reformatted with `black` and project configuration
 
 ### Changes
 - Revert version changes in `scikit-learn` and `tenforflow` due to compatibility issues
