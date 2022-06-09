@@ -126,7 +126,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         else:
             raise NotImplementedError(f"Component {component} not implemented.")
 
-    def feature_engineer(self, X):
+    def feature_engineer_(self, X, y=None):
         if self.keep_original:
             X_out = X.copy()
         else:
