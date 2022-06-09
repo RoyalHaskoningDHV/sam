@@ -11,7 +11,7 @@ steps:
 
 - script: |
     python -m pip install flake8 black
-  displayName: 'Install flake8 an black'
+  displayName: 'Install flake8 and black'
 
 - script: |
     flake8 ./sam
