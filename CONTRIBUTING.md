@@ -35,7 +35,7 @@ This will reload sam every time you run a new cell. For more information abut th
 
 ## Linting
 
-All Pull Requests must pass linting requirements. To test this locally, first install the dependencies.
+Any Pull Request must pass linting requirements. To test this locally, first install the dependencies.
 
 ```
 lang=bash
@@ -46,7 +46,7 @@ Then, to run the linter manually, go to the root folder of the project, and run 
 
 ## Testing
 
-All Pull Requests must pass unit tests. To test this locally, first install the dependencies
+Any Pull Request must pass unit tests. To test this locally, first install the dependencies
 
 ```
 lang=bash
