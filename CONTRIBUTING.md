@@ -39,10 +39,10 @@ Any Pull Request must pass linting requirements. To test this locally, first ins
 
 ```
 lang=bash
-pip install flake8
+pip install flake8 black
 ```
 
-Then, to run the linter manually, go to the root folder of the project, and run `flake8 sam --config=setup.cfg`. Satisfying all flake8 rules is required when developing this package.
+Then, to run the linter manually, go to the root folder of the project, and run `flake8 ./sam` and `black ./sam --check`. Satisfying all flake8 and black rules is required when developing this package. You can also run black without `--check` to make sure that the code is automatically formatted correctly.
 
 ## Testing
 
