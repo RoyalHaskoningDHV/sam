@@ -13,7 +13,7 @@ This project is a community effort, and everyone is welcome to contribute. The p
 
 ## Bug reports and feature requests
 
-The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://github.com/RoyalHaskoningDHV/sam/issues) No permission is needed to create a card, so go nuts! Please use user stories for feature requests. Be as clear as you can in the description.
+The single most important contribution that you can make is to report bugs and make feature requests. The development work on sam is largely driven by these, so please make your voice heard! Any bugs/feature requests [can be created here.](https://github.com/RoyalHaskoningDHV/sam/issues) No permission is needed to create an issue. Please use user stories for feature requests. Be as clear as you can in the description. 
 
 In the case of bug reports please fill in a small script to reproduce the problem in the bug report. Report your sam version, python version, and the operating system you are using as well.
 
@@ -35,7 +35,7 @@ This will reload sam every time you run a new cell. For more information abut th
 
 ## Linting
 
-Linting is done automatically by devops during a PR. To do this, first install the dependencies
+All Pull Requests must pass linting requirements. To test this locally, first install the dependencies.
 
 ```
 lang=bash
@@ -46,7 +46,7 @@ Then, to run the linter manually, go to the root folder of the project, and run 
 
 ## Testing
 
-Unit tests are ran automatically by devops during a PR. To do this, first install the dependencies
+All Pull Requests must pass unit tests. To test this locally, first install the dependencies
 
 ```
 lang=bash
@@ -74,15 +74,17 @@ pip install sphinx-markdown-tables
 Then, run the command: `sphinx-build -b html docs/source/ docs/build/`
 
 ## Definitions of done
-To ensure quality of code and documentation, we utilise standard definitions of done for SAM. You are kindly requested to comply with these when making a diff.
+To ensure quality of code and documentation, we utilise standard definitions of done for SAM. You are kindly requested to comply with these when making a Pull Request.
 
 ### Code implementations
 
 * Functionality implemented in code
 * Code actually tested by using it at least once
-* Code documented including example use
 * Appropriate unit tests written
-* Code reviewed and landed
+* Code documented including example use
+* Code style follows linter rules
+* Updated `CHANGELOG.md` and version number in `setup.cfg`
+* Code reviewed and approved
 
 If functionality supports a new step in the analyses:
 
@@ -91,5 +93,5 @@ If functionality supports a new step in the analyses:
 ### When specifically writing documentation
 
 * Documentation written
-* Build tested locally
-* Reviewed and landed
+* Documentation build tested locally
+* Reviewed and approved
