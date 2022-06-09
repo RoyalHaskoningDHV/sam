@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.10.2
+
+### Changes
+- Updated `CONTRIBUTING.md` for open source / github contribution guidelines
+
 ## Version 2.10.1
 
 ### Changes
