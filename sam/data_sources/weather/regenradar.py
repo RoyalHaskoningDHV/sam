@@ -10,9 +10,7 @@ from .utils import _try_parsing_date
 logger = logging.getLogger(__name__)
 
 
-def read_regenradar(
-    start_date, end_date, latitude=52.11, longitude=5.18, freq="5min", **kwargs
-):
+def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq="5min", **kwargs):
     """
     Export historic precipitation from Nationale Regenradar.
 

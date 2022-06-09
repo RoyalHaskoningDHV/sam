@@ -21,9 +21,7 @@ def _haversine(stations_row, lat2, lon2):
     stations_row is a row of knmi_stations, which means it's a dataframe with shape (1, 3)
     `Credit for this solution goes to stackoverflow <https://stackoverflow.com/a/19412565>`
     """
-    lat1, lon1 = math.radians(stations_row["latitude"]), math.radians(
-        stations_row["longitude"]
-    )
+    lat1, lon1 = math.radians(stations_row["latitude"]), math.radians(stations_row["longitude"])
     lat2, lon2 = math.radians(lat2), math.radians(lon2)
     a = (
         math.sin((lat2 - lat1) / 2) ** 2

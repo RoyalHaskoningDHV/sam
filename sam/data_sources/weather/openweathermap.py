@@ -56,9 +56,7 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
     apikey = config["openweathermap"]["apikey"]
 
     logger.debug(
-        "Getting openweathermap forecast: latitude={}, longitude={}".format(
-            latitude, longitude
-        )
+        "Getting openweathermap forecast: latitude={}, longitude={}".format(latitude, longitude)
     )
     url = (
         "https://api.openweathermap.org/data/2.5/"

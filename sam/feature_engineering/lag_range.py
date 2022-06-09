@@ -6,7 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 def range_lag_column(
-    original_column: pd.Series, range_shift: tuple = (0, 1)
+    original_column: pd.Series,
+    range_shift: tuple = (0, 1),
 ) -> pd.Series:
     """
     Lags a column with a range. Will not lag the actual value,
@@ -69,8 +70,8 @@ def range_lag_column(
     )
 
     if range_shift[0] < 0:
-        result[0:-range_shift[0]] = (
-            original_column[0:-range_shift[0]]
+        result[0 : -range_shift[0]] = (
+            original_column[0 : -range_shift[0]]
             .rolling(window_size_inclusive, min_periods=1)
             .max()
         )

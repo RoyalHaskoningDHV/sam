@@ -158,9 +158,7 @@ def top_score_correlations(df: pd.DataFrame, goal_feature: str, score: float = 0
     if goal_feature not in df.columns:
         raise ValueError("Goal feature not found in columns!")
     logging.debug(
-        "Retrieving top n variables with goal variable {}, score={}".format(
-            goal_feature, score
-        )
+        "Retrieving top n variables with goal variable {}, score={}".format(goal_feature, score)
     )
 
     pos_corr = df.corr().abs()  # get all positive correlations

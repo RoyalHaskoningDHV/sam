@@ -145,9 +145,7 @@ class TestCompleteTimestamps(unittest.TestCase):
             columns=["TIME", "ID", "TYPE", "VALUE"],
         )
 
-        result = normalize_timestamps(
-            data, "15min", start_time, end_time, fillna_method="bfill"
-        )
+        result = normalize_timestamps(data, "15min", start_time, end_time, fillna_method="bfill")
         assert_frame_equal(result, output, check_dtype=False)  # bfill changes to float
 
     def test_agg_method(self):
@@ -191,9 +189,7 @@ class TestCompleteTimestamps(unittest.TestCase):
             columns=["TIME", "ID", "TYPE", "VALUE"],
         )
 
-        result = normalize_timestamps(
-            data, "15min", start_time, end_time, aggregate_method="sum"
-        )
+        result = normalize_timestamps(data, "15min", start_time, end_time, aggregate_method="sum")
         assert_frame_equal(result, output)
 
     def test_empty_start_end_time(self):
@@ -294,9 +290,7 @@ class TestCompleteTimestamps(unittest.TestCase):
         start_time = pd.to_datetime("2018/01/01 16:00:00")
         end_time = pd.to_datetime("2018/01/01 16:30:00")
 
-        result = normalize_timestamps(
-            data, "15min", start_time, end_time, fillna_method="ffill"
-        )
+        result = normalize_timestamps(data, "15min", start_time, end_time, fillna_method="ffill")
 
         output = pd.DataFrame(
             {
@@ -419,14 +413,10 @@ class TestCompleteTimestamps(unittest.TestCase):
         end_time = pd.to_datetime("2018/01/01 16:30:00")
 
         # half uur is invalid timeunit
-        self.assertRaises(
-            ValueError, normalize_timestamps, data, "half uur", start_time, end_time
-        )
+        self.assertRaises(ValueError, normalize_timestamps, data, "half uur", start_time, end_time)
         # wrong is not a time
         # integers are actually allowed, they are interpreted as UNIX time
-        self.assertRaises(
-            ValueError, normalize_timestamps, data, "15min", "wrong", end_time
-        )
+        self.assertRaises(ValueError, normalize_timestamps, data, "15min", "wrong", end_time)
 
         data.columns = ["TIME", "ID", "TYPE", "SOMETHINGELSE"]
         self.assertRaises(
@@ -454,9 +444,7 @@ class TestCompleteTimestamps(unittest.TestCase):
             "unknown_fun",
         )
 
-        self.assertRaises(
-            Exception, normalize_timestamps, data, "15min", round_function="flotor"
-        )
+        self.assertRaises(Exception, normalize_timestamps, data, "15min", round_function="flotor")
         self.assertRaises(
             Exception,
             normalize_timestamps,
@@ -464,12 +452,8 @@ class TestCompleteTimestamps(unittest.TestCase):
             "15min",
             fillna_method="supersmartfill",
         )
-        self.assertRaises(
-            Exception, normalize_timestamps, data.assign(ID=np.nan), "15min"
-        )
-        self.assertRaises(
-            Exception, normalize_timestamps, data.assign(TYPE=np.nan), "15min"
-        )
+        self.assertRaises(Exception, normalize_timestamps, data.assign(ID=np.nan), "15min")
+        self.assertRaises(Exception, normalize_timestamps, data.assign(TYPE=np.nan), "15min")
         self.assertRaises(Exception, normalize_timestamps, data.iloc[[]], "15min")
 
 

@@ -109,9 +109,7 @@ def incident_curves(
     )
 
     data = data.copy()  # copy because we are going to mess with this df in various ways
-    data = data.rename(
-        columns={actual: "ACTUAL", low: "PREDICT_LOW", high: "PREDICT_HIGH"}
-    )
+    data = data.rename(columns={actual: "ACTUAL", low: "PREDICT_LOW", high: "PREDICT_HIGH"})
     # Three columns needed: ACTUAL, PREDICT_HIGH, PREDICT_LOW
     data["OUTLIER"] = (
         (data.ACTUAL > data.PREDICT_HIGH) | (data.ACTUAL < data.PREDICT_LOW)
@@ -121,9 +119,7 @@ def incident_curves(
     # Find the streaks of gaps. Gaps are defined as anything that's not an outlier
     data["GAP"] = _number_true_streaks(~data["OUTLIER"])
     # Then, all gaps with length of max_gap or lower are merged with neighbouring outliers
-    new_val = data.groupby("GAP").apply(
-        lambda x: True if (x.shape[0] <= max_gap) else False
-    )
+    new_val = data.groupby("GAP").apply(lambda x: True if (x.shape[0] <= max_gap) else False)
     new_val[0] = True  # because this is not an outlier, it's treated seperately
     new_val.name = "OUTLIER_FILLED"  # Attribute needed for join
     data = data.join(new_val, on="GAP")  # Add OUTLIER_FILLED column
@@ -149,9 +145,7 @@ def incident_curves(
     # Now calculate the streaks of outliers, and number them
     data["OUTLIER_CURVE"] = _number_true_streaks(data["OUTLIER_FILLED"])
 
-    logging.debug(
-        "Curves found after fixing gaps: {}".format(data["OUTLIER_CURVE"].max())
-    )
+    logging.debug("Curves found after fixing gaps: {}".format(data["OUTLIER_CURVE"].max()))
 
     # Lastly, filter the outlier streaks that don't match one of the three criteria from params.
     real_outlier = data.groupby("OUTLIER_CURVE").apply(
@@ -172,7 +166,7 @@ def incident_curves_information(
     return_aggregated: bool = True,
     normal: str = "PREDICT",
     time: str = "TIME",
-    **kwargs
+    **kwargs,
 ):
     """
     Aggregates a dataframe by incident_curves.
@@ -263,12 +257,8 @@ def incident_curves_information(
     """
     data = data.copy()
     data = data.rename(columns={normal: "PREDICT", time: "TIME"})
-    logging.debug(
-        "Creating outlier information: return_aggregated={}".format(return_aggregated)
-    )
-    data["OUTLIER_CURVE"] = incident_curves(data, under_conf_interval, **kwargs).astype(
-        np.int64
-    )
+    logging.debug("Creating outlier information: return_aggregated={}".format(return_aggregated))
+    data["OUTLIER_CURVE"] = incident_curves(data, under_conf_interval, **kwargs).astype(np.int64)
     # On unix, 64 is already the default, but on windows, the
     # outlier_curves function returns 32 bit integers. This function returns a numpy array
     # which is consistent across platforms, so values are converted to 64-bit to ensure

@@ -59,9 +59,7 @@ def plot_precision_recall_curve(
         title = "2-class Precision-Recall curve. AP={0:0.2f}".format(ap_score)
         recall_label = "Recall"
     else:
-        precision, recall, _ = precision_incident_recall_curve(
-            y_true, y_score, range_pred
-        )
+        precision, recall, _ = precision_incident_recall_curve(y_true, y_score, range_pred)
         title = "2-class Precision-Incident Recall curve. Prediction range: ({}, {})".format(
             range_pred[0], range_pred[1]
         )

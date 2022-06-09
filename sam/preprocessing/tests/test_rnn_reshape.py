@@ -10,9 +10,7 @@ class TestRecurrentReshaper(unittest.TestCase):
     def setUp(self):
         self.window = 2
         self.lookback = 1
-        self.X_in = pd.DataFrame(
-            {"x1": [1.1, 2.1, 1.2, 1.1], "x2": [7.7, 6.7, 7.6, 6.6]}
-        )
+        self.X_in = pd.DataFrame({"x1": [1.1, 2.1, 1.2, 1.1], "x2": [7.7, 6.7, 7.6, 6.6]})
         self.X_out = np.array(
             [
                 [[np.nan, np.nan], [np.nan, np.nan]],

@@ -50,8 +50,7 @@ class CyclicalMaxes:
         for c in cyclicals:
             if c not in cls.__annotations__:
                 raise ValueError(
-                    str(c) + " is not a known cyclical, please "
-                    "provide cyclical_maxes yourself."
+                    str(c) + " is not a known cyclical, please " "provide cyclical_maxes yourself."
                 )
         return [getattr(cls, c.lower()) for c in cyclicals]
 
@@ -157,8 +156,7 @@ def decompose_datetime(
         timecol = df[column].copy()
 
     logging.debug(
-        f"Decomposing datetime, number of dates: {len(timecol)}. "
-        f"Components: {components}"
+        f"Decomposing datetime, number of dates: {len(timecol)}. " f"Components: {components}"
     )
 
     # Fix timezone
@@ -296,9 +294,7 @@ def recode_cyclical_features(
         # rescale feature so it runs from 0 to 2*pi:
         # Features that exceed the maximum are rolled over by the sine/cosine:
         # e.g. if min=0 and max=7, 9 will be treated the same as 2
-        norm_feature: pd.Series = (df[col] - cyclical_min) / (
-            cyclical_max - cyclical_min
-        )
+        norm_feature: pd.Series = (df[col] - cyclical_min) / (cyclical_max - cyclical_min)
         norm_feature = 2 * np.pi * norm_feature
         # convert cyclical to 2 variables that are offset:
         new_df[col + "_sin"] = np.sin(norm_feature)

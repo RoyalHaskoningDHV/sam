@@ -72,12 +72,8 @@ class TestSamReshape(unittest.TestCase):
 
         expected = self.long.copy()
         # B_Y and C_Y are now missing id
-        expected.loc[
-            (expected["TYPE"] == "Y") & (expected["ID"] == "B"), "ID"
-        ] = "missingid"
-        expected.loc[
-            (expected["TYPE"] == "Y") & (expected["ID"] == "C"), "ID"
-        ] = "missingid"
+        expected.loc[(expected["TYPE"] == "Y") & (expected["ID"] == "B"), "ID"] = "missingid"
+        expected.loc[(expected["TYPE"] == "Y") & (expected["ID"] == "C"), "ID"] = "missingid"
         # A_Y is missing TYPE
         expected.loc[(expected["TYPE"] == "Y") & (expected["ID"] == "A"), "TYPE"] = ""
 

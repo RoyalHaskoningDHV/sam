@@ -56,9 +56,7 @@ class TestSPCRegressor(unittest.TestCase):
 
         score = model.score(self.X_test, self.y_test)
         # Loss score should be equal to the MSE, since there are no quantiles
-        expected_score = np.sum(
-            np.mean((model.get_actual(self.y_test) - preds) ** 2, axis=0)
-        )
+        expected_score = np.sum(np.mean((model.get_actual(self.y_test) - preds) ** 2, axis=0))
         self.assertEqual(score, expected_score)
 
     def test_normal_use(self):

@@ -3,8 +3,7 @@ from typing import Any, Callable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from sam.logging_functions import (log_dataframe_characteristics,
-                                   log_new_columns)
+from sam.logging_functions import log_dataframe_characteristics, log_new_columns
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 
@@ -12,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 def _nfft_helper(
-    series: pd.Series, nfft: Callable[[np.ndarray, np.ndarray], np.ndarray]
+    series: pd.Series,
+    nfft: Callable[[np.ndarray, np.ndarray], np.ndarray],
 ) -> np.ndarray:
     """Helper function to apply nfft to series.
 
@@ -49,7 +49,7 @@ def _nfft_helper(
     ff = np.fft.fftshift(f)
     # Only take first half since that is useful. See documentation inside
     # multicol_output.Helper.__init__ for better explanation
-    return np.abs(ff)[1:len(ff) // 2]
+    return np.abs(ff)[1 : len(ff) // 2]
 
 
 def multicol_output(
@@ -296,9 +296,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             raise ValueError("Window_size must not be None, unless rolling_type is ewm")
 
         if self.deviation is not None and self.rolling_type in ["fourier", "cwt"]:
-            raise ValueError(
-                "Deviation cannot be used together with {}".format(self.rolling_type)
-            )
+            raise ValueError("Deviation cannot be used together with {}".format(self.rolling_type))
 
     def _validate_lookback(self):
         if not np.isscalar(self.lookback):
@@ -325,10 +323,9 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             raise ValueError("proportiontocut must be in [0, 0.5)")
 
     def _get_rolling_fun(
-        self, rolling_type: str = "mean"
-    ) -> Callable[
-        [Union[pd.Series, np.ndarray], Union[int, None]], Union[pd.Series, np.ndarray]
-    ]:
+        self,
+        rolling_type: str = "mean",
+    ) -> Callable[[Union[pd.Series, np.ndarray], Union[int, None]], Union[pd.Series, np.ndarray]]:
         """Given a function name as a string, creates a function that
         applies that rolling function
 
@@ -378,8 +375,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
         if rolling_type not in rolling_functions:
             raise ValueError(
-                "The rolling_type is %s, which is not an available function"
-                % rolling_type
+                "The rolling_type is %s, which is not an available function" % rolling_type
             )
 
         return rolling_functions[rolling_type]
@@ -436,9 +432,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
                     else:
                         useful_coeffs = range(0, window_size)
                     col_prefix = "#".join([str(column), suffix])
-                    new_features.columns = [
-                        "_".join([col_prefix, str(j)]) for j in useful_coeffs
-                    ]
+                    new_features.columns = ["_".join([col_prefix, str(j)]) for j in useful_coeffs]
                     new_features = new_features.set_index(X.index)
                     result = pd.concat([result, new_features], axis=1)
         else:
@@ -479,13 +473,10 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             if np.isscalar(self.window_size_):
                 self.window_size_ = [self.window_size_]
             self.suffix_ = [
-                self.rolling_type + "_" + str(window_size)
-                for window_size in self.window_size_
+                self.rolling_type + "_" + str(window_size) for window_size in self.window_size_
             ]
             if self.add_lookback_to_colname:
-                self.suffix_ = [
-                    s + "_lookback_" + str(self.lookback) for s in self.suffix_
-                ]
+                self.suffix_ = [s + "_lookback_" + str(self.lookback) for s in self.suffix_]
         self.rolling_fun_ = self._get_rolling_fun(self.rolling_type)
         logger.debug(
             "Done fitting transformer. window size: {}, suffix: {}".format(

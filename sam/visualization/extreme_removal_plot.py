@@ -4,7 +4,9 @@ from sam.validation import RemoveExtremeValues
 
 
 def diagnostic_extreme_removal(
-    rev: RemoveExtremeValues, raw_data: pd.DataFrame, col: str
+    rev: RemoveExtremeValues,
+    raw_data: pd.DataFrame,
+    col: str,
 ):
     """
     Creates a diagnostic plot for the extreme value removal procedure.

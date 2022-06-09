@@ -88,12 +88,8 @@ class TestAutomaticRollingEngineering(unittest.TestCase):
 
     def test_column_names(self):
         self.runAutomaticRollingEngineer()
-        assert_array_equal(
-            self.X_train_rolling.columns, ["T", "T#lag_8", "Q", "Q#lag_8"]
-        )
-        assert_array_equal(
-            self.X_test_rolling.columns, ["T", "T#lag_8", "Q", "Q#lag_8"]
-        )
+        assert_array_equal(self.X_train_rolling.columns, ["T", "T#lag_8", "Q", "Q#lag_8"])
+        assert_array_equal(self.X_test_rolling.columns, ["T", "T#lag_8", "Q", "Q#lag_8"])
 
     def test_feature_importances(self):
         self.runAutomaticRollingEngineer()
