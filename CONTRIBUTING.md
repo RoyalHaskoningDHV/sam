@@ -35,7 +35,7 @@ This will reload sam every time you run a new cell. For more information abut th
 
 ## Linting
 
-Any Pull Request must pass linting requirements. To test this locally, first install the dependencies.
+Any Pull Request must pass linting requirements. To test this locally, first install the dependencies
 
 ```
 lang=bash
