@@ -3,7 +3,7 @@ from .rolling_features import BuildRollingFeatures
 from .lag_range import range_lag_column
 from .automatic_rolling_engineering import AutomaticRollingEngineering
 from .weather_spei import SPEITransformer
-from .base_feature_engineering import BaseFeatureEngineer, FeatureEngineerFromFunction
+from .base_feature_engineering import BaseFeatureEngineer
 from .simple_feature_engineering import SimpleFeatureEngineer
 
 __all__ = [
@@ -14,6 +14,5 @@ __all__ = [
     "AutomaticRollingEngineering",
     "SPEITransformer",
     "BaseFeatureEngineer",
-    "FeatureEngineerFromFunction",
     "SimpleFeatureEngineer",
 ]
