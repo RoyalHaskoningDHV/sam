@@ -78,9 +78,7 @@ def mean_absolute_scaled_error(
     )
 
     if np.isscalar(naive_mae) and naive_mae == 0:
-        raise ValueError(
-            "Target vector is constant. MASE has no meaning in this circumstance."
-        )
+        raise ValueError("Target vector is constant. MASE has no meaning in this circumstance.")
     elif (naive_mae == 0).any():
         raise ValueError(
             "One of the target vectors is constant. MASE has no meaning in this circumstance."

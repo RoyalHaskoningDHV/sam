@@ -47,9 +47,7 @@ class TestFindIncidentCurves(unittest.TestCase):
         assert_array_equal(result, np.array([0, 0, 0, 0, 0]))
 
     def test_gap_edge(self):
-        data = pd.DataFrame(
-            {"ACTUAL": [0.5, 1, 0.5], "PREDICT_HIGH": 0.6, "PREDICT_LOW": 0.4}
-        )
+        data = pd.DataFrame({"ACTUAL": [0.5, 1, 0.5], "PREDICT_HIGH": 0.6, "PREDICT_LOW": 0.4})
         result = incident_curves(data, max_gap=1)
         assert_array_equal(result, np.array([0, 1, 0]))
 
@@ -61,9 +59,7 @@ class TestFindIncidentCurves(unittest.TestCase):
         assert_array_equal(result, np.array([0, 0, 1, 0, 0]))
 
     def test_wrong_input(self):
-        wrongdata = pd.DataFrame(
-            {"AGTUAL": [0.5, 0.3], "PREDICT_HIGH": 0.6, "PREDICT_LOW": 0.4}
-        )
+        wrongdata = pd.DataFrame({"AGTUAL": [0.5, 0.3], "PREDICT_HIGH": 0.6, "PREDICT_LOW": 0.4})
         self.assertRaises(Exception, incident_curves, wrongdata)
 
         with self.assertRaises(Exception):

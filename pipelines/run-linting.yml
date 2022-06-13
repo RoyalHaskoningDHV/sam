@@ -10,9 +10,13 @@ steps:
     architecture: 'x64'
 
 - script: |
-    python -m pip install flake8
-  displayName: 'Install flake8'
+    python -m pip install flake8 black
+  displayName: 'Install flake8 and black'
 
 - script: |
     flake8 ./sam
   displayName: 'Run flake8 test'
+
+- script: |
+    black --check --verbose ./sam
+  displayName: 'Run black test'

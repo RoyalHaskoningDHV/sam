@@ -59,7 +59,7 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
         quantiles: list = [0.05, 0.95],
         tol: float = 1e-3,
         max_iter: int = 1000,
-        fit_intercept: bool = True
+        fit_intercept: bool = True,
     ):
         self.quantiles = quantiles
         self.tol = tol
@@ -79,8 +79,7 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
         return coef, pvalues
 
     def _array_to_df(self, X):
-        """ Transform to dataframe
-        """
+        """Transform to dataframe"""
         if not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
             X.columns = [f"X{i}" for i in range(1, X.shape[1] + 1)]
@@ -96,8 +95,7 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
             self.q_ = self.quantiles
         else:
             raise TypeError(
-                f"Invalid type, quantile {self.quantiles} "
-                f"should be a float or list of floats"
+                f"Invalid type, quantile {self.quantiles} " f"should be a float or list of floats"
             )
         self.prediction_cols = [f"predict_q_{q}" for q in self.quantiles]
 

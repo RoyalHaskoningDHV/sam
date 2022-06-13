@@ -402,7 +402,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         X: pd.DataFrame,
         y: pd.Series,
         validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-        **fit_kwargs
+        **fit_kwargs,
     ) -> Callable:
         """
         This function does the following:
@@ -480,7 +480,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             epochs=self.epochs,
             verbose=self.verbose,
             validation_data=validation_data,
-            **fit_kwargs
+            **fit_kwargs,
         )
         return history
 

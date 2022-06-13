@@ -48,9 +48,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         time2 = "2019/03/11 04:00:00"
         freq = "1h"
         daterange = pd.date_range(time1, time2, freq=freq)
-        test_dataframe = pd.DataFrame(
-            {"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"]
-        )
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"])
 
         # add without cyclicals
         result = decompose_datetime(test_dataframe, "TIME", ["hour"], [])
@@ -61,9 +59,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_frame_equal(result, expected)
 
         # add cyclical test without keeping original
-        result = decompose_datetime(
-            test_dataframe, "TIME", ["hour"], ["hour"], cyclical_maxes=[4]
-        )
+        result = decompose_datetime(test_dataframe, "TIME", ["hour"], ["hour"], cyclical_maxes=[4])
         expected = pd.DataFrame(
             {
                 "TIME": daterange,
@@ -125,9 +121,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         # starts at minute 8m ends at 10, 1 hour later, step of 15 min
         minuterange = list(range(8, 10 + 60, 15))
 
-        test_dataframe = pd.DataFrame(
-            {"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"]
-        )
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"])
         components = ["year", "month", "quarter", "week", "weekday", "hour", "minute"]
 
         result = decompose_datetime(test_dataframe, "TIME", components)
@@ -140,13 +134,9 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_array_equal(result.TIME_week.values, np.repeat(10, rangelength))
         # weekdays run 0-6, and 11 march is a sunday, so 6
         assert_array_equal(result.TIME_weekday.values, np.repeat(6, rangelength))
-        assert_array_equal(
-            result.TIME_hour.values, np.array([15 + x // 60 for x in minuterange])
-        )
+        assert_array_equal(result.TIME_hour.values, np.array([15 + x // 60 for x in minuterange]))
         # minute rolls over at 60
-        assert_array_equal(
-            result.TIME_minute.values, np.array([x % 60 for x in minuterange])
-        )
+        assert_array_equal(result.TIME_minute.values, np.array([x % 60 for x in minuterange]))
 
         assert_array_equal(
             result.columns.values,
@@ -218,22 +208,16 @@ class TestBuildTimeFeatures(unittest.TestCase):
         # The first had remove_categorical, so TIME and OTHER are both dropped
         assert_array_equal(result1.columns.values, np.array(["OTHER_sin", "OTHER_cos"]))
         # The second had remove_categorical False, so TIME is dropped but OTHER isn't
-        assert_array_equal(
-            result2.columns.values, np.array(["OTHER", "OTHER_sin", "OTHER_cos"])
-        )
+        assert_array_equal(result2.columns.values, np.array(["OTHER", "OTHER_sin", "OTHER_cos"]))
 
     def test_incorrect_column(self):
         test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
         # Raises AttributeError because float doesn't have .dt.hour
-        self.assertRaises(
-            AttributeError, decompose_datetime, test_dataframe, "TIME", ["hour"]
-        )
+        self.assertRaises(AttributeError, decompose_datetime, test_dataframe, "TIME", ["hour"])
 
     def test_absent_column(self):
         test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
-        self.assertRaises(
-            KeyError, decompose_datetime, test_dataframe, "TEST", ["hour"]
-        )
+        self.assertRaises(KeyError, decompose_datetime, test_dataframe, "TEST", ["hour"])
 
     def test_recode_cyclical_datetime(self):
         """Test cyclicals with the default datetime features instead of custom min/max"""
@@ -271,9 +255,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         daterange = pd.date_range(time1, time2, freq=freq)
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
 
-        result = decompose_datetime(
-            test_dataframe, components=["weekday"], onehots=["weekday"]
-        )
+        result = decompose_datetime(test_dataframe, components=["weekday"], onehots=["weekday"])
 
         expected = pd.DataFrame(
             {
@@ -475,9 +457,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_array_equal(result["TIME_day"], [29, 29, 29, 29, 29])
         assert_array_equal(result["TIME_hour"], [1, 3, 4, 5, 6])
         assert_array_equal(result["TIME_week"], [13, 13, 13, 13, 13])
-        assert_array_equal(
-            result["TIME_secondofday"], [3600, 10800, 14400, 18000, 21600]
-        )
+        assert_array_equal(result["TIME_secondofday"], [3600, 10800, 14400, 18000, 21600])
 
     def test_timezone_gb_wintertime(self):
         """Test change into wintertime, using london timezone

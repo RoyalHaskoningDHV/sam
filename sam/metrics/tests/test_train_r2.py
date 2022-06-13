@@ -50,17 +50,11 @@ class TestTrainR2(unittest.TestCase):
                 # keras r2 should decrease with decreasing test size, custom r2 should do so less
                 assert_array_almost_equal(keras_r2s, [0.962522, 0.894608, 0.734713])
                 if count == 0:
-                    assert_array_almost_equal(
-                        custom_r2s, [0.987602, 0.989454, 0.870157]
-                    )
+                    assert_array_almost_equal(custom_r2s, [0.987602, 0.989454, 0.870157])
                 elif count == 1:
-                    assert_array_almost_equal(
-                        custom_r2s, [0.987653, 0.990700, 0.938786]
-                    )
+                    assert_array_almost_equal(custom_r2s, [0.987653, 0.990700, 0.938786])
                 else:
-                    assert_array_almost_equal(
-                        custom_r2s, [0.996578, 0.996330, 0.994752]
-                    )
+                    assert_array_almost_equal(custom_r2s, [0.996578, 0.996330, 0.994752])
 
     def test_train_r2_shapes(self):
         # the function cannot handle data with multiple dimensions. It does however ravel

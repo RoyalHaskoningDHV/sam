@@ -41,22 +41,16 @@ class TestDifferencing(unittest.TestCase):
 
     def test_prefix_col(self):
 
-        result = make_differenced_target(
-            self.df["y"], lags=[1, 2, 3], newcol_prefix="mycol"
-        )
+        result = make_differenced_target(self.df["y"], lags=[1, 2, 3], newcol_prefix="mycol")
         expected = self.expected.copy()
         expected.columns = ["mycol_diff_1", "mycol_diff_2", "mycol_diff_3"]
         assert_frame_equal(result, expected)
 
     def test_negative_lag(self):
-        self.assertRaises(
-            ValueError, make_differenced_target, self.df["y"], lags=[1, 2, -3]
-        )
+        self.assertRaises(ValueError, make_differenced_target, self.df["y"], lags=[1, 2, -3])
 
     def test_fractional_lag(self):
-        self.assertRaises(
-            ValueError, make_differenced_target, self.df["y"], lags=[1, 2, 2.5]
-        )
+        self.assertRaises(ValueError, make_differenced_target, self.df["y"], lags=[1, 2, 2.5])
 
     def test_series_output(self):
         result = make_differenced_target(self.df["y"], lags=2)

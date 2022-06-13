@@ -33,9 +33,7 @@ def log_dataframe_characteristics(df: pd.DataFrame, level=logging.INFO):
     logger.log(level, "columns: %s", df.shape[0])
     logger.log(level, "rows: %s", df.shape[1])
     if df.shape[0] == 0 or df.shape[1] == 0:
-        logger.log(
-            level, "No type information of columns, because there were no values"
-        )
+        logger.log(level, "No type information of columns, because there were no values")
     else:
         for i in df.columns.values:
             # Take the first value of a column to get the real type

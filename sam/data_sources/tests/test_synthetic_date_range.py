@@ -8,27 +8,19 @@ from sam.data_sources import synthetic_date_range
 
 class TestCreateSyntheticTimes(unittest.TestCase):
     def test_nonoise(self):
-        result = synthetic_date_range(
-            start="2016-01-01", end="2016-01-01 03:00:00", freq="H"
-        )
+        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 03:00:00", freq="H")
         expected = pd.DatetimeIndex(
-            np.array(
-                ["2016-01-01 00:00:00", "2016-01-01 01:00:00", "2016-01-01 02:00:00"]
-            )
+            np.array(["2016-01-01 00:00:00", "2016-01-01 01:00:00", "2016-01-01 02:00:00"])
         )
         assert_array_equal(result, expected)
 
     def test_shortseries(self):
-        result = synthetic_date_range(
-            start="2016-01-01", end="2016-01-01 01:00:00", freq="H"
-        )
+        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 01:00:00", freq="H")
         expected = pd.DatetimeIndex(np.array(["2016-01-01 00:00:00"]))
         assert_array_equal(result, expected)
 
     def test_emptyseries(self):
-        result = synthetic_date_range(
-            start="2016-01-01", end="2016-01-01 00:30:00", freq="2H"
-        )
+        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 00:30:00", freq="2H")
         expected = pd.DatetimeIndex(np.array(["2016-01-01 00:00:00"]))
         assert_array_equal(result, expected)
 
@@ -40,9 +32,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
             "2016-01-01 00:30:00",
             "2H",
         )
-        self.assertRaises(
-            Exception, synthetic_date_range, "2016-01-01", "2017-01-01", "1 hour"
-        )
+        self.assertRaises(Exception, synthetic_date_range, "2016-01-01", "2017-01-01", "1 hour")
         self.assertRaises(
             Exception, synthetic_date_range, "2016-01-01", "2017-01-01", max_delay="1"
         )
@@ -79,21 +69,13 @@ class TestCreateSyntheticTimes(unittest.TestCase):
             max_delay=600,
         )
         # Delays should be between 1 hour and 1H10M (1 hour normal, 0-10 min delay)
-        self.assertGreater(
-            (result - result.to_series().shift())[1:].min(), pd.Timedelta("60min")
-        )
-        self.assertLess(
-            (result - result.to_series().shift())[1:].max(), pd.Timedelta("70min")
-        )
+        self.assertGreater((result - result.to_series().shift())[1:].min(), pd.Timedelta("60min"))
+        self.assertLess((result - result.to_series().shift())[1:].max(), pd.Timedelta("70min"))
         # These stricter bounds are probabilistic, but the probability of failure is approximately
         # the same probability as being hit by lightning 43 consecutive days. (probability for any
         # single day is 1 in 100 million)
-        self.assertLess(
-            (result - result.to_series().shift())[1:].min(), pd.Timedelta("61min")
-        )
-        self.assertGreater(
-            (result - result.to_series().shift())[1:].max(), pd.Timedelta("69min")
-        )
+        self.assertLess((result - result.to_series().shift())[1:].min(), pd.Timedelta("61min"))
+        self.assertGreater((result - result.to_series().shift())[1:].max(), pd.Timedelta("69min"))
 
     def test_random_stops(self):
         # We test only one month instead of one year, because this option has a for-loop and is

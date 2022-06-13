@@ -9,9 +9,7 @@ from sam.data_sources import MongoWrapper
 
 def find_mongo_host(possible_hostnames, port=27017):
     for hostname in possible_hostnames:
-        mongo = MongoWrapper(
-            "test", "unittest", hostname, port, serverSelectionTimeoutMS=100
-        )
+        mongo = MongoWrapper("test", "unittest", hostname, port, serverSelectionTimeoutMS=100)
         try:
             mongo.client.server_info()  # forces a call
         except ServerSelectionTimeoutError:  # no mongodb found

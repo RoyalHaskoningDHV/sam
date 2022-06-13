@@ -42,8 +42,7 @@ def compute_quantile_ratios(
     }
 
     quantile_ratios = {
-        round(key, precision): round(value, precision)
-        for key, value in quantile_ratios.items()
+        round(key, precision): round(value, precision) for key, value in quantile_ratios.items()
     }
 
     return quantile_ratios
@@ -109,8 +108,6 @@ def compute_quantile_crossings(
         ).mean()
 
     # now replace 0.5 with mean again
-    crossings = {
-        key.replace("0.500", "mean"): value for key, value in crossings.items()
-    }
+    crossings = {key.replace("0.500", "mean"): value for key, value in crossings.items()}
 
     return crossings

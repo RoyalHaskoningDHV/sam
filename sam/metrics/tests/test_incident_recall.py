@@ -74,9 +74,7 @@ class TestIncidentPrecisionRecallCurve(unittest.TestCase):
     def testCurve(self):
         y_incidents = [0, 0, 0, 1]
         y_pred = [0.1, 0.2, 0.3, 0.4]
-        p, r, t = precision_incident_recall_curve(
-            y_incidents, y_pred, range_pred=(0, 1)
-        )
+        p, r, t = precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 1))
         assert_array_almost_equal(p, np.array([1, 1, 1]))
         assert_array_equal(r, np.array([1, 1, 0]))
         assert_array_equal(t, np.array([0.3, 0.4]))
@@ -91,9 +89,7 @@ class TestIncidentPrecisionRecallCurve(unittest.TestCase):
         assert_array_equal(t, np.array([0.1, 0.2, 0.4, 0.5, 0.6]))
 
     def testIncorrectInput(self):
-        self.assertRaises(
-            Exception, precision_incident_recall_curve, "test", "test2", (0, 0)
-        )
+        self.assertRaises(Exception, precision_incident_recall_curve, "test", "test2", (0, 0))
         # negative range not possible
         self.assertRaises(
             Exception, precision_incident_recall_curve, [0, 0, 1], [1, 1, 1], (-2, -1)

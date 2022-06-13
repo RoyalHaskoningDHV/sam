@@ -98,9 +98,7 @@ def _fix_values(
     """
     methods = ["na", "clip", "previous", "average", "value", "remove"]
     if method not in methods:
-        raise ValueError(
-            "Method {} not allowed, it must be in {}".format(method, methods)
-        )
+        raise ValueError("Method {} not allowed, it must be in {}".format(method, methods))
 
     logging.debug(
         "Now correcting threshold"
@@ -131,9 +129,7 @@ def _fix_values(
             series.loc[outliers] = threshold
 
     logger.info(
-        "Correct_outside_range changed {} values using method {}".format(
-            sum(outliers), method
-        )
+        "Correct_outside_range changed {} values using method {}".format(sum(outliers), method)
     )
     logger.info(
         "The series previously had {} missing values, now it has {}".format(

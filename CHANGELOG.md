@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.10.2
+
+### Changes
+- Updated `CONTRIBUTING.md` for open source / github contribution guidelines
+- Added `black` to requirements and linting pipeline
+- All code reformatted with `black` and project configuration
+
 ## Version 2.10.1
 
 ### Changes

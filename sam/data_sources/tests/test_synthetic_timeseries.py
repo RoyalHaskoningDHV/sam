@@ -8,12 +8,8 @@ from sam.data_sources import synthetic_timeseries
 
 class TestSyntheticTimeseries(unittest.TestCase):
     def setUp(self):
-        self.dates = pd.date_range(
-            "2015-01-01", "2015-01-01 03:00:00", freq="H"
-        ).to_series()
-        self.many_dates = pd.date_range(
-            "2015-01-01", "2015-02-01 00:00:00", freq="H"
-        ).to_series()
+        self.dates = pd.date_range("2015-01-01", "2015-01-01 03:00:00", freq="H").to_series()
+        self.many_dates = pd.date_range("2015-01-01", "2015-02-01 00:00:00", freq="H").to_series()
 
     def test_nonoise(self):
         result = synthetic_timeseries(self.dates)
@@ -22,16 +18,12 @@ class TestSyntheticTimeseries(unittest.TestCase):
 
     def test_some_incorrect_inputs(self):
         self.assertRaises(Exception, synthetic_timeseries, self.dates, minmax_values=0)
-        self.assertRaises(
-            Exception, synthetic_timeseries, self.dates, cutoff_values=True
-        )
+        self.assertRaises(Exception, synthetic_timeseries, self.dates, cutoff_values=True)
         self.assertRaises(Exception, synthetic_timeseries, self.dates, monthly=None)
         self.assertRaises(Exception, synthetic_timeseries, self.dates, daily="1")
         self.assertRaises(Exception, synthetic_timeseries, self.dates, hourly=["1"])
         self.assertRaises(Exception, synthetic_timeseries, self.dates, monthnoise=1)
-        self.assertRaises(
-            Exception, synthetic_timeseries, self.dates, daynoise=("normal", "a")
-        )
+        self.assertRaises(Exception, synthetic_timeseries, self.dates, daynoise=("normal", "a"))
         self.assertRaises(Exception, synthetic_timeseries, self.dates, noise=1)
         self.assertRaises(Exception, synthetic_timeseries, self.dates, negabs="1")
         self.assertRaises(Exception, synthetic_timeseries, self.dates, random_missing=2)

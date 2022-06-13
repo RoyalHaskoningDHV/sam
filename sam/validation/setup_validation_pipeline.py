@@ -116,9 +116,7 @@ def create_validation_pipe(
 
     estimators = []
     if remove_extreme_values:
-        REV = RemoveExtremeValues(
-            cols=cols, rollingwindow=rollingwindow, madthresh=madthresh
-        )
+        REV = RemoveExtremeValues(cols=cols, rollingwindow=rollingwindow, madthresh=madthresh)
         estimators.append(["extreme", REV])
 
     if remove_flatlines:

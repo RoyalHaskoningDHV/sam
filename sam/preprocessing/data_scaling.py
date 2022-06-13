@@ -54,9 +54,7 @@ def scale_train_test(
     X_train = pd.DataFrame(
         X_scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index
     )
-    X_test = pd.DataFrame(
-        X_scaler.transform(X_test), columns=X_test.columns, index=X_test.index
-    )
+    X_test = pd.DataFrame(X_scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
 
     # we only need to test if train set is series of dataframe,
     # as this needs to be the same for the test set
