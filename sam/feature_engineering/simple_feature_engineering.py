@@ -1,6 +1,7 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 import numpy as np
+import pytz
 import pandas as pd
 from sam.feature_engineering import BaseFeatureEngineer
 
@@ -18,6 +19,22 @@ COMPONENT_RANGE = {
     "day_of_year": (1, 366),
     "week_of_year": (1, 53),
     "month_of_year": (1, 12),
+}
+
+
+COMPONENT_FUNCTION = {
+    "second_of_minute": lambda x: x.dt.second,
+    "second_of_hour": lambda x: x.dt.second + x.dt.minute * 60,
+    "second_of_day": lambda x: x.dt.second + x.dt.minute * 60 + x.dt.hour * 3600,
+    "minute_of_hour": lambda x: x.dt.minute,
+    "minute_of_day": lambda x: x.dt.minute + x.dt.hour * 60,
+    "hour_of_day": lambda x: x.dt.hour,
+    "hour_of_week": lambda x: x.dt.hour + x.dt.weekday * 24,
+    "day_of_week": lambda x: x.dt.isocalendar().day,
+    "day_of_month": lambda x: x.dt.day,
+    "day_of_year": lambda x: x.dt.dayofyear,
+    "week_of_year": lambda x: x.dt.isocalendar().week,
+    "month_of_year": lambda x: x.dt.month,
 }
 
 
@@ -55,6 +72,8 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
             - "cyclical"
     time_col : str (default=None)
         Name of the time column (e.g. "TIME"). If None, the index of the dataframe is used.
+    timezone : str (default=None)
+        ....
     drop_first : bool (default=True)
         Whether to drop the first value of time components (used for onehot encoding)
     keep_original : bool (default=False)
@@ -63,9 +82,10 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
 
     def __init__(
         self,
-        rolling_features: Union[List[Tuple], pd.DataFrame] = [],
-        time_features: Union[List[Tuple], pd.DataFrame] = [],
-        time_col: str = None,
+        rolling_features: Optional[Union[List[Tuple], pd.DataFrame]] = [],
+        time_features: Optional[Union[List[Tuple], pd.DataFrame]] = [],
+        time_col: str = Optional[None],
+        timezone: str = Optional[None],
         drop_first: bool = True,
         keep_original: bool = False,
     ) -> None:
@@ -73,6 +93,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         self.rolling_features = self._input_df_to_list(rolling_features)
         self.time_features = self._input_df_to_list(time_features)
         self.time_col = time_col
+        self.timezone = timezone
         self.drop_first = drop_first
         self.keep_original = keep_original
 
@@ -89,6 +110,20 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
                 f"Invalid data type: {type(data)}, provide a list or dataframe"
             )
 
+    def _fix_timezone(self, datetime):
+        """Change timezone before calculating components."""
+        if self.timezone is not None:
+            if datetime.dt.tz is not None:
+                if datetime.dt.tz != pytz.utc:
+                    raise ValueError(
+                        "Data should either be in UTC timezone or it should have no"
+                        " timezone information (assumed to be in UTC)"
+                    )
+            else:
+                datetime = datetime.dt.tz_localize("UTC")
+            datetime = datetime.dt.tz_convert(self.timezone)
+        return datetime
+
     def _get_time_column(self, X, component):
         # First select the datetime column
         if self.time_col is None:
@@ -96,35 +131,14 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         else:
             datetime = X[self.time_col]
 
+        # Fix timezone
+        datetime = self._fix_timezone(datetime)
+
         # Then select the component
-        if component in ["second_of_minute", "second"]:
-            return datetime.dt.second
-        elif component == "second_of_hour":
-            return datetime.dt.second + datetime.dt.minute * 60
-        elif component in ["seconds_of_day", "secondofday"]:
-            return (
-                datetime.dt.second + datetime.dt.minute * 60 + datetime.dt.hour * 3600
-            )
-        elif component == "minute_of_hour":
-            return datetime.dt.minute
-        elif component == "minute_of_day":
-            return datetime.dt.minute + datetime.dt.hour * 60
-        elif component == "hour_of_day":
-            return datetime.dt.hour
-        elif component == "hour_of_week":
-            return datetime.dt.hour + datetime.dt.weekday * 24
-        elif component == "day_of_week":
-            return datetime.dt.isocalendar().day
-        elif component == "day_of_month":
-            return datetime.dt.day
-        elif component == "day_of_year":
-            return datetime.dt.dayofyear
-        elif component == "week_of_year":
-            return datetime.dt.isocalendar().week
-        elif component == "month_of_year":
-            return datetime.dt.month
+        if component in COMPONENT_FUNCTION:
+            return COMPONENT_FUNCTION[component](datetime)
         else:
-            raise NotImplementedError(f"Component {component} not implemented.")
+            raise ValueError(f"Invalid component: {component}")
 
     def feature_engineer_(self, X, y=None):
         if self.keep_original:
@@ -156,11 +170,10 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
 
             elif type == "cyclical":
                 comp_series = self._get_time_column(X, component)
-                # Add 1 so that start/end are not the same
+                # scale to 0,1, then to 0,2pi and then to -1,1
                 comp_norm = (comp_series - comp_min) / (comp_max - comp_min + 1)
                 X_out[colname + "_sin"] = np.sin(2 * np.pi * comp_norm)
                 X_out[colname + "_cos"] = np.cos(2 * np.pi * comp_norm)
-
             else:
                 raise ValueError(f"Invalid type: {type}")
 
