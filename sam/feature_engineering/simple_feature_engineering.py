@@ -78,14 +78,28 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         Whether to drop the first value of time components (used for onehot encoding)
     keep_original : bool (default=False)
         Whether to keep the original columns in the dataframe.
+
+    Example
+    -------
+    >>> from sam.feature_engineering import SimpleFeatureEngineer
+    >>> from sam.data_source import read_knmi
+    >>> data = read_knmi('2018-02-01', '2019-10-01', latitude=52.11, longitude=5.18, freq='hourly',
+    ...                  variables=['FH', 'FF', 'FX', 'T', 'TD', 'SQ', 'Q', 'DR', 'RH', 'P',
+    ...                             'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
+    >>> y = data['T'].shift(-1)
+    >>> X = data.drop('T', axis=1)
+    >>> fe = SimpleFeatureEngineer(rolling_features=[('T', 'mean', 12), ('T', 'mean', '24')], 
+    ...                            time_features=[('hour_of_week', 'onehot')])
+    >>> X_fe = fe.fit_transform(X, y)
+    >>> X_fe.head()
     """
 
     def __init__(
         self,
         rolling_features: Optional[Union[List[Tuple], pd.DataFrame]] = [],
         time_features: Optional[Union[List[Tuple], pd.DataFrame]] = [],
-        time_col: str = Optional[None],
-        timezone: str = Optional[None],
+        time_col: Optional[str] = None,
+        timezone: Optional[str] = None,
         drop_first: bool = True,
         keep_original: bool = False,
     ) -> None:
@@ -106,9 +120,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         elif isinstance(data, list):
             return data
         else:
-            raise ValueError(
-                f"Invalid data type: {type(data)}, provide a list or dataframe"
-            )
+            raise ValueError(f"Invalid data type: {type(data)}, provide a list or dataframe")
 
     def _fix_timezone(self, datetime):
         """Change timezone before calculating components."""
@@ -126,10 +138,10 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
 
     def _get_time_column(self, X, component):
         # First select the datetime column
-        if self.time_col is None:
-            datetime = X.index.to_series().copy()
-        else:
+        if self.time_col:
             datetime = X[self.time_col]
+        else:
+            datetime = X.index.to_series().copy()        
 
         # Fix timezone
         datetime = self._fix_timezone(datetime)
