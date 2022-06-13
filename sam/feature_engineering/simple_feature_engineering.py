@@ -72,8 +72,11 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
             - "cyclical"
     time_col : str (default=None)
         Name of the time column (e.g. "TIME"). If None, the index of the dataframe is used.
-    timezone : str (default=None)
-        ....
+    timezone: str, optional (default=None)
+        if tz is not None, convert the time to the specified timezone, before creating features.
+        timezone can be any string that is recognized by pytz, for example `Europe/Amsterdam`.
+        We assume that the TIME column is always in UTC,
+        even if the datetime object has no tz info.
     drop_first : bool (default=True)
         Whether to drop the first value of time components (used for onehot encoding)
     keep_original : bool (default=False)
