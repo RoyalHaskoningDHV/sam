@@ -1,10 +1,11 @@
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Any, Callable, Sequence, Tuple, Union, List
+from typing import Any, Callable, List, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from sam.metrics import joint_mae_tilted_loss, joint_mse_tilted_loss
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
@@ -64,6 +65,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     rolling_features: array-like, optional (default=('mean'))
         The rolling functions to generate in the default feature engineering function.
         Values should be interpretable by BuildRollingFeatures.
+    average_type: str (default='mean')
+        Determines what to fit as the average: 'mean', or 'median'. The average is the last
+        node in the output layer and does not reflect a quantile, but rather estimates the central
+        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
+        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
 
     Attributes
     ----------
@@ -88,6 +94,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         time_onehots: Sequence[str] = ("weekday",),
         rolling_window_size: Sequence[int] = (12,),
         rolling_features: Sequence[str] = ("mean",),
+        average_type: str = "mean",
     ) -> None:
         self.predict_ahead = predict_ahead if isinstance(predict_ahead, List) else [predict_ahead]
         self.quantiles = quantiles
@@ -100,13 +107,14 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.time_onehots = time_onehots
         self.rolling_features = rolling_features
         self.rolling_window_size = rolling_window_size
+        self.average_type = average_type
 
     @abstractmethod
     def get_feature_engineer(self) -> Pipeline:
         """
         This abstract method needs to be implemented by any class that inherits from
         SamQuantileRegressor. It returns a feature building pipeline, usually with steps
-        like adding time features, apply rolling featuers, imputing and scaling.
+        like adding time features, apply rolling features, imputing and scaling.
 
         Returns
         -------
@@ -153,7 +161,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         Validates the data and raises an exception if:
         - There is no time columns
         - The data is not monospaced
-        - There is not enought data
+        - There is not enough data
 
         Parameters
         ----------
@@ -263,14 +271,14 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         Returns
         -------
-        X_transformed: pd.DataDrame
-            The transformed featuretable, ready to be used in fitting the model
+        X_transformed: pd.DataFrame
+            The transformed feature table, ready to be used in fitting the model
         y_transformed: pd.Series
             The transformed target, ready to be used in fitting the model
         X_val_transformed: pd.DataFrame
-            The transformed featuretable, ready to be used for validating the model
+            The transformed feature table, ready to be used for validating the model
             If no validation data is provided, this returns None
-        y_val_tranformed: pd.Series
+        y_val_transformed: pd.Series
             The transformed target, ready to be used for validating the model
             If no validation data is provided, this returns None
         """
@@ -689,7 +697,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
         """
-        Default score function. Uses sum of mse and tilted loss
+        Default score function. Uses sum of tilted loss of quantile predictions plus the mse
+        of the mean predictions or mae of the median predictions.
 
         Parameters
         ----------
@@ -726,27 +735,24 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 columns=actual.columns,
             )
 
-        # actual usually has some missings at the end
-        # prediction usually has some missings at the beginning
-        # We ignore the rows with missings
+        # Actual usually has some missings at the end, while predictions usually have some missings
+        # at the beginning. We just ignore the rows with missings.
         missings = actual.isna().any(axis=1) | prediction.isna().any(axis=1)
         actual = actual.loc[~missings]
         prediction = prediction.loc[~missings]
 
-        # self.prediction_cols_[-1] defines the mean prediction
-        # For n outputs, we need the last n columns instead
-        # Therefore, this line calculates the mse of the mean prediction
-        mean_prediction = prediction[self.prediction_cols_[-1 * len(self.predict_ahead) :]].values
-        # Calculate the MSE of all the predictions, and tilted loss of quantile predictions,
-        # then sum them at the end
-        loss = np.sum(np.mean((actual - mean_prediction) ** 2, axis=0))
-        for i, q in enumerate(self.quantiles):
-            startcol = len(self.predict_ahead) * i
-            endcol = startcol + len(self.predict_ahead)
-            e = np.array(actual - prediction[self.prediction_cols_[startcol:endcol]].values)
-            # Calculate all the quantile losses, and sum them at the end
-            loss += np.sum(np.mean(np.max([q * e, (q - 1) * e], axis=0), axis=0))
-        return loss
+        # Calculate the joint tilted loss of all the average and quantile predictions
+        if self.average_type == "median":
+            loss = joint_mae_tilted_loss(
+                actual, prediction, quantiles=self.quantiles, n_targets=len(self.predict_ahead)
+            )
+        elif self.average_type == "mean":
+            loss = joint_mse_tilted_loss(
+                actual, prediction, quantiles=self.quantiles, n_targets=len(self.predict_ahead)
+            )
+
+        score = -1 * loss
+        return score
 
     @abstractmethod
     def dump(self, foldername: str, prefix: str = "model") -> None:

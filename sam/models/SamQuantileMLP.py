@@ -287,6 +287,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             time_onehots=time_onehots,
             rolling_features=rolling_features,
             rolling_window_size=rolling_window_size,
+            average_type=average_type,
         )
         self.n_neurons = n_neurons
         self.n_layers = n_layers
@@ -685,7 +686,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             removing this feature will increase the metric, which is a bad thing with MAE/MSE).
         n_iter: int, optional (default=5)
             Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
-            this parameter may provide more stablitity at the cost of a longer runtime
+            this parameter may provide more stability at the cost of a longer runtime
         sum_time_components: bool, optional (default=False)
             if set to true, sums feature importances of the different subfeatures of each time
             component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
@@ -693,7 +694,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         Returns
         -------
         score_decreases: Pandas dataframe,  shape (n_iter x n_features)
-            The score decreases when leaving out each feature per iteration. The larget the
+            The score decreases when leaving out each feature per iteration. The larger the
             magnitude, the more important each feature is considered by the model.
 
         Examples
@@ -788,7 +789,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         y: pd.Series, optional (default=None)
             Target data used to 'train' the explainer. Only required when self.predict_ahead > 0.
         sample_n: integer, optional (default=None)
-            The number of samples to give to the explainer. It is reccommended that
+            The number of samples to give to the explainer. It is recommended that
             if your background set is greater than 5000, to sample for performance reasons.
 
         Returns

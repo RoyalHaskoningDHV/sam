@@ -48,7 +48,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         ----------
         X : array-like of shape (n_samples, n_features)
             The input data, not used in this function. This parameter is only
-            used for compatability.
+            used for compatibility.
         y : array-like of shape (n_samples,)
             The target data that is used for determining the median and quantile
             values
@@ -104,7 +104,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
     Also see https://en.wikipedia.org/wiki/Statistical_process_control
 
     This model uses the same init parameters as the other SAM models for
-    compatability, but ignores all of the feature engineering parameters
+    compatibility, but ignores all of the feature engineering parameters
 
     Note: using use_diff_of_y changes how this model works; instead of predicting
     static bounds, it will fit the median and quantiles on the differenced target
@@ -143,6 +143,8 @@ class SPCRegressor(BaseTimeseriesRegressor):
     rolling_window_size: array-like, optional (default=(5,))
         Not used in this class, only for compatibility.
     rolling_features: array-like, optional (default=('mean'))
+        Not used in this class, only for compatibility.
+    average_type: str, optional (default='mean')
         Not used in this class, only for compatibility.
 
     Examples
@@ -186,6 +188,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         time_onehots: Sequence[str] = None,
         rolling_window_size: Sequence[int] = (),
         rolling_features: Sequence[str] = None,
+        average_type: str = "mean",
     ) -> None:
         self.predict_ahead = predict_ahead
         self.quantiles = quantiles
@@ -198,6 +201,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         self.time_onehots = time_onehots
         self.rolling_features = rolling_features
         self.rolling_window_size = rolling_window_size
+        self.average_type = average_type
 
     def get_feature_engineer(self) -> Pipeline:
         """
@@ -277,7 +281,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         In the first situation X is only used to determine how many datapoints
         need to be predicted. In the latter case it will use X to undo the differencing.
 
-        For compatibility reasons the method acceps predict_kwargs, that are not used.
+        For compatibility reasons the method accepts predict_kwargs, that are not used.
 
         Parameters
         ----------
