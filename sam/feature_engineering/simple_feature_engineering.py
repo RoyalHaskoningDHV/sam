@@ -6,38 +6,6 @@ import pandas as pd
 from sam.feature_engineering import BaseFeatureEngineer
 
 
-COMPONENT_RANGE = {
-    "second_of_minute": (0, 59),
-    "second_of_hour": (0, 3599),
-    "second_of_day": (0, 86399),
-    "minute_of_hour": (0, 59),
-    "minute_of_day": (0, 1439),
-    "hour_of_day": (0, 23),
-    "hour_of_week": (0, 167),
-    "day_of_week": (1, 7),
-    "day_of_month": (1, 31),
-    "day_of_year": (1, 366),
-    "week_of_year": (1, 53),
-    "month_of_year": (1, 12),
-}
-
-
-COMPONENT_FUNCTION = {
-    "second_of_minute": lambda x: x.dt.second,
-    "second_of_hour": lambda x: x.dt.second + x.dt.minute * 60,
-    "second_of_day": lambda x: x.dt.second + x.dt.minute * 60 + x.dt.hour * 3600,
-    "minute_of_hour": lambda x: x.dt.minute,
-    "minute_of_day": lambda x: x.dt.minute + x.dt.hour * 60,
-    "hour_of_day": lambda x: x.dt.hour,
-    "hour_of_week": lambda x: x.dt.hour + x.dt.weekday * 24,
-    "day_of_week": lambda x: x.dt.isocalendar().day,
-    "day_of_month": lambda x: x.dt.day,
-    "day_of_year": lambda x: x.dt.dayofyear,
-    "week_of_year": lambda x: x.dt.isocalendar().week,
-    "month_of_year": lambda x: x.dt.month,
-}
-
-
 class SimpleFeatureEngineer(BaseFeatureEngineer):
     """
     Base class for simple time series feature engineering. Provides a method to
@@ -54,22 +22,8 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     time_features : list (default=[])
         List of tuples of the form (component, type). Can also be provided as a
         dataframe with columns ['component', 'type'].
-        Supported components are:
-            - "second_of_minute"
-            - "second_of_hour"
-            - "seconds_of_day"
-            - "minute_of_hour"
-            - "minute_of_day"
-            - "hour_of_day"
-            - "hour_of_week"
-            - "day_of_week"
-            - "day_of_month"
-            - "day_of_year"
-            - "week_of_year"
-            - "month_of_year"
-        Valid types are:
-            - "onehot"
-            - "cyclical"
+        For supported component values, see `SimpleFeatureEngineer.valid_components`
+        (e.g. "second_of_day", "hour_of_day). Valid types are "onehot" or "cyclical".
     time_col : str (default=None)
         Name of the time column (e.g. "TIME"). If None, the index of the dataframe is used.
     timezone: str, optional (default=None)
@@ -91,11 +45,43 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     ...                             'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
     >>> y = data['T'].shift(-1)
     >>> X = data.drop('T', axis=1)
-    >>> fe = SimpleFeatureEngineer(rolling_features=[('T', 'mean', 12), ('T', 'mean', '24')], 
+    >>> fe = SimpleFeatureEngineer(rolling_features=[('T', 'mean', 12), ('T', 'mean', '24')],
     ...                            time_features=[('hour_of_week', 'onehot')])
     >>> X_fe = fe.fit_transform(X, y)
     >>> X_fe.head()
     """
+
+    component_range = {
+        "second_of_minute": (0, 59),
+        "second_of_hour": (0, 3599),
+        "second_of_day": (0, 86399),
+        "minute_of_hour": (0, 59),
+        "minute_of_day": (0, 1439),
+        "hour_of_day": (0, 23),
+        "hour_of_week": (0, 167),
+        "day_of_week": (1, 7),
+        "day_of_month": (1, 31),
+        "day_of_year": (1, 366),
+        "week_of_year": (1, 53),
+        "month_of_year": (1, 12),
+    }
+
+    component_function = {
+        "second_of_minute": lambda x: x.dt.second,
+        "second_of_hour": lambda x: x.dt.second + x.dt.minute * 60,
+        "second_of_day": lambda x: x.dt.second + x.dt.minute * 60 + x.dt.hour * 3600,
+        "minute_of_hour": lambda x: x.dt.minute,
+        "minute_of_day": lambda x: x.dt.minute + x.dt.hour * 60,
+        "hour_of_day": lambda x: x.dt.hour,
+        "hour_of_week": lambda x: x.dt.hour + x.dt.weekday * 24,
+        "day_of_week": lambda x: x.dt.isocalendar().day,
+        "day_of_month": lambda x: x.dt.day,
+        "day_of_year": lambda x: x.dt.dayofyear,
+        "week_of_year": lambda x: x.dt.isocalendar().week,
+        "month_of_year": lambda x: x.dt.month,
+    }
+
+    valid_components = component_range.keys()
 
     def __init__(
         self,
@@ -144,14 +130,14 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         if self.time_col:
             datetime = X[self.time_col]
         else:
-            datetime = X.index.to_series().copy()        
+            datetime = X.index.to_series().copy()
 
         # Fix timezone
         datetime = self._fix_timezone(datetime)
 
         # Then select the component
-        if component in COMPONENT_FUNCTION:
-            return COMPONENT_FUNCTION[component](datetime)
+        if component in self.valid_components:
+            return self.component_function[component](datetime)
         else:
             raise ValueError(f"Invalid component: {component}")
 
@@ -172,7 +158,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         # Time features
         for component, type in self.time_features:
             colname = f"{component}_{type}"
-            comp_min, comp_max = COMPONENT_RANGE[component]
+            comp_min, comp_max = self.component_range[component]
 
             if type == "onehot":
                 # we do not make a dummy of the last value because of collinearity
