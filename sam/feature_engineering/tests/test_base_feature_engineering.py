@@ -19,6 +19,7 @@ class TestFeatureEngineer(unittest.TestCase):
         def feature_engineer(X, y=None):
             X["C"] = X["A"] + X["B"]
             return X
+
         fe = FeatureEngineer(feature_engineer)
         self.assertIsInstance(fe, FeatureEngineer)
         X_out = fe.fit_transform(self.X)
