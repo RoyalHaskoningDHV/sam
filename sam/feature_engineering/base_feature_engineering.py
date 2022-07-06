@@ -1,9 +1,9 @@
-from ast import Call
 import logging
+from abc import ABC, abstractmethod
+from typing import Callable
 
 import pandas as pd
 from sklearn.base import TransformerMixin
-from abc import ABC, abstractmethod
 
 
 class BaseFeatureEngineer(TransformerMixin, ABC):
@@ -37,6 +37,11 @@ class FeatureEngineer(BaseFeatureEngineer):
     methods. You can implement your own feature engineering code and use the `_from_function`
     method to create a new feature engineering transformer.
 
+    Parameters
+    ----------
+    feature_engineer_function : Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame]
+        The feature engineering function.
+
     Example
     -------
     >>> from sam.feature_engineering.base_feature_engineering import FeatureEngineer
@@ -48,15 +53,10 @@ class FeatureEngineer(BaseFeatureEngineer):
     >>> df_out = fe.fit_transform(df)
     """
 
-    @classmethod
-    def _from_function(cls, feature_engineer: callable):
-        """
-        Create a BaseFeatureEngineer from a function.
+    def __init__(self, feature_engineer_function: Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame] = None):
+        self.feature_engineer_function = feature_engineer_function
 
-        This function could be any feature engineering function that takes a pandas DataFrame X
-        and target y as input and returns a pandas DataFrame as output.
-
-        """
-        self = cls()
-        self.feature_engineer_ = feature_engineer
-        return self
+    def feature_engineer_(self, X, y=None) -> pd.DataFrame:
+        if self.feature_engineer_function is None:
+            raise ValueError("You need to specify a feature engineering function.")
+        return self.feature_engineer_function(X, y)
