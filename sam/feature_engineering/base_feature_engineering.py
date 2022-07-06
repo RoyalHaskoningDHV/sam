@@ -53,7 +53,10 @@ class FeatureEngineer(BaseFeatureEngineer):
     >>> df_out = fe.fit_transform(df)
     """
 
-    def __init__(self, feature_engineer_function: Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame] = None):
+    def __init__(
+        self,
+        feature_engineer_function: Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame] = None,
+    ):
         self.feature_engineer_function = feature_engineer_function
 
     def feature_engineer_(self, X, y=None) -> pd.DataFrame:
