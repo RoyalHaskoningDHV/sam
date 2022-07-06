@@ -173,8 +173,8 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
                 comp_series = self._get_time_column(X, component)
                 # scale to 0,1, then to 0,2pi and then to -1,1
                 comp_norm = (comp_series - comp_min) / (comp_max - comp_min + 1)
-                X_out[colname + "_sin"] = np.sin(2 * np.pi * comp_norm)
-                X_out[colname + "_cos"] = np.cos(2 * np.pi * comp_norm)
+                X_out[colname + "_sin"] = np.sin(2 * np.pi * comp_norm).astype(float)
+                X_out[colname + "_cos"] = np.cos(2 * np.pi * comp_norm).astype(float)
             else:
                 raise ValueError(f"Invalid type: {type}")
 

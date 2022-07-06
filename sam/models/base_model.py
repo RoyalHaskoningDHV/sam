@@ -5,7 +5,9 @@ from typing import Any, Callable, Sequence, Tuple, Union, List
 
 import numpy as np
 import pandas as pd
+from sam.feature_engineering import IdentityFeatureEngineer
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
+from sam.feature_engineering import BaseFeatureEngineer
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.pipeline import Pipeline
@@ -20,8 +22,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     There are some notes:
     - There is no validation yet. Therefore, the input data must already be sorted and monospaced
-    - The feature engineering is very simple, we just calculate lag/max/min/mean for a given window
-      size, as well as minute/hour/month/weekday if there is a time column
+    - The feature engineering should be provided as a any transformer. If the feature engineering
+      is not provided, the identity transformer will be used. Good practice is for example to use
+      the SimpleFeatureEngineer
     - The prediction requires y as input. The reason for this is described in the predict function.
       Keep in mind that this is not directly 'cheating', since we are predicting a future value of
       y, and giving the present value of y as input to the predict.
@@ -40,10 +43,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     quantiles: array-like, optional (default=())
         The quantiles to predict. Between 0 and 1. Keep in mind that the mean will be predicted
         regardless of this parameter
-    use_y_as_feature: boolean, optional (default=True)
-        Whether or not to use y as a feature for predicting. If predict_ahead=0, this must be False
-        Due to time limitations, for now, this option has to be True, unless predict_ahead is 0.
-        Potentially in the future, this option can also be False when predict_ahead is not 0.s
     use_diff_of_y: bool, optional (default=True)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).
@@ -53,17 +52,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer()
-    time_components: array-like, optional (default=('minute', 'hour', 'day', 'weekday'))
-        The timefeatures to create. See :ref:`decompose_datetime`.
-    time_cyclicals: array-like, optional (default=('minute', 'hour', 'day'))
-        The cyclical timefeatures to create. See :ref:`decompose    _datetime`.
-    time_onehots: array-like, optional (default=('weekday'))
-        The onehot timefeatures to create. See :ref:`decompose_datetime`.
-    rolling_window_size: array-like, optional (default=(5,))
-        The window size to use for `BuildRollingFeatures`
-    rolling_features: array-like, optional (default=('mean'))
-        The rolling functions to generate in the default feature engineering function.
-        Values should be interpretable by BuildRollingFeatures.
 
     Attributes
     ----------
@@ -79,41 +67,17 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self,
         predict_ahead: Union[int, List[int]] = 1,
         quantiles: Sequence[float] = (),
-        use_y_as_feature: bool = True,
         use_diff_of_y: bool = True,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        time_components: Sequence[str] = ("minute", "hour", "day", "weekday"),
-        time_cyclicals: Sequence[str] = ("minute", "hour", "day"),
-        time_onehots: Sequence[str] = ("weekday",),
-        rolling_window_size: Sequence[int] = (12,),
-        rolling_features: Sequence[str] = ("mean",),
+        feature_engineer: BaseFeatureEngineer = None,
     ) -> None:
         self.predict_ahead = predict_ahead if isinstance(predict_ahead, List) else [predict_ahead]
         self.quantiles = quantiles
-        self.use_y_as_feature = use_y_as_feature
         self.use_diff_of_y = use_diff_of_y
         self.timecol = timecol
         self.y_scaler = y_scaler
-        self.time_components = time_components
-        self.time_cyclicals = time_cyclicals
-        self.time_onehots = time_onehots
-        self.rolling_features = rolling_features
-        self.rolling_window_size = rolling_window_size
-
-    @abstractmethod
-    def get_feature_engineer(self) -> Pipeline:
-        """
-        This abstract method needs to be implemented by any class that inherits from
-        SamQuantileRegressor. It returns a feature building pipeline, usually with steps
-        like adding time features, apply rolling featuers, imputing and scaling.
-
-        Returns
-        -------
-        sklearn.pipeline.Pipeline:
-            The feature building pipeline
-        """
-        return NotImplemented
+        self.feature_engineer_ = feature_engineer if feature_engineer else IdentityFeatureEngineer
 
     @abstractmethod
     def get_untrained_model(self) -> Callable:
@@ -142,8 +106,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if self.predict_ahead == [0] and self.use_diff_of_y:
             raise ValueError("use_diff_of_y must be false when predict_ahead is 0")
 
-        if self.predict_ahead == [0] and self.use_y_as_feature:
-            raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
+        # TODO: Make sure this is correct
+        # if self.predict_ahead == [0] and self.use_y_as_feature:
+        #     raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
 
         if len(np.unique(self.predict_ahead)) != len(self.predict_ahead):
             raise ValueError("predict_ahead contains double values")
@@ -176,15 +141,16 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                     "this model. fit/predict is not possible"
                 )
 
-        enough_data = len(self.rolling_window_size) == 0 or X.shape[0] > max(
-            self.rolling_window_size
-        )
-        if not enough_data:
-            warnings.warn(
-                "Not enough data given to calculate rolling features. "
-                "Output will be entirely missing values.",
-                UserWarning,
-            )
+        # TODO: Add this check somewhere
+        # enough_data = len(self.rolling_window_size) == 0 or X.shape[0] > max(
+        #     self.rolling_window_size
+        # )
+        # if not enough_data:
+        #     warnings.warn(
+        #         "Not enough data given to calculate rolling features. "
+        #         "Output will be entirely missing values.",
+        #         UserWarning,
+        #     )
 
     def prepare_input_and_target(
         self, X: pd.DataFrame, y: pd.Series
@@ -216,9 +182,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 name=y.name,
             )
 
-        if self.use_y_as_feature:
-            X = X.assign(y_=y.copy())
-
         # Create the actual target
         if self.predict_ahead != [0]:
             y_transformed = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
@@ -246,7 +209,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         This function does the following:
         - Validate that the input is monospaced and has enough rows
         - Perform differencing on the target
-        - Create feature engineer by calling `self.get_feature_engineer()`
         - Fitting/applying the feature engineer
         - Bookkeeping to create the output columns
         - Remove rows with nan that can't be used for fitting
@@ -281,21 +243,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # Update the input and target depending on settings
         X, y_transformed = self.prepare_input_and_target(X, y)
 
-        # Index where target is nan, cannot be trained on.
-        targetnanrows = y_transformed.isna().any(axis=1)
-
         # Save input columns names
         self._set_input_cols(X)
 
-        # buildrollingfeatures
-        self.rolling_cols_ = [col for col in X if col != self.timecol]
-        self.feature_engineer_ = self.get_feature_engineer()
-
         # Apply feature engineering
-        X_transformed = self.feature_engineer_.fit_transform(X)
-
-        # Now we have fitted the feature engineer, we can set the feature names
-        self.set_feature_names(X, X_transformed)
+        X_transformed = self.feature_engineer_.fit_transform(X, y)
 
         # Now feature names are set, we can start using self.get_feature_names()
         X_transformed = pd.DataFrame(
@@ -315,10 +267,13 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.n_outputs_ = len(self.prediction_cols_)
 
         # Remove the first n rows because they are nan anyway because of rolling features
-        if len(self.rolling_window_size) > 0:
-            X_transformed = X_transformed.iloc[max(self.rolling_window_size) :]
-            y_transformed = y_transformed.iloc[max(self.rolling_window_size) :]
-        # Filter rows where the target is unknown
+        # find first row without nan
+        first_complete_index = X_transformed.dropna(axis=0, how="any").index[0]
+        X_transformed = X_transformed.loc[first_complete_index:]
+        y_transformed = y_transformed.loc[first_complete_index:]
+
+        # Remove rows with nan that can't be used for fitting
+        targetnanrows = y_transformed.isna().any(axis=1)
         X_transformed = X_transformed.loc[~targetnanrows]
         y_transformed = y_transformed.loc[~targetnanrows]
 
@@ -353,9 +308,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 y_val_transformed = pd.DataFrame(y_val.copy()).astype(float)
 
             # Remove the first n rows because they are nan anyway because of rolling features
-            if len(self.rolling_window_size) > 0:
-                X_val_transformed = X_val_transformed.iloc[max(self.rolling_window_size) :]
-                y_val_transformed = y_val_transformed.iloc[max(self.rolling_window_size) :]
+            first_complete_index = X_transformed.dropna(axis=0, how="all").index[0]
+            X_transformed = X_transformed.loc[first_complete_index:]
+            y_transformed = y_transformed.loc[first_complete_index:]
             # The lines below are only to deal with nans in the validation set
             # These should eventually be replaced by Arjans/Fennos function for removing nan rows
             # So that this code will be much more readable
@@ -468,10 +423,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if y is not None:
             BaseTimeseriesRegressor.verify_same_indexes(X, y)
 
-        if self.use_y_as_feature:
-            X = X.assign(y_=y.copy())
-
-        X_transformed = self.feature_engineer_.transform(X)
+        X_transformed = self.feature_engineer_.transform(X, y)
         if dropna:
             X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
         return X_transformed
@@ -590,22 +542,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         return prediction
 
-    def set_feature_names(self, X: Any, X_transformed: Any) -> None:
-        """
-        Default function for setting self._feature_names
-
-        For the default feature engineer, it outputs features like 'mean__Q#mean_1'
-        Which is much easier to interpret if we remove the 'mean__'
-
-        Parameters
-        ----------
-        X: Unused
-        X_transformed: Unused
-        """
-        names = self.feature_engineer_.named_steps["columns"].get_feature_names()
-        names = [colname.split("__")[1] for colname in names]
-        self._feature_names = names
-
     def get_feature_names(self) -> list:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
@@ -616,8 +552,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         list:
             list of feature names
         """
-        check_is_fitted(self, "_feature_names")
-        return self._feature_names
+        return self.feature_engineer_.get_feature_names()
 
     def _set_input_cols(self, X: pd.DataFrame) -> None:
         """
