@@ -6,6 +6,7 @@ from .weather_spei import SPEITransformer
 from .base_feature_engineering import BaseFeatureEngineer, FeatureEngineer
 from .simple_feature_engineering import SimpleFeatureEngineer
 
+
 __all__ = [
     "decompose_datetime",
     "recode_cyclical_features",
@@ -14,6 +15,5 @@ __all__ = [
     "AutomaticRollingEngineering",
     "SPEITransformer",
     "BaseFeatureEngineer",
-    "FeatureEngineer"
-    "SimpleFeatureEngineer",
+    "FeatureEngineer" "SimpleFeatureEngineer",
 ]
