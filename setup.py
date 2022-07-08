@@ -30,7 +30,7 @@ setup(
     packages=find_packages(exclude=["*tests"]),
     zip_safe=True,
     python_requires=">=3.8",
-    install_requires=["pandas~=1.3", "numpy>=1.18,<1.22", "scikit-learn>=0.23,<1.1"],
+    install_requires=["pandas~=1.3", "numpy~=1.18", "scikit-learn>=1.0,<1.2"],
     extras_require={
         "all": [
             "matplotlib",

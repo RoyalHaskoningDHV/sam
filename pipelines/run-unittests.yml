@@ -20,7 +20,7 @@ jobs:
 
   - script: |
       python -m pip install ".[all]"
-      python -m pip install pytest pytest-mpl pytest-cov fastparquet
+      python -m pip install pytest 'pytest-mpl<=0.15.0' pytest-cov fastparquet
     displayName: 'Install self & pytest dependencies'
 
   - script: |

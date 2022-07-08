@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.10.4
+
+### Chages
+- Updated package dependencies for scikit-learn
+- Changed the DeepExplainer to the model agnostic KernelExplainer, so we can remove all the v1 dependencies on tensorflow
+- Fixed pytest MPL bug by temporarily setting it to a previous version 
+
 ## Version 2.10.3
 
 ### Changes

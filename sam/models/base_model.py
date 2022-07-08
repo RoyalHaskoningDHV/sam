@@ -83,7 +83,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def __init__(
         self,
-        predict_ahead: Union[int, List[int]] = 1,
+        predict_ahead: Union[int, Sequence[int]] = 1,
         quantiles: Sequence[float] = (),
         use_y_as_feature: bool = True,
         use_diff_of_y: bool = True,
@@ -643,7 +643,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         col_names = col_names[col_names != self.timecol]
         self._input_cols = col_names
 
-    def get_input_cols(self) -> np.array:
+    def get_input_cols(self) -> np.ndarray:
         """
         Function to obtain the input column names.
         This can be used to determine model dependencies
@@ -772,7 +772,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, foldername, prefix="model") -> Callable:
+    def load(cls, foldername, prefix="model"):
         """Load a model from disk
 
         This abstract method needs to be implemented by any class inheriting from
