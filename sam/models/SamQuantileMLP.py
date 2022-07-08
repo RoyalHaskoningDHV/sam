@@ -14,7 +14,7 @@ from sklearn.utils.validation import check_is_fitted
 from sam.models.sam_shap_explainer import SamShapExplainer
 
 
-class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
+class TimeseriesMLP(BaseTimeseriesRegressor):
     """
     This is an example class for how the SAM skeleton can work. This is not the final/only model,
     there are some notes:
