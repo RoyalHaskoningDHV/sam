@@ -140,3 +140,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Exceptions
+!docs/requirements.txt
