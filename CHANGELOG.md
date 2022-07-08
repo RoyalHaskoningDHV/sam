@@ -12,7 +12,7 @@ Version X.Y.Z stands for:
 ## Version 2.10.3
 
 ### Changes
-- Added `.readthedocs.yml` and `docs/requirements.txt` to include requirements for readthedocs.
+- Added `.readthedocs.yml` and `docs/requirements.txt` to include requirements for readthedocs build.
 
 ## Version 2.10.2
 
