@@ -21,6 +21,7 @@ setup(
     project_urls={
         "Q&A": "https://github.com/RoyalHaskoningDHV/sam/discussions",
         "Issues": "https://github.com/RoyalHaskoningDHV/sam/issues",
+        "Documentation": "https://sam-rhdhv.readthedocs.io/en/latest/"
     },
     classifiers=[
         "Programming Language :: Python :: 3",
