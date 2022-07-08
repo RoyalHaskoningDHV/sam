@@ -5,7 +5,7 @@ This project is a community effort, and everyone is welcome to contribute. The p
 ## Links
 
 - [GitHub repository](https://github.com/RoyalHaskoningDHV/sam)
-- [Documentation](https://samdocs.digitalapps.royalhaskoningdhv.com)
+- [Documentation](https://sam-rhdhv.readthedocs.io/en/latest/)
 - [Issues and feature requests](https://github.com/RoyalHaskoningDHV/sam/issues)
 - [Pull requests](https://github.com/RoyalHaskoningDHV/sam/pulls)
 - [Community (discussions, Q&A))](https://github.com/RoyalHaskoningDHV/sam/discussions)
