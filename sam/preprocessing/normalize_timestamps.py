@@ -167,9 +167,7 @@ def normalize_timestamps(
 
     round_method_options = ["floor", "round", "ceil"]
     if round_method == "floor":
-        df["TIME"] = df["TIME"].dt.floor(
-            freq
-        )  # Technically, this has no effect on the result
+        df["TIME"] = df["TIME"].dt.floor(freq)  # Technically, this has no effect on the result
     elif round_method == "round":
         df["TIME"] = df["TIME"].dt.round(freq)
     elif round_method in "ceil":
@@ -197,9 +195,7 @@ def normalize_timestamps(
         ]
     )
 
-    complete_df = pd.DataFrame(
-        dict(TIME=time, ID=ids, TYPE=types), columns=["TIME", "ID", "TYPE"]
-    )
+    complete_df = pd.DataFrame(dict(TIME=time, ID=ids, TYPE=types), columns=["TIME", "ID", "TYPE"])
     complete_df["TIME"] = complete_df["TIME"].dt.floor(freq)
 
     # Function currently groups based on first left matching frequency,
@@ -212,9 +208,7 @@ def normalize_timestamps(
 
     complete_df = complete_df.merge(df, how="left", on=["TIME", "ID", "TYPE"])
 
-    logger.debug(
-        "Number of missings before fillna: {}".format(complete_df["VALUE"].isna().sum())
-    )
+    logger.debug("Number of missings before fillna: {}".format(complete_df["VALUE"].isna().sum()))
 
     if fillna_method:
         complete_df["VALUE"] = complete_df.groupby(["ID", "TYPE"])["VALUE"].apply(
@@ -223,9 +217,7 @@ def normalize_timestamps(
 
     logger.info(
         "Dataframe changed because of normalize_timestamps: "
-        "Previously it had {} rows, now it has {}".format(
-            original_rows, complete_df.shape[0]
-        )
+        "Previously it had {} rows, now it has {}".format(original_rows, complete_df.shape[0])
     )
     logger.info(
         "Also, the VALUE column previously had {} missing values, now it has {}".format(

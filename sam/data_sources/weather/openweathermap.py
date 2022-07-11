@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from pandas.io.json import json_normalize
 from sam import config  # Credentials file
-from sam.logging import log_dataframe_characteristics
+from sam.logging_functions import log_dataframe_characteristics
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,7 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
     apikey = config["openweathermap"]["apikey"]
 
     logger.debug(
-        "Getting openweathermap forecast: latitude={}, longitude={}".format(
-            latitude, longitude
-        )
+        "Getting openweathermap forecast: latitude={}, longitude={}".format(latitude, longitude)
     )
     url = (
         "https://api.openweathermap.org/data/2.5/"

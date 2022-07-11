@@ -48,9 +48,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         time2 = "2019/03/11 04:00:00"
         freq = "1h"
         daterange = pd.date_range(time1, time2, freq=freq)
-        test_dataframe = pd.DataFrame(
-            {"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"]
-        )
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"])
 
         # add without cyclicals
         result = decompose_datetime(test_dataframe, "TIME", ["hour"], [])
@@ -61,9 +59,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_frame_equal(result, expected)
 
         # add cyclical test without keeping original
-        result = decompose_datetime(
-            test_dataframe, "TIME", ["hour"], ["hour"], cyclical_maxes=[4]
-        )
+        result = decompose_datetime(test_dataframe, "TIME", ["hour"], ["hour"], cyclical_maxes=[4])
         expected = pd.DataFrame(
             {
                 "TIME": daterange,
@@ -125,9 +121,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         # starts at minute 8m ends at 10, 1 hour later, step of 15 min
         minuterange = list(range(8, 10 + 60, 15))
 
-        test_dataframe = pd.DataFrame(
-            {"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"]
-        )
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1}, columns=["TIME", "OTHER"])
         components = ["year", "month", "quarter", "week", "weekday", "hour", "minute"]
 
         result = decompose_datetime(test_dataframe, "TIME", components)
@@ -140,13 +134,9 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_array_equal(result.TIME_week.values, np.repeat(10, rangelength))
         # weekdays run 0-6, and 11 march is a sunday, so 6
         assert_array_equal(result.TIME_weekday.values, np.repeat(6, rangelength))
-        assert_array_equal(
-            result.TIME_hour.values, np.array([15 + x // 60 for x in minuterange])
-        )
+        assert_array_equal(result.TIME_hour.values, np.array([15 + x // 60 for x in minuterange]))
         # minute rolls over at 60
-        assert_array_equal(
-            result.TIME_minute.values, np.array([x % 60 for x in minuterange])
-        )
+        assert_array_equal(result.TIME_minute.values, np.array([x % 60 for x in minuterange]))
 
         assert_array_equal(
             result.columns.values,
@@ -201,18 +191,16 @@ class TestBuildTimeFeatures(unittest.TestCase):
 
         # Also try just cyclical, no decompose
         result1 = recode_cyclical_features(
-            data,
-            ["OTHER"],
+            df=data,
+            cols=["OTHER"],
             remove_categorical=True,
-            column="",
             keep_original=False,
             cyclical_maxes=[1],
         )
         result2 = recode_cyclical_features(
-            data,
-            ["OTHER"],
+            df=data,
+            cols=["OTHER"],
             remove_categorical=False,
-            column="",
             keep_original=False,
             cyclical_maxes=[1],
         )
@@ -220,22 +208,16 @@ class TestBuildTimeFeatures(unittest.TestCase):
         # The first had remove_categorical, so TIME and OTHER are both dropped
         assert_array_equal(result1.columns.values, np.array(["OTHER_sin", "OTHER_cos"]))
         # The second had remove_categorical False, so TIME is dropped but OTHER isn't
-        assert_array_equal(
-            result2.columns.values, np.array(["OTHER", "OTHER_sin", "OTHER_cos"])
-        )
+        assert_array_equal(result2.columns.values, np.array(["OTHER", "OTHER_sin", "OTHER_cos"]))
 
     def test_incorrect_column(self):
         test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
         # Raises AttributeError because float doesn't have .dt.hour
-        self.assertRaises(
-            AttributeError, decompose_datetime, test_dataframe, "TIME", ["hour"]
-        )
+        self.assertRaises(AttributeError, decompose_datetime, test_dataframe, "TIME", ["hour"])
 
     def test_absent_column(self):
         test_dataframe = pd.DataFrame({"TIME": [1, 2, 3], "OTHER": 1})
-        self.assertRaises(
-            KeyError, decompose_datetime, test_dataframe, "TEST", ["hour"]
-        )
+        self.assertRaises(KeyError, decompose_datetime, test_dataframe, "TEST", ["hour"])
 
     def test_recode_cyclical_datetime(self):
         """Test cyclicals with the default datetime features instead of custom min/max"""
@@ -273,9 +255,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         daterange = pd.date_range(time1, time2, freq=freq)
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
 
-        result = decompose_datetime(
-            test_dataframe, components=["weekday"], onehots=["weekday"]
-        )
+        result = decompose_datetime(test_dataframe, components=["weekday"], onehots=["weekday"])
 
         expected = pd.DataFrame(
             {
@@ -337,6 +317,169 @@ class TestBuildTimeFeatures(unittest.TestCase):
         assert_array_equal(result["TIME_hour"], [0, 6, 12, 18])
         assert_array_equal(result["TIME_week"], [19, 19, 19, 19])
         assert_array_equal(result["TIME_secondofday"], [0, 21600, 43200, 64800])
+
+    def test_datetime_index(self):
+        """Test when datetime info is in the index, instead of a separate column"""
+        time1 = "2019/05/11 00:00:00"
+        time2 = "2019/05/11 18:00:00"
+        freq = "6h"
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({"OTHER": 1}, index=daterange)
+
+        result = decompose_datetime(
+            test_dataframe, None, components=["day", "hour", "week", "secondofday"]
+        )
+
+        assert_array_equal(result["_day"], [11, 11, 11, 11])
+        assert_array_equal(result["_hour"], [0, 6, 12, 18])
+        assert_array_equal(result["_week"], [19, 19, 19, 19])
+        assert_array_equal(result["_secondofday"], [0, 21600, 43200, 64800])
+
+    def test_named_datetime_index(self):
+        """Test when datetime info is in the index, instead of a separate column
+        and in this case we use the name of the index for the new columns"""
+        time1 = "2019/05/11 00:00:00"
+        time2 = "2019/05/11 18:00:00"
+        freq = "6h"
+        daterange = pd.date_range(time1, time2, freq=freq, name="custom")
+        test_dataframe = pd.DataFrame({"OTHER": 1}, index=daterange)
+
+        result = decompose_datetime(
+            test_dataframe, None, components=["day", "hour", "week", "secondofday"]
+        )
+
+        assert_array_equal(result["custom_day"], [11, 11, 11, 11])
+        assert_array_equal(result["custom_hour"], [0, 6, 12, 18])
+        assert_array_equal(result["custom_week"], [19, 19, 19, 19])
+        assert_array_equal(result["custom_secondofday"], [0, 21600, 43200, 64800])
+
+    def test_timezone_utc(self):
+        """Test what happens if we supply the UTC timezone (should be the same as None)
+        since the data should already be in UTC.
+        """
+        time1 = "2019/05/11 00:00:00"
+        time2 = "2019/05/11 18:00:00"
+        freq = "6h"
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+
+        result = decompose_datetime(
+            test_dataframe,
+            components=["day", "hour", "week", "secondofday"],
+            timezone="UTC",
+        )
+
+        assert_array_equal(result["TIME_day"], [11, 11, 11, 11])
+        assert_array_equal(result["TIME_hour"], [0, 6, 12, 18])
+        assert_array_equal(result["TIME_week"], [19, 19, 19, 19])
+        assert_array_equal(result["TIME_secondofday"], [0, 21600, 43200, 64800])
+
+    def test_timezone_utc_to_utc(self):
+        """Test what happens if we supply a timezone and the data already
+        has utc timezone information
+        """
+        time1 = "2019/05/11 00:00:00"
+        time2 = "2019/05/11 18:00:00"
+        freq = "6h"
+        daterange = pd.date_range(time1, time2, freq=freq, tz="UTC")
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+
+        result = decompose_datetime(
+            test_dataframe,
+            components=["day", "hour", "week", "secondofday"],
+            timezone="UTC",
+        )
+
+        assert_array_equal(result["TIME_day"], [11, 11, 11, 11])
+        assert_array_equal(result["TIME_hour"], [0, 6, 12, 18])
+        assert_array_equal(result["TIME_week"], [19, 19, 19, 19])
+        assert_array_equal(result["TIME_secondofday"], [0, 21600, 43200, 64800])
+
+    def test_timezone_dutch_to_utc(self):
+        """Test what happens if we supply a non UTC timezone
+        this should raise an error, since it's unclear what to do in this case
+        """
+        time1 = "2019/05/11 00:00:00"
+        time2 = "2019/05/11 18:00:00"
+        freq = "6h"
+        daterange = pd.date_range(time1, time2, freq=freq, tz="Europe/Amsterdam")
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+        with self.assertRaises(ValueError) as exc:
+            decompose_datetime(
+                test_dataframe,
+                components=["day", "hour", "week", "secondofday"],
+                timezone="UTC",
+            )
+        self.assertEquals(
+            str(exc.exception),
+            "Data should either be in UTC timezone or it should have no"
+            " timezone information (assumed to be in UTC)",
+        )
+
+    def test_timezone_dutch(self):
+        """Test different timezone functionality,
+        in this case Dutch (UTC+2 because summertime)
+        """
+        time1 = "2019/05/11 00:00:00"
+        time2 = "2019/05/11 18:00:00"
+        freq = "6h"
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+
+        result = decompose_datetime(
+            test_dataframe,
+            components=["day", "hour", "week", "secondofday"],
+            timezone="Europe/Amsterdam",
+        )
+
+        assert_array_equal(result["TIME_day"], [11, 11, 11, 11])
+        assert_array_equal(result["TIME_hour"], [2, 8, 14, 20])
+        assert_array_equal(result["TIME_week"], [19, 19, 19, 19])
+        assert_array_equal(result["TIME_secondofday"], [7200, 28800, 50400, 72000])
+
+    def test_timezone_dutch_summertime(self):
+        """Test change into summertime, using dutch timezone
+        In the Netherlands, the summertime starts at 2:00 and skips to 3:00
+        Meaning we should see a change around that time
+        """
+        time1 = "2020-03-29 00:00:00"
+        time2 = "2020-03-29 04:00:00"
+        freq = "1h"
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+
+        result = decompose_datetime(
+            test_dataframe,
+            components=["day", "hour", "week", "secondofday"],
+            timezone="Europe/Amsterdam",
+        )
+
+        assert_array_equal(result["TIME_day"], [29, 29, 29, 29, 29])
+        assert_array_equal(result["TIME_hour"], [1, 3, 4, 5, 6])
+        assert_array_equal(result["TIME_week"], [13, 13, 13, 13, 13])
+        assert_array_equal(result["TIME_secondofday"], [3600, 10800, 14400, 18000, 21600])
+
+    def test_timezone_gb_wintertime(self):
+        """Test change into wintertime, using london timezone
+        In the UK, the wintertime starts at 2:00 and reverts to to 1:00
+        Meaning we should see a change around that time
+        """
+        time1 = "2020-10-25 00:00:00"
+        time2 = "2020-10-25 04:00:00"
+        freq = "1h"
+        daterange = pd.date_range(time1, time2, freq=freq)
+        test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
+
+        result = decompose_datetime(
+            test_dataframe,
+            components=["day", "hour", "week", "secondofday"],
+            timezone="Europe/London",
+        )
+
+        assert_array_equal(result["TIME_day"], [25, 25, 25, 25, 25])
+        assert_array_equal(result["TIME_hour"], [1, 1, 2, 3, 4])
+        assert_array_equal(result["TIME_week"], [43, 43, 43, 43, 43])
+        assert_array_equal(result["TIME_secondofday"], [3600, 3600, 7200, 10800, 14400])
 
 
 if __name__ == "__main__":

@@ -13,12 +13,8 @@ warnings.filterwarnings(
 if isdir("logs"):
     # We take only the message from the sam package, not matplotlib etc.
     logger = logging.getLogger("sam")
-    fh = logging.FileHandler(
-        "logs/sam_" + datetime.datetime.now().strftime("%Y-%m-%d") + ".log"
-    )
-    formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-    )
+    fh = logging.FileHandler("logs/sam_" + datetime.datetime.now().strftime("%Y-%m-%d") + ".log")
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     logger.setLevel(logging.INFO)

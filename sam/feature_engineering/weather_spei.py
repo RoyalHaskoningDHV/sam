@@ -170,9 +170,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         # Each day should at least have data for 50%
         # of all years in the data, otherwise estimated mean and std
         # are set to nan. This removes leap year days
-        self.model_.loc[
-            (self.model_["count"] < (n_years / 2)), ["mean", "std"]
-        ] = np.nan
+        self.model_.loc[(self.model_["count"] < (n_years / 2)), ["mean", "std"]] = np.nan
         if self.smoothing:
             # To remove spikes in the mean and std
             # and create a smooth model over the year
@@ -180,14 +178,10 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             # is just a first approach, and does the essential trick
             # Default SP(E)I from literature does not use smoothing
             self.model_["mean"] = (
-                self.model_["mean"]
-                .rolling(5, center=True, min_periods=1)
-                .median(skipna=True)
+                self.model_["mean"].rolling(5, center=True, min_periods=1).median(skipna=True)
             )
             self.model_["std"] = (
-                self.model_["std"]
-                .rolling(5, center=True, min_periods=1)
-                .median(skipna=True)
+                self.model_["std"].rolling(5, center=True, min_periods=1).median(skipna=True)
             )
 
         return self
@@ -240,9 +234,9 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             self.model_, left_on=["month", "day"], right_on=["month", "day"], how="left"
         )
         results.index = target.index
-        results[self._metric_name] = (
-            results[self._metric_name] - results["mean"]
-        ) / results["std"]
+        results[self._metric_name] = (results[self._metric_name] - results["mean"]) / results[
+            "std"
+        ]
         return results[[self._metric_name]]
 
     def plot(self):

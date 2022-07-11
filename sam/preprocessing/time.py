@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -110,6 +111,12 @@ def average_winter_time(data: pd.DataFrame, tmpcol: str = "tmp_UNID"):
     4   2019-10-27 02:45:00 7.5
     5   2019-10-27 03:00:00 9.0
     """
+    warnings.warn(
+        "DEPRECATED: Convert to UTC using pandas Series.dt.tz_convert() and use the"
+        " `timezone`-parameter of `decompose_datetime()` to extract local time features if needed",
+        DeprecationWarning,
+    )
+
     if tmpcol in data.columns:
         raise ValueError("tmpcol already exists in dataframe")
 

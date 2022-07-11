@@ -56,9 +56,7 @@ class TestQuantileMetrics(unittest.TestCase):
         assert_array_equal(list(res.keys()), expected_keys)
         assert_array_equal(list(res.values()), expected_values)
 
-        self.assertRaises(
-            ValueError, compute_quantile_crossings, pred, 0, [0.5, "mean"]
-        )
+        self.assertRaises(ValueError, compute_quantile_crossings, pred, 0, [0.5, "mean"])
 
         pred = pd.DataFrame(
             {"predict_lead_0_q_0.5": [6, 2, 4, 5], "predict_lead_0_mean": [3, 1, 3, 6]}

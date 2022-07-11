@@ -14,6 +14,9 @@ from sam.metrics import (
 skipkeras = False
 try:
     import tensorflow as tf  # noqa: F401
+
+    # Necessary for shap DeepExplainer, see: https://github.com/slundberg/shap/issues/2189
+    tf.compat.v1.disable_v2_behavior()
     import tensorflow.keras.backend as K
     from tensorflow.keras.layers import Input
 except ImportError:
@@ -78,15 +81,11 @@ class TestKerasMetrics(unittest.TestCase):
         n_outputs = (len(quantiles) + 1) * n_inputs
         x = Input(shape=((n_inputs,)))
         y = Input(shape=((n_outputs,)))
-        func = K.function(
-            [x, y], keras_joint_mse_tilted_loss(x, y, quantiles, n_inputs)
-        )
+        func = K.function([x, y], keras_joint_mse_tilted_loss(x, y, quantiles, n_inputs))
 
         # Just 3 rows
         y_true = np.array([[1, 2], [1, 2], [1, 2]])
-        y_pred = np.array(
-            [[0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2]]
-        )
+        y_pred = np.array([[0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2]])
         # These 4 values are `quantile_1_target_1`, `quantile_1_target_2`,
         # `mean_target_1`, `mean_target_2`
         # The mean error is 0.1 for the first target, 0.2 for the second target.
@@ -127,15 +126,11 @@ class TestKerasMetrics(unittest.TestCase):
         n_outputs = (len(quantiles) + 1) * n_inputs
         x = Input(shape=((n_inputs,)))
         y = Input(shape=((n_outputs,)))
-        func = K.function(
-            [x, y], keras_joint_mae_tilted_loss(x, y, quantiles, n_inputs)
-        )
+        func = K.function([x, y], keras_joint_mae_tilted_loss(x, y, quantiles, n_inputs))
 
         # Just 3 rows
         y_true = np.array([[1, 2], [1, 2], [1, 2]])
-        y_pred = np.array(
-            [[0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2]]
-        )
+        y_pred = np.array([[0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2], [0.5, 1.1, 1.1, 2.2]])
         # These 4 values are `quantile_1_target_1`, `quantile_1_target_2`,
         # `mean_target_1`, `mean_target_2`
         # The mean error is 0.1 for the first target, 0.2 for the second target.

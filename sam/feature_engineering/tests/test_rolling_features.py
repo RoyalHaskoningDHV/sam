@@ -27,11 +27,7 @@ class TestRollingFeatures(unittest.TestCase):
 
         def simple_transform(rolling_type, lookback, window_size, **kwargs):
             roller = BuildRollingFeatures(
-                rolling_type,
-                lookback,
-                window_size=window_size,
-                keep_original=False,
-                **kwargs
+                rolling_type, lookback, window_size=window_size, keep_original=False, **kwargs
             )
             return roller.fit_transform(self.X)
 
@@ -109,9 +105,7 @@ class TestRollingFeatures(unittest.TestCase):
     def test_useless_feature(self):
         # useless because no lag, it's just identity function
         result = self.simple_transform("lag", 0, 0)
-        expected = pd.DataFrame(
-            {"X#lag_0": (10, 12, 15, 9, 0, 0, 1)}, columns=["X#lag_0"]
-        )
+        expected = pd.DataFrame({"X#lag_0": (10, 12, 15, 9, 0, 0, 1)}, columns=["X#lag_0"])
         assert_frame_equal(result, expected, check_dtype=False)
 
     def test_diff(self):
@@ -197,9 +191,7 @@ class TestRollingFeatures(unittest.TestCase):
 
     def test_withmissing(self):
         X = pd.DataFrame({"X": [10, 12, 15, np.nan, 0, 0, 1]})
-        roller = BuildRollingFeatures(
-            "sum", lookback=0, window_size=2, keep_original=False
-        )
+        roller = BuildRollingFeatures("sum", lookback=0, window_size=2, keep_original=False)
         result = roller.fit_transform(X)
         expected = pd.DataFrame({"X#sum_2": [np.nan, 22, 27, np.nan, np.nan, 0, 1]})
         assert_frame_equal(result, expected)
@@ -211,9 +203,7 @@ class TestRollingFeatures(unittest.TestCase):
         # Tests T502: missing values caused the results to shift.
         X = pd.DataFrame({"X": [10, 12, 15, np.nan, 0, 0, 1]})
 
-        roller = BuildRollingFeatures(
-            "fourier", lookback=0, window_size=2, keep_original=False
-        )
+        roller = BuildRollingFeatures("fourier", lookback=0, window_size=2, keep_original=False)
         result = roller.fit_transform(X)
 
         expected = [
@@ -408,19 +398,13 @@ class TestRollingFeatures(unittest.TestCase):
 
         expected = pd.concat(
             [
-                pd.Series(
-                    [0, 0, 0]
-                ),  # nfft needs at least 6 values so these will just be 0
+                pd.Series([0, 0, 0]),  # nfft needs at least 6 values so these will just be 0
                 pd.Series([0, 0, 0]),
                 pd.Series([0, 0, 0]),
                 pd.Series([0, 0, 0]),
                 pd.Series([0, 0, 0]),
-                nfft_helper(
-                    np.array([0, 1, 2, 4, 5, 6]), np.array([10, 12, 15, 9, 0, 0])
-                ),
-                nfft_helper(
-                    np.array([1, 2, 4, 5, 6, 7]) - 1, np.array([12, 15, 9, 0, 0, 1])
-                ),
+                nfft_helper(np.array([0, 1, 2, 4, 5, 6]), np.array([10, 12, 15, 9, 0, 0])),
+                nfft_helper(np.array([1, 2, 4, 5, 6, 7]) - 1, np.array([12, 15, 9, 0, 0, 1])),
                 nfft_helper(
                     np.array([0, 1, 2, 4, 5, 6, 7, 8]),
                     np.array([10, 12, 15, 9, 0, 0, 1, 10]),
@@ -466,21 +450,13 @@ class TestRollingFeatures(unittest.TestCase):
             roller.fit_transform(X)
 
         self.assertRaises(Exception, validate)  # No input
-        self.assertRaises(
-            ValueError, validate, lookback=-1, window_size=1
-        )  # negative lookback
+        self.assertRaises(ValueError, validate, lookback=-1, window_size=1)  # negative lookback
         self.assertRaises(Exception, validate, window_size="INVALID")
-        self.assertRaises(
-            Exception, validate, window_size=[1, 2, None]
-        )  # runtime error
+        self.assertRaises(Exception, validate, window_size=[1, 2, None])  # runtime error
 
         # must be pandas
-        self.assertRaises(
-            Exception, validate, X=np.array([[1, 2, 3], [2, 3, 4]]), window_size=1
-        )
-        self.assertRaises(
-            TypeError, validate, window_size=1, keep_original="yes please"
-        )
+        self.assertRaises(Exception, validate, X=np.array([[1, 2, 3], [2, 3, 4]]), window_size=1)
+        self.assertRaises(TypeError, validate, window_size=1, keep_original="yes please")
         self.assertRaises(TypeError, validate, window_size=1, rolling_type=np.mean)
         self.assertRaises(TypeError, validate, window_size=1, lookback="2")
 
@@ -490,9 +466,7 @@ class TestRollingFeatures(unittest.TestCase):
         self.assertRaises(ValueError, validate, window_size=1, width=0)
 
         # ewm must have alpha in (0, 1]
-        self.assertRaises(
-            Exception, validate, window_size=0, rolling_type="ewm", alpha=0
-        )
+        self.assertRaises(Exception, validate, window_size=0, rolling_type="ewm", alpha=0)
         self.assertRaises(Exception, validate, rolling_type="ewm", alpha=3)
         self.assertRaises(Exception, validate, rolling_type="ewm", alpha=[0.1, 0.2])
 
@@ -517,12 +491,8 @@ class TestRollingFeatures(unittest.TestCase):
             rolling_type="trimmean",
             proportiontocut=-0.2,
         )
-        self.assertRaises(
-            Exception, validate, rolling_type="trimmean", proportiontocut=0.8
-        )
-        self.assertRaises(
-            Exception, validate, rolling_type="trimmean", proportiontocut=[0.1, 0.2]
-        )
+        self.assertRaises(Exception, validate, rolling_type="trimmean", proportiontocut=0.8)
+        self.assertRaises(Exception, validate, rolling_type="trimmean", proportiontocut=[0.1, 0.2])
 
         # timeoffset can only be used with datetimeindex, and not with lag/ewm/fourier/diff
         self.assertRaises(ValueError, validate, window_size="1H")

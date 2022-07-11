@@ -35,9 +35,7 @@ class TestExtremeDiagnosticPlot(unittest.TestCase):
 
         # now detect extremes
         cols_to_check = ["values"]
-        self.REV = RemoveExtremeValues(
-            cols=cols_to_check, rollingwindow=10, madthresh=10
-        )
+        self.REV = RemoveExtremeValues(cols=cols_to_check, rollingwindow=10, madthresh=10)
 
         _ = self.REV.fit(self.train_df)
 

@@ -30,9 +30,7 @@ class TestTopCorrelation(unittest.TestCase):
             columns=["index", "A"],
         )
 
-        assert_frame_equal(
-            top_score_correlations(testserie, "A", score=0.8), correlation_df
-        )
+        assert_frame_equal(top_score_correlations(testserie, "A", score=0.8), correlation_df)
 
     def test_no_output(self):
         testserie = pd.DataFrame(
@@ -52,9 +50,7 @@ class TestTopCorrelation(unittest.TestCase):
         correlation_df = pd.DataFrame(columns=["index", "A"])
         correlation_df["A"] = correlation_df["A"].astype(float)
 
-        assert_frame_equal(
-            top_score_correlations(testserie, "A", score=0.99), correlation_df
-        )
+        assert_frame_equal(top_score_correlations(testserie, "A", score=0.99), correlation_df)
 
     def test_incorrect_input(self):
         testserie = pd.DataFrame(

@@ -66,11 +66,7 @@ def preprocess_data_for_benchmarking(
     # Convert to wide format
     data = sam_format_to_wide(data)
     # Select only relevant columns
-    data = data[
-        filter(
-            lambda x: x == "TIME" or x == targetcol or column_filter(x), data.columns
-        )
-    ]
+    data = data[filter(lambda x: x == "TIME" or x == targetcol or column_filter(x), data.columns)]
     cols = data.columns  # Backup for after imputer\
 
     if resample == "auto":
@@ -110,7 +106,7 @@ def benchmark_model(
     validation_data=True,
     return_histories=False,
     fit_kwargs=None,
-    **modeldict
+    **modeldict,
 ):
     """
     Benchamarks a dictionary of sam models on train/test data, and returns a dictionary with scores
@@ -162,9 +158,7 @@ def benchmark_model(
         history = model.fit(X_train, y_train, **fit_kwargs)
         pred = model.predict(X_test, y_test)
 
-        results = pd.DataFrame(
-            {"pred": pred, "actual": model.get_actual(y_test)}
-        ).dropna(axis=0)
+        results = pd.DataFrame({"pred": pred, "actual": model.get_actual(y_test)}).dropna(axis=0)
 
         score = scorer(results["actual"], results["pred"])
         final_scores[modelname] = score
@@ -183,9 +177,7 @@ def benchmark_model(
     final_scores["persistence_benchmark"] = scorer(
         results["actual"], results["persistence_benchmark"]
     )
-    final_scores["mean_benchmark"] = scorer(
-        results["actual"], results["mean_benchmark"]
-    )
+    final_scores["mean_benchmark"] = scorer(results["actual"], results["mean_benchmark"])
 
     if return_histories:
         return final_scores, histories
@@ -219,7 +211,10 @@ def plot_score_dicts(**score_dicts):
 
 
 def benchmark_wrapper(
-    models: dict, datasets: dict, column_filters: dict, targetcols: dict
+    models: dict,
+    datasets: dict,
+    column_filters: dict,
+    targetcols: dict,
 ):
     """
     Wrapper around entire benchmark pipeline.

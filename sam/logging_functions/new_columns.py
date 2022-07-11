@@ -37,7 +37,7 @@ def log_new_columns(
 
     Examples
     --------
-    >>> from sam.logging import log_new_columns
+    >>> from sam.logging_functions import log_new_columns
     >>> df = pd.DataFrame({'A': [1,2,3], 'C': [4,3,2]})
     >>> new_df = df.rename(columns = {'A': 'B'})
     >>> log_new_columns(new_df, df)

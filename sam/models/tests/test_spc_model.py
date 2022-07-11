@@ -13,7 +13,8 @@ from sklearn.utils.estimator_checks import check_estimator
 class TestSPCTemplate(unittest.TestCase):
     def test_sklearn_estimator(self):
         """Test if default template follows sklearn estimator standards"""
-        check_estimator(SPCTemplate)
+        spc_model = SPCTemplate()
+        check_estimator(spc_model)
 
 
 class TestSPCRegressor(unittest.TestCase):
@@ -55,9 +56,7 @@ class TestSPCRegressor(unittest.TestCase):
 
         score = model.score(self.X_test, self.y_test)
         # Loss score should be equal to the MSE, since there are no quantiles
-        expected_score = np.sum(
-            np.mean((model.get_actual(self.y_test) - preds) ** 2, axis=0)
-        )
+        expected_score = np.sum(np.mean((model.get_actual(self.y_test) - preds) ** 2, axis=0))
         self.assertEqual(score, expected_score)
 
     def test_normal_use(self):

@@ -48,9 +48,7 @@ def _add_temporal_noise(time, noisetype="poisson", noisesize=0, length=1):
         if noisetype == "poisson":
             temp[time == ix] = np.random.poisson(lam=value, size=temp[time == ix].size)
         if noisetype == "normal":
-            temp[time == ix] = np.random.normal(
-                loc=0, scale=value, size=temp[time == ix].size
-            )
+            temp[time == ix] = np.random.normal(loc=0, scale=value, size=temp[time == ix].size)
     return temp
 
 
@@ -199,9 +197,7 @@ def synthetic_timeseries(
 
     # Set values outside of cutoff to nan. Used for more predictable nans
     if cutoff_values is not None:
-        data = np.where(
-            (data < cutoff_values[0]) | (data > cutoff_values[1]), np.nan, data
-        )
+        data = np.where((data < cutoff_values[0]) | (data > cutoff_values[1]), np.nan, data)
 
     # Subtracts a value from the result, and absolute value.
     # This makes the result center more around 0
@@ -210,9 +206,7 @@ def synthetic_timeseries(
 
     # Add random missing values, to the proportion of random_missing.
     if random_missing is not None:
-        data[
-            np.random.choice(data.size, int(data.size * random_missing), replace=False)
-        ] = np.nan
+        data[np.random.choice(data.size, int(data.size * random_missing), replace=False)] = np.nan
 
     return data
 
@@ -295,15 +289,11 @@ def synthetic_date_range(
     index += pd.to_timedelta(random_delay, unit="s")
 
     # Choose indexes for the start of random stops
-    random_stops = np.random.choice(
-        len(index), int(random_stop_freq * len(index)), replace=False
-    )
+    random_stops = np.random.choice(len(index), int(random_stop_freq * len(index)), replace=False)
     for ix in random_stops:
         # If random_stop_max_length is 1, we cannot randomly draw a number, so just set it to 1
         stop_length = (
-            1
-            if random_stop_max_length == 1
-            else np.random.randint(1, random_stop_max_length)
+            1 if random_stop_max_length == 1 else np.random.randint(1, random_stop_max_length)
         )
         index[ix : ix + stop_length] = np.nan
     # Remove the stops. This causes long batches that take (much) longer than usual.

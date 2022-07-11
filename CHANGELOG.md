@@ -8,12 +8,55 @@ Version X.Y.Z stands for:
 - Z = Patch version: if only backwards compatible bug fixes are introduced
 
 -------------
-
-## 2.9.0
+## 2.10.4
 
 ### Changes
 - Added `sam.exploration.signalaligner.py` containing the `SignalAligner` class: This class can be used to align two numeric signals that are temporally misaligned.
 - Fixed a typo in `sam.models.SamQuantileMLP.py` error message.
+
+## Version 2.10.3
+
+### Changes
+- Added `.readthedocs.yml` and `docs/requirements.txt` to include requirements for readthedocs build.
+
+## Version 2.10.2
+
+### Changes
+- Updated `CONTRIBUTING.md` for open source / github contribution guidelines
+- Added `black` to requirements and linting pipeline
+- All code reformatted with `black` and project configuration
+
+## Version 2.10.1
+
+### Changes
+- Revert version changes in `scikit-learn` and `tenforflow` due to compatibility issues
+
+## 2.10.0
+
+### Changes
+- `decompose_datetime()` now also accepts a timezone argument. This enables the user to use time features in another timezone. For example: If your input data is in UTC, but you're expecting that human behaviour is also important and the model is applied on the Netherlands, you can add `Europe/Amsterdam` to `decompose_datetime` and it will convert the time from UTC to the correct time, also taking into account daylight savings. This only has an effect on the feature engineering, preprocessing and postprecessing should always happen on UTC dates.
+- Fixed mypy errors in decompose_datetime.py
+- Updated docstring examples in decompose_datetime.py (they work now)
+## Version 2.9.1
+
+### Changes
+- MIT License added
+- Additional information in `setup.py` and `setup.cfg` for license
+
+## 2.9.0
+
+### Changes
+- Updates package dependencies to no longer use a fixed version, but instead a minimum version
+- Changed logging submodule to logging_functions to prevent overwriting logging package
+- Fixed some mypy errors
+- Added fix for SHAP DeepExplainer: https://github.com/slundberg/shap/issues/2189
+- Fixed some deprecation warnings
+
+## 2.8.5
+
+### Changes
+- `pyproject.toml` provides settings for building package (required for PyPI)
+- Additional information in `setup.py` for open source release
 
 ## 2.8.4
 
@@ -67,6 +110,7 @@ Version X.Y.Z stands for:
 ## Version 2.5.4
 
 ### Changes
+
 - No more bandit linting errors: replace `assert` statements
 - Remove faulty try-except-pass constructions
 

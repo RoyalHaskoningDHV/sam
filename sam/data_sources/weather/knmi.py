@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import requests as req
 from sam.data_sources.weather.utils import _haversine, _try_parsing_date
-from sam.logging import log_dataframe_characteristics
+from sam.logging_functions import log_dataframe_characteristics
 
 logger = logging.getLogger(__name__)
 
@@ -89,17 +89,13 @@ def _parse_knmi_measurements(knmi_raw, freq, start=None, end=None):
     header = [li.strip("#").replace(" ", "") for li in lines if "#" in li]
     columns = header[-1].split(",")
 
-    knmi = pd.read_csv(
-        StringIO(knmi_raw.replace(" ", "")), skiprows=len(header) - 1, header=0
-    )
+    knmi = pd.read_csv(StringIO(knmi_raw.replace(" ", "")), skiprows=len(header) - 1, header=0)
     knmi.columns = columns
 
     if freq == "hourly":
         knmi["H"] = pd.to_numeric(knmi["H"])  # needs to be numeric to subtract 1
         # Subtract 1 from H since it runs from 1 to 24, which will make datetime conversion fail
-        knmi["TIME"] = (
-            knmi["YYYYMMDD"].astype(str) + " " + (knmi["H"] - 1).astype(str) + ":00:00"
-        )
+        knmi["TIME"] = knmi["YYYYMMDD"].astype(str) + " " + (knmi["H"] - 1).astype(str) + ":00:00"
     elif freq == "daily":
         knmi["TIME"] = knmi["YYYYMMDD"].astype(str) + " 00:00:00"
     else:
@@ -112,9 +108,7 @@ def _parse_knmi_measurements(knmi_raw, freq, start=None, end=None):
         # add the hour back that we subtracted a few lines earlier
         knmi["TIME"] = knmi["TIME"] + pd.Timedelta("1 hour")
         # Filter the unwanted results since we changed the start/end earlier
-        knmi = knmi.loc[(knmi["TIME"] >= start) & (knmi["TIME"] <= end)].reset_index(
-            drop=True
-        )
+        knmi = knmi.loc[(knmi["TIME"] >= start) & (knmi["TIME"] <= end)].reset_index(drop=True)
     return knmi
 
 
@@ -232,15 +226,11 @@ def read_knmi_station_data(
     if response.status_code == 200:
         knmi_raw = response.text
     else:
-        raise ValueError(
-            "Request failed with status code {}".format(response.status_code)
-        )
+        raise ValueError("Request failed with status code {}".format(response.status_code))
 
     # Parse raw data
     if parse:
-        knmi = _parse_knmi_measurements(
-            knmi_raw, freq, start=start_backup, end=end_backup
-        )
+        knmi = _parse_knmi_measurements(knmi_raw, freq, start=start_backup, end=end_backup)
     else:
         return knmi_raw
 

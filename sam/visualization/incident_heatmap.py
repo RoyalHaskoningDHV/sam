@@ -14,7 +14,7 @@ def plot_incident_heatmap(
     figsize: Iterable[Tuple[int, int]] = (24, 4),
     xlabel_rotation: int = 30,
     datefmt: str = None,
-    **kwargs
+    **kwargs,
 ):
     """
     Create and return a heatmap for incident occurence. This can be used to visualize e.g.
@@ -80,9 +80,7 @@ def plot_incident_heatmap(
 
     # Resample the data if needed
     if resolution != "row":
-        df_grouped = df.groupby(
-            [row_column, pd.Grouper(key=time_column, freq=resolution)]
-        )
+        df_grouped = df.groupby([row_column, pd.Grouper(key=time_column, freq=resolution)])
         df_grouped = df_grouped[value_column].sum().unstack(fill_value=0)
     else:
         if time_column is not None:
@@ -90,9 +88,7 @@ def plot_incident_heatmap(
             df_grouped = df.pivot(row_column, time_column, value_column).fillna(0)
         else:
             # Use the index, so first reset_index
-            df_grouped = (
-                df.reset_index().pivot(row_column, "index", value_column).fillna(0)
-            )
+            df_grouped = df.reset_index().pivot(row_column, "index", value_column).fillna(0)
 
     if normalize:
         df_grouped = df_grouped / df_grouped.values.max()

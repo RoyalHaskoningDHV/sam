@@ -402,7 +402,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         X: pd.DataFrame,
         y: pd.Series,
         validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-        **fit_kwargs
+        **fit_kwargs,
     ) -> Callable:
         """
         This function does the following:
@@ -480,7 +480,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             epochs=self.epochs,
             verbose=self.verbose,
             validation_data=validation_data,
-            **fit_kwargs
+            **fit_kwargs,
         )
         return history
 
@@ -601,14 +601,16 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         Keras model
         """
         import cloudpickle
-        from tensorflow.keras.models import load_model
+        from tensorflow import keras
 
         foldername = Path(foldername)
         with open(foldername / (prefix + ".pkl"), "rb") as f:
             obj = cloudpickle.load(f)
 
         loss = obj._get_loss()
-        obj.model_ = load_model(foldername / (prefix + ".h5"), custom_objects={"mse_tilted": loss})
+        obj.model_ = keras.models.load_model(
+            foldername / (prefix + ".h5"), custom_objects={"mse_tilted": loss}
+        )
         return obj
 
     def _get_loss(self) -> Union[str, Callable]:

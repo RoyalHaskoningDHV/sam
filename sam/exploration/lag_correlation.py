@@ -4,7 +4,7 @@ from typing import Callable, Union
 import numpy as np
 import pandas as pd
 from sam.feature_engineering.rolling_features import BuildRollingFeatures
-from sam.logging import log_dataframe_characteristics
+from sam.logging_functions import log_dataframe_characteristics
 
 logger = logging.getLogger(__name__)
 
@@ -85,9 +85,7 @@ def lag_correlation(
     corr_table["LAG"] = corr_table["index"].apply(lambda x: x.rsplit("_", 1)[1])
     corr_table["GROUP"] = corr_table["index"].apply(lambda x: x.rsplit("#", 1)[0])
 
-    tab = pd.pivot_table(
-        corr_table, values="corr", index="LAG", columns="GROUP"
-    ).reset_index()
+    tab = pd.pivot_table(corr_table, values="corr", index="LAG", columns="GROUP").reset_index()
     tab["LAG"] = pd.to_numeric(tab["LAG"])
     tab.columns.name = None
     tab = tab.sort_values("LAG").reset_index(drop=True)

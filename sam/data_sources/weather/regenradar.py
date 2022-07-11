@@ -3,16 +3,14 @@ import logging
 import pandas as pd
 from pandas.io.json import json_normalize
 from sam import config  # Credentials file
-from sam.logging import log_dataframe_characteristics
+from sam.logging_functions import log_dataframe_characteristics
 
 from .utils import _try_parsing_date
 
 logger = logging.getLogger(__name__)
 
 
-def read_regenradar(
-    start_date, end_date, latitude=52.11, longitude=5.18, freq="5min", **kwargs
-):
+def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq="5min", **kwargs):
     """
     Export historic precipitation from Nationale Regenradar.
 

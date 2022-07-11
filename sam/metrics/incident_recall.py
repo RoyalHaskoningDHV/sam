@@ -7,7 +7,9 @@ from sklearn.metrics import precision_recall_curve
 
 
 def incident_recall(
-    y_incidents: np.array, y_pred: np.array, range_pred: Tuple[int] = (0, 0)
+    y_incidents: np.array,
+    y_pred: np.array,
+    range_pred: Tuple[int] = (0, 0),
 ):
     """
     Given `y_pred`, `y_incidents` and a prediction range, see what percentage of incidents in
@@ -53,7 +55,8 @@ def incident_recall(
 
 
 def make_incident_recall_scorer(
-    range_pred: Tuple[int, int] = (0, 0), colname: str = "incident"
+    range_pred: Tuple[int, int] = (0, 0),
+    colname: str = "incident",
 ):
     """
     Wrapper around `incident_recall_score`, to make it an actual sklearn scorer.
@@ -102,7 +105,10 @@ def make_incident_recall_scorer(
 
 
 def _merge_thresholds(
-    left_t: np.array, right_t: np.array, left_val: np.array, right_val: np.array
+    left_t: np.array,
+    right_t: np.array,
+    left_val: np.array,
+    right_val: np.array,
 ):
     """
     Helper function that merges two different thresholds. Does this by iterating over the
@@ -122,17 +128,13 @@ def _merge_thresholds(
     saved_leftval, saved_rightval = left_val[0], right_val[0]
 
     while left_ix < len(left_t) or right_ix < len(right_t):
-        if len(left_t) > 0 and (
-            right_ix == len(right_t) or left_t[left_ix] < right_t[right_ix]
-        ):
+        if len(left_t) > 0 and (right_ix == len(right_t) or left_t[left_ix] < right_t[right_ix]):
             new_t, new_leftval, saved_leftval, left_ix = step_ahead(
                 new_t, new_leftval, saved_leftval, left_ix, left_t, left_val
             )
             new_rightval.append(saved_rightval)
 
-        elif len(right_t) > 0 and (
-            left_ix == len(left_t) or left_t[left_ix] > right_t[right_ix]
-        ):
+        elif len(right_t) > 0 and (left_ix == len(left_t) or left_t[left_ix] > right_t[right_ix]):
             new_t, new_rightval, saved_rightval, right_ix = step_ahead(
                 new_t, new_rightval, saved_rightval, right_ix, right_t, right_val
             )
@@ -205,9 +207,7 @@ def precision_incident_recall_curve(
     y_lagged = range_lag_column(y_incidents, range_pred)
     precision, _, thresholds_p = precision_recall_curve(y_lagged, y_pred)
 
-    y_pred_incidents = range_lag_column(
-        y_pred, (-1 * range_pred[0], -1 * range_pred[1])
-    )
+    y_pred_incidents = range_lag_column(y_pred, (-1 * range_pred[0], -1 * range_pred[1]))
     _, recall, thresholds_r = precision_recall_curve(y_incidents, y_pred_incidents)
 
     return _merge_thresholds(thresholds_p, thresholds_r, precision, recall)

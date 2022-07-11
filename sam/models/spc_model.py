@@ -30,6 +30,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         How many timepoints we want to predict ahead. Is only used to determine the
         number of rows in the output, by default (1,)
     """
+
     def __init__(
         self, quantiles: Sequence[float] = (), predict_ahead: Sequence[int] = (1,)
     ) -> None:
@@ -57,6 +58,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         The fitted model
         """
         X, y = check_X_y(X, y, y_numeric=True)
+        self.n_features_in_ = X.shape[1]
 
         self.spc_median_ = np.median(y)
         self.spc_quantiles_ = np.quantile(y[~np.isnan(y)], q=np.sort(self.quantiles))
@@ -170,6 +172,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
     11658                   56.0                  158.0                101.0
     11659                   56.0                  158.0                101.0
     """
+
     def __init__(
         self,
         predict_ahead: int = (1,),

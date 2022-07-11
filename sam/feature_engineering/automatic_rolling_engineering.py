@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -130,8 +130,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         cv: int = 3,
         estimator_type: str = "lin",
         passthrough: bool = True,
-        cyclicals: List[str] = None,
-        onehots: List[str] = None,
+        cyclicals: Optional[List[str]] = None,
+        onehots: Optional[List[str]] = None,
     ):
 
         self.window_sizes = window_sizes
@@ -162,7 +162,9 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         return estimator
 
     def _setup_pipeline(
-        self, original_features: List[str], time_features: List[str]
+        self,
+        original_features: List[str],
+        time_features: List[str],
     ) -> Pipeline:
         """
         Create the pipeline that is later fitted. Includes:
@@ -250,12 +252,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         param_grid = {}
         for i in range(len(self.window_sizes)):
             for feature in original_features:
-                param_grid[
-                    "rollpipe__%s_%d__window_size" % (feature, i)
-                ] = self.window_sizes[i]
-                param_grid[
-                    "rollpipe__%s_%d__rolling_type" % (feature, i)
-                ] = self.rolling_types
+                param_grid["rollpipe__%s_%d__window_size" % (feature, i)] = self.window_sizes[i]
+                param_grid["rollpipe__%s_%d__rolling_type" % (feature, i)] = self.rolling_types
 
         return param_grid
 
@@ -277,14 +275,12 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                 interval: tuple = window_size.interval(1)
 
             if interval[0] < 0:
-                raise ValueError(
-                    "window_size must be greater than 0, but is %d" % interval[0]
-                )
+                raise ValueError("window_size must be greater than 0, but is %d" % interval[0])
 
             if X_shape[0] <= interval[1]:
                 raise ValueError(
-                    "number of samples too small for maximum window_size " +
-                    "(should be smaller than X.shape[0])"
+                    "number of samples too small for maximum window_size "
+                    + "(should be smaller than X.shape[0])"
                 )
 
         if "ewm" in self.rolling_types:
@@ -370,9 +366,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         pipeline: Pipeline = self._setup_pipeline(original_features, timefeatures)
         param_grid: dict = self._setup_rolling_gridsearch_params(original_features)
 
-        n_iter: int = (
-            self.n_iter_per_param * len(self.window_sizes) * len(self.rolling_types)
-        )
+        n_iter: int = self.n_iter_per_param * len(self.window_sizes) * len(self.rolling_types)
 
         # find best rollings using randomsearch (future improvement: use BayesSearchCV from skopt)
         search = RandomizedSearchCV(
@@ -381,7 +375,6 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             n_jobs=-1,
             cv=TimeSeriesSplit(self.cv),
             verbose=2,
-            iid=False,
             n_iter=n_iter,
         )
         search.fit(X, y)
@@ -419,9 +412,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         _ = search.best_estimator_[:-1].transform(X)
         if self.estimator_type == "rf":
             imp_name = "importances"
-            importances: np.ndarray = search.best_estimator_[
-                "model"
-            ].feature_importances_
+            importances: np.ndarray = search.best_estimator_["model"].feature_importances_
         elif self.estimator_type == "lin":
             imp_name = "coefficients"
             importances: np.ndarray = search.best_estimator_["model"].coef_
@@ -439,9 +430,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         # these are the final feature names
         self.timecols: list = [f for f in self.feature_names_full_ if "TIME" in f]
-        self.feature_names_: list = [
-            f for f in self.feature_names_full_ if "TIME" not in f
-        ]
+        self.feature_names_: list = [f for f in self.feature_names_full_ if "TIME" not in f]
 
         return self
 

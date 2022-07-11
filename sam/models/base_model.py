@@ -89,9 +89,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         rolling_window_size: Sequence[int] = (12,),
         rolling_features: Sequence[str] = ("mean",),
     ) -> None:
-        self.predict_ahead = (
-            predict_ahead if isinstance(predict_ahead, List) else [predict_ahead]
-        )
+        self.predict_ahead = predict_ahead if isinstance(predict_ahead, List) else [predict_ahead]
         self.quantiles = quantiles
         self.use_y_as_feature = use_y_as_feature
         self.use_diff_of_y = use_diff_of_y
@@ -379,7 +377,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         X: pd.DataFrame,
         y: pd.Series,
         validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-        **fit_kwargs
+        **fit_kwargs,
     ) -> Callable:
         """Fit the underlying model
 
@@ -522,7 +520,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
             if self.y_scaler is not None:
                 prediction = pd.Series(
-                    self.y_scaler.inverse_transform(prediction.values).ravel(),
+                    self.y_scaler.inverse_transform(prediction.values.reshape(-1, 1)).ravel(),
                     index=prediction.index,
                     name=prediction.name,
                 )
