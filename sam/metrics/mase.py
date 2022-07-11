@@ -68,10 +68,7 @@ def mean_absolute_scaled_error(
     # If sample_weight is not None, we have to subscript it before passing to MAE
     naive_sampleweight = sample_weight[shift:] if sample_weight is not None else None
     naive_mae = mean_absolute_error(
-        y_true[shift:],
-        y_true[:-shift],
-        sample_weight=naive_sampleweight,
-        multioutput=multioutput,
+        y_true[shift:], y_true[:-shift], sample_weight=naive_sampleweight, multioutput=multioutput
     )
     actual_mae = mean_absolute_error(
         y_true, y_pred, sample_weight=sample_weight, multioutput=multioutput

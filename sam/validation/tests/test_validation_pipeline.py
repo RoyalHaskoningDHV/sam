@@ -27,9 +27,7 @@ class TestValidationPipeline(unittest.TestCase, NumericAssertions):
 
         # setup pipeline
         pipe = create_validation_pipe(
-            cols=list(X_train.columns) + ["target"],
-            rollingwindow=5,
-            impute_method="iterative",
+            cols=list(X_train.columns) + ["target"], rollingwindow=5, impute_method="iterative"
         )
 
         # put data together
@@ -38,9 +36,7 @@ class TestValidationPipeline(unittest.TestCase, NumericAssertions):
 
         # now fit the pipeline on the train data and transform both train and test
         train_data = pd.DataFrame(
-            pipe.fit_transform(train_data),
-            columns=train_data.columns,
-            index=train_data.index,
+            pipe.fit_transform(train_data), columns=train_data.columns, index=train_data.index
         )
         test_data = pd.DataFrame(
             pipe.transform(test_data), columns=test_data.columns, index=test_data.index

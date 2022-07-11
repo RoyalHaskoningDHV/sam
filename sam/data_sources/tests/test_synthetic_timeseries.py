@@ -42,12 +42,7 @@ class TestSyntheticTimeseries(unittest.TestCase):
 
     def test_minmax(self):
         result = synthetic_timeseries(
-            self.many_dates,
-            1,
-            2,
-            3,
-            noise={"normal": 2, "poisson": 1},
-            minmax_values=(0, 10),
+            self.many_dates, 1, 2, 3, noise={"normal": 2, "poisson": 1}, minmax_values=(0, 10)
         )
         # Result should be between 0 and 10, with very little margin for error
         self.assertGreater(np.nanmax(result), 9.999)
@@ -70,12 +65,7 @@ class TestSyntheticTimeseries(unittest.TestCase):
     def test_negabs(self):
         # negabs makes sure the result is more centered around 0, so the average should be lower
         without_negabs = synthetic_timeseries(
-            self.many_dates,
-            1,
-            2,
-            3,
-            noise={"normal": 2, "poisson": 1},
-            minmax_values=(0, 10),
+            self.many_dates, 1, 2, 3, noise={"normal": 2, "poisson": 1}, minmax_values=(0, 10)
         )
         with_negabs = synthetic_timeseries(
             self.many_dates,

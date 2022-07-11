@@ -46,14 +46,7 @@ def plot_lag_correlation(df: pd.DataFrame, ylim_min: int = None, ylim_max: int =
 
     df_long = df.melt(id_vars="LAG")
     sns.lineplot(
-        data=df_long,
-        x="LAG",
-        hue="variable",
-        y="value",
-        ax=ax,
-        ls="--",
-        marker="o",
-        ms=12,
+        data=df_long, x="LAG", hue="variable", y="value", ax=ax, ls="--", marker="o", ms=12
     )
 
     if ylim_min and ylim_max:

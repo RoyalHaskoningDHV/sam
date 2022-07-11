@@ -6,10 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def log_new_columns(
-    new: pd.DataFrame,
-    old: pd.DataFrame,
-    level: int = logging.INFO,
-    log_no_changes: bool = False,
+    new: pd.DataFrame, old: pd.DataFrame, level: int = logging.INFO, log_no_changes: bool = False
 ):
     """
     Given two pandas dataframe (new and old), checks what columns were removed/added, and logs them

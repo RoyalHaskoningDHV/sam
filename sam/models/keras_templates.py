@@ -75,13 +75,7 @@ def create_keras_quantile_mlp(
     >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles)
     >>> model.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=16, epochs=20)
     """
-    from tensorflow.keras.layers import (
-        Activation,
-        BatchNormalization,
-        Dense,
-        Dropout,
-        Input,
-    )
+    from tensorflow.keras.layers import Activation, BatchNormalization, Dense, Dropout, Input
     from tensorflow.keras.models import Model
     from tensorflow.keras.optimizers import Adam
 
@@ -298,13 +292,7 @@ def create_keras_autoencoder_mlp(
     >>> model = create_keras_autoencoder_mlp(n_input=100)
     >>> model.fit(X, X, batch_size=32, epochs=5)
     """
-    from tensorflow.keras.layers import (
-        Activation,
-        BatchNormalization,
-        Dense,
-        Dropout,
-        Input,
-    )
+    from tensorflow.keras.layers import Activation, BatchNormalization, Dense, Dropout, Input
     from tensorflow.keras.models import Model
     from tensorflow.keras.optimizers import Adam
 
@@ -398,14 +386,7 @@ def create_keras_autoencoder_rnn(
     >>> model = create_keras_autoencoder_rnn(input_shape)
     >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5)
     """
-    from tensorflow.keras.layers import (
-        GRU,
-        LSTM,
-        Dense,
-        Input,
-        RepeatVector,
-        TimeDistributed,
-    )
+    from tensorflow.keras.layers import GRU, LSTM, Dense, Input, RepeatVector, TimeDistributed
     from tensorflow.keras.models import Model
     from tensorflow.keras.optimizers import Adam
 

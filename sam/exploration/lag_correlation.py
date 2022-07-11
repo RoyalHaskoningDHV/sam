@@ -10,10 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def lag_correlation(
-    df: pd.DataFrame,
-    target_name: str,
-    lag: int = 12,
-    method: Union[str, Callable] = "pearson",
+    df: pd.DataFrame, target_name: str, lag: int = 12, method: Union[str, Callable] = "pearson"
 ):
     """
     Creates a new dataframe that contains the correlation of target_name

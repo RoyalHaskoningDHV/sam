@@ -215,7 +215,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
             columns = [col for col in columns if col != self.timecol]
 
         feature_engineering_steps = [
-            ("passthrough", FunctionTransformerWithNames(validate=False), columns),
+            ("passthrough", FunctionTransformerWithNames(validate=False), columns)
         ]
         engineer = ColumnTransformer(feature_engineering_steps, remainder="drop")
         return Pipeline([("columns", engineer), ("impute", SimpleImputer())])

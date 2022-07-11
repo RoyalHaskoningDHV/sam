@@ -11,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def _nfft_helper(
-    series: pd.Series,
-    nfft: Callable[[np.ndarray, np.ndarray], np.ndarray],
+    series: pd.Series, nfft: Callable[[np.ndarray, np.ndarray], np.ndarray]
 ) -> np.ndarray:
     """Helper function to apply nfft to series.
 
@@ -323,8 +322,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
             raise ValueError("proportiontocut must be in [0, 0.5)")
 
     def _get_rolling_fun(
-        self,
-        rolling_type: str = "mean",
+        self, rolling_type: str = "mean"
     ) -> Callable[[Union[pd.Series, np.ndarray], Union[int, None]], Union[pd.Series, np.ndarray]]:
         """Given a function name as a string, creates a function that
         applies that rolling function

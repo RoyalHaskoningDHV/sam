@@ -15,10 +15,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         df_cyc = recode_cyclical_features(df.copy(), cols=["hr"], cyclical_maxes=[4])
 
         expected = pd.DataFrame(
-            {
-                "hr_sin": [0.0, 1.0, 0.0, -1.0, 0.0],
-                "hr_cos": [1.0, 0.0, -1.0, 0.0, 1.0],
-            },
+            {"hr_sin": [0.0, 1.0, 0.0, -1.0, 0.0], "hr_cos": [1.0, 0.0, -1.0, 0.0, 1.0]},
             columns=["hr_sin", "hr_cos"],
         )
         assert_frame_equal(df_cyc, expected)
@@ -34,10 +31,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         df_cyc = recode_cyclical_features(df.copy(), cols=["hr"], cyclical_maxes=[4])
 
         expected = pd.DataFrame(
-            {
-                "hr_sin": [0.0, 1.0, 0.0, -1.0, 0.0],
-                "hr_cos": [1.0, 0.0, -1.0, 0.0, 1.0],
-            },
+            {"hr_sin": [0.0, 1.0, 0.0, -1.0, 0.0], "hr_cos": [1.0, 0.0, -1.0, 0.0, 1.0]},
             columns=["hr_sin", "hr_cos"],
         )
         assert_frame_equal(df_cyc, expected)
@@ -104,12 +98,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         # and requested cyclical conversion 'hour',
         # the added column is 'TIME_hour', and not 'TIME_month'
         self.assertRaises(
-            Exception,
-            decompose_datetime,
-            test_dataframe,
-            "TIME",
-            ["hour"],
-            ["TIME_month"],
+            Exception, decompose_datetime, test_dataframe, "TIME", ["hour"], ["TIME_month"]
         )
 
     def test_march_11(self):
@@ -185,8 +174,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
             data, "TIME", ["minute"], ["minute"], keep_original=False
         )
         assert_array_equal(
-            cyclical_result.columns.values,
-            np.array(["TIME_minute_sin", "TIME_minute_cos"]),
+            cyclical_result.columns.values, np.array(["TIME_minute_sin", "TIME_minute_cos"])
         )
 
         # Also try just cyclical, no decompose
@@ -282,9 +270,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
 
         result = decompose_datetime(
-            test_dataframe,
-            components=["day", "hour", "week"],
-            onehots=["day", "hour", "week"],
+            test_dataframe, components=["day", "hour", "week"], onehots=["day", "hour", "week"]
         )
 
         # there should be 31 days, 24 hours and 53 weeks, so 108 columns generated
@@ -364,9 +350,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
 
         result = decompose_datetime(
-            test_dataframe,
-            components=["day", "hour", "week", "secondofday"],
-            timezone="UTC",
+            test_dataframe, components=["day", "hour", "week", "secondofday"], timezone="UTC"
         )
 
         assert_array_equal(result["TIME_day"], [11, 11, 11, 11])
@@ -385,9 +369,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
 
         result = decompose_datetime(
-            test_dataframe,
-            components=["day", "hour", "week", "secondofday"],
-            timezone="UTC",
+            test_dataframe, components=["day", "hour", "week", "secondofday"], timezone="UTC"
         )
 
         assert_array_equal(result["TIME_day"], [11, 11, 11, 11])
@@ -406,9 +388,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
         with self.assertRaises(ValueError) as exc:
             decompose_datetime(
-                test_dataframe,
-                components=["day", "hour", "week", "secondofday"],
-                timezone="UTC",
+                test_dataframe, components=["day", "hour", "week", "secondofday"], timezone="UTC"
             )
         self.assertEquals(
             str(exc.exception),

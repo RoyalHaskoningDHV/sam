@@ -161,11 +161,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         return estimator
 
-    def _setup_pipeline(
-        self,
-        original_features: List[str],
-        time_features: List[str],
-    ) -> Pipeline:
+    def _setup_pipeline(self, original_features: List[str], time_features: List[str]) -> Pipeline:
         """
         Create the pipeline that is later fitted. Includes:
         - BuildRollingFeatures
@@ -397,9 +393,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                 [
                     "%s_%s_%d" % (feature_name, rolling_type, window_size),
                     BuildRollingFeatures(
-                        rolling_type=rolling_type,
-                        window_size=window_size,
-                        keep_original=False,
+                        rolling_type=rolling_type, window_size=window_size, keep_original=False
                     ),
                     [feature_name],
                 ]

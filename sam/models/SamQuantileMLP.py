@@ -301,7 +301,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
         if self.average_type == "median" and 0.5 in self.quantiles:
             raise ValueError(
-                "average_type is mean, but 0.5 is also in quantiles. "
+                "average_type is median, but 0.5 is also in quantiles. "
                 "Either set average_type to mean or add 0.5 to quantiles"
             )
 
@@ -433,12 +433,9 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         tf.keras.callbacks.History:
             The history object after fitting the keras model
         """
-        (
-            X_transformed,
-            y_transformed,
-            X_val_transformed,
-            y_val_transformed,
-        ) = self.preprocess_fit(X, y, validation_data)
+        (X_transformed, y_transformed, X_val_transformed, y_val_transformed) = self.preprocess_fit(
+            X, y, validation_data
+        )
 
         self.model_ = self.get_untrained_model()
 

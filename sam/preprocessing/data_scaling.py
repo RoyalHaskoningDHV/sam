@@ -60,18 +60,14 @@ def scale_train_test(
     # as this needs to be the same for the test set
     if isinstance(y_train, pd.Series):
         y_train = pd.Series(
-            np.ravel(y_scaler.fit_transform(np.array(y_train).reshape(-1, 1))),
-            index=y_train.index,
+            np.ravel(y_scaler.fit_transform(np.array(y_train).reshape(-1, 1))), index=y_train.index
         )
         y_test = pd.Series(
-            np.ravel(y_scaler.transform(np.array(y_test).reshape(-1, 1))),
-            index=y_test.index,
+            np.ravel(y_scaler.transform(np.array(y_test).reshape(-1, 1))), index=y_test.index
         )
     elif isinstance(y_train, pd.DataFrame):
         y_train = pd.DataFrame(
-            y_scaler.fit_transform(y_train),
-            columns=y_train.columns,
-            index=y_train.index,
+            y_scaler.fit_transform(y_train), columns=y_train.columns, index=y_train.index
         )
         y_test = pd.DataFrame(
             y_scaler.transform(y_test), columns=y_test.columns, index=y_test.index

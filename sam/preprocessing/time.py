@@ -62,9 +62,7 @@ def label_dst(timestamps_series: pd.Series):
         (last_sunday_morning) & (timestamps_series.dt.month == 3),
         "to_summertime",
         np.where(
-            (last_sunday_morning) & (timestamps_series.dt.month == 10),
-            "to_wintertime",
-            "normal",
+            (last_sunday_morning) & (timestamps_series.dt.month == 10), "to_wintertime", "normal"
         ),
     )
 

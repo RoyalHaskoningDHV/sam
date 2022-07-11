@@ -214,11 +214,7 @@ class TestCompleteTimestamps(unittest.TestCase):
         output = pd.DataFrame(
             {
                 "TIME": pd.to_datetime(
-                    [
-                        "2018/01/01 16:00:00",
-                        "2018/01/01 16:15:00",
-                        "2018/01/01 16:30:00",
-                    ]
+                    ["2018/01/01 16:00:00", "2018/01/01 16:15:00", "2018/01/01 16:30:00"]
                 ),
                 "ID": 1,
                 "TYPE": 2,
@@ -424,33 +420,15 @@ class TestCompleteTimestamps(unittest.TestCase):
         )
 
         self.assertRaises(
-            Exception,
-            normalize_timestamps,
-            data,
-            "15min",
-            start_time,
-            end_time,
-            "unknown_fun",
-            "",
+            Exception, normalize_timestamps, data, "15min", start_time, end_time, "unknown_fun", ""
         )
         self.assertRaises(
-            Exception,
-            normalize_timestamps,
-            data,
-            "15min",
-            start_time,
-            end_time,
-            "",
-            "unknown_fun",
+            Exception, normalize_timestamps, data, "15min", start_time, end_time, "", "unknown_fun"
         )
 
         self.assertRaises(Exception, normalize_timestamps, data, "15min", round_function="flotor")
         self.assertRaises(
-            Exception,
-            normalize_timestamps,
-            data,
-            "15min",
-            fillna_method="supersmartfill",
+            Exception, normalize_timestamps, data, "15min", fillna_method="supersmartfill"
         )
         self.assertRaises(Exception, normalize_timestamps, data.assign(ID=np.nan), "15min")
         self.assertRaises(Exception, normalize_timestamps, data.assign(TYPE=np.nan), "15min")

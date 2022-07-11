@@ -210,12 +210,7 @@ def plot_score_dicts(**score_dicts):
     return pd.DataFrame(score_dicts).transpose().plot(kind="bar")
 
 
-def benchmark_wrapper(
-    models: dict,
-    datasets: dict,
-    column_filters: dict,
-    targetcols: dict,
-):
+def benchmark_wrapper(models: dict, datasets: dict, column_filters: dict, targetcols: dict):
     """
     Wrapper around entire benchmark pipeline.
     Takes a dictionary of models, dictionary of datasets in SAM format,

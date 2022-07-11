@@ -132,12 +132,7 @@ def performance_evaluation_fixed_predict_ahead(
 
         # test set performance
         metric_list = _evaluate_performance(
-            y_true_test_res,
-            y_hat_test_res,
-            y_true_train_res,
-            train_avg_func,
-            metric,
-            metric_list,
+            y_true_test_res, y_hat_test_res, y_true_train_res, train_avg_func, metric, metric_list
         )
 
         # append results to lists
@@ -166,13 +161,7 @@ def performance_evaluation_fixed_predict_ahead(
         # create scatter plot of test results:
         plt.subplot(2, len(resolutions), ri + 1 + len(resolutions))
         plt.plot([ymin, ymax], [ymin, ymax], c="gray", ls="--")
-        plt.plot(
-            y_true_test_res.values,
-            y_hat_test_res.values,
-            "o",
-            alpha=alpha,
-            color="orange",
-        )
+        plt.plot(y_true_test_res.values, y_hat_test_res.values, "o", alpha=alpha, color="orange")
         plt.title("test " + res_label)
         plt.xlim(ymin, ymax)
         plt.ylim(ymin, ymax)

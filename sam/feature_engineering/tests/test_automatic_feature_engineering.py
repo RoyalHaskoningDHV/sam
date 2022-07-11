@@ -3,15 +3,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from numpy.testing import (
-    assert_almost_equal,
-    assert_array_almost_equal,
-    assert_array_equal,
-)
+from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
 from sam.feature_engineering import AutomaticRollingEngineering
-from sam.feature_engineering.automatic_rolling_engineering import (
-    INPUT_VALIDATION_ERR_MESSAGE,
-)
+from sam.feature_engineering.automatic_rolling_engineering import INPUT_VALIDATION_ERR_MESSAGE
 from sklearn.model_selection import train_test_split
 
 TEST_FOLDER = Path(__file__).parent.absolute()
@@ -106,8 +100,7 @@ class TestAutomaticRollingEngineering(unittest.TestCase):
     def test_feature_names(self):
         self.runAutomaticRollingEngineer()
         assert_array_equal(
-            self.ARE.feature_importances_.feature_name.unique(),
-            ["T", "Q#lag_8", "T#lag_8", "Q"],
+            self.ARE.feature_importances_.feature_name.unique(), ["T", "Q#lag_8", "T#lag_8", "Q"]
         )
 
     def test_feature_names_with_timefeatures(self):

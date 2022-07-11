@@ -9,12 +9,7 @@ from sam.utils import make_df_monotonic, sum_grouped_columns
 class TestSumGroupedColumns(unittest.TestCase):
     def setUp(self):
         self.df = pd.DataFrame(
-            {
-                "X#_2": [1, 2, 3],
-                "X#_5": [3, np.nan, 5],
-                "y": [9, np.nan, 7],
-                "X": [10, 11, 12],
-            },
+            {"X#_2": [1, 2, 3], "X#_5": [3, np.nan, 5], "y": [9, np.nan, 7], "X": [10, 11, 12]},
             columns=["X#_2", "X#_5", "y", "X"],
             index=[4, 6, 7],
         )
@@ -23,10 +18,7 @@ class TestSumGroupedColumns(unittest.TestCase):
     def test_two_groups(self):
         result = sum_grouped_columns(self.df)
         expected = pd.DataFrame(
-            {"X": [14, 13, 20], "y": [9, 0, 7]},
-            columns=["X", "y"],
-            index=[4, 6, 7],
-            dtype=float,
+            {"X": [14, 13, 20], "y": [9, 0, 7]}, columns=["X", "y"], index=[4, 6, 7], dtype=float
         )
 
         assert_frame_equal(result, expected)

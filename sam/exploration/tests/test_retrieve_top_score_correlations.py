@@ -23,11 +23,7 @@ class TestTopCorrelation(unittest.TestCase):
         )
 
         correlation_df = pd.DataFrame(
-            {
-                "index": ["A_lag_2", "C_lag_2"],
-                "A": [-0.944911, 0.866025],
-            },
-            columns=["index", "A"],
+            {"index": ["A_lag_2", "C_lag_2"], "A": [-0.944911, 0.866025]}, columns=["index", "A"]
         )
 
         assert_frame_equal(top_score_correlations(testserie, "A", score=0.8), correlation_df)

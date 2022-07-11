@@ -96,11 +96,7 @@ class TestSamQuantileMLP(unittest.TestCase):
             pred["predict_lead_2_mean"] = pred["predict_lead_2_q_0.3"]
 
         results = pd.DataFrame(
-            {
-                "pred": pred["predict_lead_2_mean"],
-                "actual": actual,
-                "persistence": self.y_test,
-            },
+            {"pred": pred["predict_lead_2_mean"], "actual": actual, "persistence": self.y_test},
             index=actual.index,
         ).dropna()
 
@@ -549,11 +545,7 @@ class TestSamQuantileMLP(unittest.TestCase):
                 # hard to test output differences (as predict reverses y_scaling)
                 # however, we can test whether the prediction returned the same shapes
 
-                model.fit(
-                    self.X_train,
-                    self.y_train,
-                    validation_data=(self.X_test, self.y_test),
-                )
+                model.fit(self.X_train, self.y_train, validation_data=(self.X_test, self.y_test))
                 pred = model.predict(self.X_test, self.y_test)
                 actual = model.get_actual(self.y_test)
 
@@ -682,11 +674,7 @@ class TestMakePredictionMonotonic(unittest.TestCase):
             ],
         ] = 6
         expected.loc[
-            row,
-            [
-                "predict_lead_1_q_0.8413447460685429",
-                "predict_lead_1_q_0.9772498680518208",
-            ],
+            row, ["predict_lead_1_q_0.8413447460685429", "predict_lead_1_q_0.9772498680518208"]
         ] = 100
         assert_frame_equal(result, expected)
 
