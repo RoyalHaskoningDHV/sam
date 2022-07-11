@@ -21,7 +21,7 @@ In the case of bug reports please fill in a small script to reproduce the proble
 
 We recommend to use a virtual environment for a clean slate and to avoid any conflicts with other packages. For example, to create a virtual environment, run `python3 -m venv <env name>`. Then, run `source <env name>/bin/activate`.
 
-If you want to develop this package, you wil need to install a local version using pip. This is done by cloning the repo, going to the root folder of this package, and running `pip install -e .` This will install a development version of the package locally. That means that if you make local changes, the package will automatically reflect them. 
+If you want to develop this package, you wil need to install a local version using pip. This is done by forking the repo, going to the root folder of this package, and running `pip install -e .` This will install a development version of the package locally. That means that if you make local changes, the package will automatically reflect them. 
 
 If you want to develop in a Jupyter notebook, you will also need to reload the sam package whenever you run `from sam import x`. This can be achieved by putting the following lines at the top of every notebook:
 
@@ -60,7 +60,7 @@ Then run the unit tests using `pytest`.
 
 ## Documentation
 
-This documentation is built automatically after every commit by Azure Devops, with no interaction required. If you want to build it yourself locally, first install the dependencies:
+This documentation is built automatically after every commit by GitHub, with no interaction required. If you want to build it yourself locally, first install the dependencies:
 
 ```
 lang=bash
