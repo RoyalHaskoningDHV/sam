@@ -4,9 +4,7 @@ SAM is a Python package for timeseries analysis, anomaly detection and forecasti
 
 Author: [Royal HaskoningDHV](https://global.royalhaskoningdhv.com/digital)
 
-Email: [arjan.bontsema@rhdhv.com](mailto:arjan.bontsema@rhdhv.com)
-
-Contributors: Daan van Es, Arjan Bontsema, Ruben Peters, Ruud Kassing, Miguel Hernandez
+Email: [ruben.peters@rhdhv.com](mailto:ruben.peters@rhdhv.com)
 
 ## Getting started
 

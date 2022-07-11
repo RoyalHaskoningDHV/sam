@@ -26,7 +26,7 @@ from recommonmark.parser import CommonMarkParser
 
 project = 'sam'
 copyright = '2018-2022, Royal HaskoningDHV'
-author = 'Fenno, Daan, Rutger, Arjan, Loes, Tim, Sebastiaan'
+author = 'Royal HaskoningDHV'
 
 config = configparser.ConfigParser()
 config.read('../../setup.cfg')
