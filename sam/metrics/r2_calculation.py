@@ -65,9 +65,7 @@ def train_r2(
 
 
 def train_mean_r2(
-    true: Union[pd.Series, np.array],
-    predicted: Union[pd.Series, np.array],
-    train_mean: float,
+    true: Union[pd.Series, np.array], predicted: Union[pd.Series, np.array], train_mean: float
 ):
     """
     Calculation of r2 with custom mean, so you can pass the mean from the train set.

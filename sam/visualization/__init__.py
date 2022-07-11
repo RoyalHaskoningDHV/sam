@@ -1,9 +1,7 @@
 from .diagnostic_flatline_removal import diagnostic_flatline_removal  # noqa: F401
 from .extreme_removal_plot import diagnostic_extreme_removal
 from .incident_heatmap import plot_incident_heatmap
-from .performance_evaluation_fixed_predict_ahead import (
-    performance_evaluation_fixed_predict_ahead,
-)
+from .performance_evaluation_fixed_predict_ahead import performance_evaluation_fixed_predict_ahead
 from .plot_feature_importances import plot_feature_importances
 from .precision_recall import plot_precision_recall_curve
 from .quantile_plot import sam_quantile_plot

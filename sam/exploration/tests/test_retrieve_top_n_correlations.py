@@ -24,11 +24,7 @@ class TestTopNCorrelation(unittest.TestCase):
             }
         )
         expected = pd.DataFrame(
-            {
-                "index": ["TEST_lag_1"],
-                "TEST_lag_0": [1.0],
-            },
-            columns=["index", "TEST_lag_0"],
+            {"index": ["TEST_lag_1"], "TEST_lag_0": [1.0]}, columns=["index", "TEST_lag_0"]
         )
 
         result = top_n_correlations(testserie, "TEST_lag_0", grouped=False, n=1)
@@ -104,11 +100,7 @@ class TestTopNCorrelation(unittest.TestCase):
         )
 
         expected = pd.DataFrame(
-            {
-                "index": ["A_lag_2", "C_lag_2"],
-                "A": [-0.944911, 0.866025],
-            },
-            columns=["index", "A"],
+            {"index": ["A_lag_2", "C_lag_2"], "A": [-0.944911, 0.866025]}, columns=["index", "A"]
         )
 
         result = top_n_correlations(testserie, "A", 2, grouped=False)

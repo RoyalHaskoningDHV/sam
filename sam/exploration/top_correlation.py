@@ -7,11 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def top_n_correlations(
-    df: pd.DataFrame,
-    goal_feature: str,
-    n: int = 5,
-    grouped: bool = True,
-    sep: str = "#",
+    df: pd.DataFrame, goal_feature: str, n: int = 5, grouped: bool = True, sep: str = "#"
 ):
     """
     Given a dataset, retrieve the top n absolute correlating features per group or in general

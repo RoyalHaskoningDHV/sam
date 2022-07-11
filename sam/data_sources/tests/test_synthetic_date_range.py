@@ -26,30 +26,18 @@ class TestCreateSyntheticTimes(unittest.TestCase):
 
     def test_incorrect_input(self):
         self.assertRaises(
-            Exception,
-            synthetic_date_range,
-            "2016-01-01 02:00:00",
-            "2016-01-01 00:30:00",
-            "2H",
+            Exception, synthetic_date_range, "2016-01-01 02:00:00", "2016-01-01 00:30:00", "2H"
         )
         self.assertRaises(Exception, synthetic_date_range, "2016-01-01", "2017-01-01", "1 hour")
         self.assertRaises(
             Exception, synthetic_date_range, "2016-01-01", "2017-01-01", max_delay="1"
         )
         self.assertRaises(
-            Exception,
-            synthetic_date_range,
-            "2016-01-01",
-            "2017-01-01",
-            random_stop_freq=[1],
+            Exception, synthetic_date_range, "2016-01-01", "2017-01-01", random_stop_freq=[1]
         )
         # negative random stop freq is allowed, is just treated as 0. More than 1 is not
         self.assertRaises(
-            Exception,
-            synthetic_date_range,
-            "2016-01-01",
-            "2017-01-01",
-            random_stop_freq=2,
+            Exception, synthetic_date_range, "2016-01-01", "2017-01-01", random_stop_freq=2
         )
         # random stop max length is only checked if there is at least 1 random stop
         self.assertRaises(
@@ -63,10 +51,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
 
     def test_delays(self):
         result = synthetic_date_range(
-            start="2016-01-01 00:00:00",
-            end="2017-01-01 00:30:00",
-            freq="H",
-            max_delay=600,
+            start="2016-01-01 00:00:00", end="2017-01-01 00:30:00", freq="H", max_delay=600
         )
         # Delays should be between 1 hour and 1H10M (1 hour normal, 0-10 min delay)
         self.assertGreater((result - result.to_series().shift())[1:].min(), pd.Timedelta("60min"))
@@ -81,10 +66,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
         # We test only one month instead of one year, because this option has a for-loop and is
         # therefore unfortunately a bit slower
         result = synthetic_date_range(
-            start="2016-01-01 00:00:00",
-            end="2016-02-01 00:30:00",
-            freq="H",
-            random_stop_freq=0.5,
+            start="2016-01-01 00:00:00", end="2016-02-01 00:30:00", freq="H", random_stop_freq=0.5
         )
         # approx half of all points should have been removed.
         expected_length = 31 * 24

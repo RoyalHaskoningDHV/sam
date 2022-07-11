@@ -5,10 +5,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def range_lag_column(
-    original_column: pd.Series,
-    range_shift: tuple = (0, 1),
-) -> pd.Series:
+def range_lag_column(original_column: pd.Series, range_shift: tuple = (0, 1)) -> pd.Series:
     """
     Lags a column with a range. Will not lag the actual value,
     but will set a 1 in the specified range for any non-zero value.

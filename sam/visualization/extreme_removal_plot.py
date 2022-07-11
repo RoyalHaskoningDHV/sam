@@ -3,11 +3,7 @@ import pandas as pd
 from sam.validation import RemoveExtremeValues
 
 
-def diagnostic_extreme_removal(
-    rev: RemoveExtremeValues,
-    raw_data: pd.DataFrame,
-    col: str,
-):
+def diagnostic_extreme_removal(rev: RemoveExtremeValues, raw_data: pd.DataFrame, col: str):
     """
     Creates a diagnostic plot for the extreme value removal procedure.
 
@@ -41,11 +37,7 @@ def diagnostic_extreme_removal(
     plt.plot(x.index, x.values, label="original_signal", lw=5)
 
     plt.plot(
-        rev.rollings[col].index,
-        rev.rollings[col].values,
-        "--k",
-        label="rolling median",
-        lw=3,
+        rev.rollings[col].index, rev.rollings[col].values, "--k", label="rolling median", lw=3
     )
 
     plt.plot(

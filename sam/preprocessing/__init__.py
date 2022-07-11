@@ -4,11 +4,7 @@ from .correct_extremes import (
     correct_outside_range,
 )
 from .data_scaling import scale_train_test
-from .differencing import (
-    inverse_differenced_target,
-    make_differenced_target,
-    make_shifted_target,
-)
+from .differencing import inverse_differenced_target, make_differenced_target, make_shifted_target
 from .normalize_timestamps import normalize_timestamps
 from .rnn_reshape import RecurrentReshaper
 from .sam_reshape import sam_format_to_wide, wide_to_sam_format

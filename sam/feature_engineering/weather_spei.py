@@ -143,11 +143,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         self._axis_name = "Precip-Evap" if self.metric == "SPEI" else "Precip"
 
         results = pd.DataFrame(
-            {
-                self._metric_name: target,
-                "month": target.index.month,
-                "day": target.index.day,
-            },
+            {self._metric_name: target, "month": target.index.month, "day": target.index.day},
             index=target.index,
         )
 
@@ -222,11 +218,7 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
         target = self._compute_target(X)
 
         results = pd.DataFrame(
-            {
-                self._metric_name: target,
-                "month": target.index.month,
-                "day": target.index.day,
-            },
+            {self._metric_name: target, "month": target.index.month, "day": target.index.day},
             index=target.index,
         )
 

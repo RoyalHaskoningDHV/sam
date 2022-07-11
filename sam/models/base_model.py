@@ -237,10 +237,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             raise ValueError("For training, X and y must have an identical index")
 
     def preprocess_fit(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+        self, X: pd.DataFrame, y: pd.Series, validation_data: Tuple[pd.DataFrame, pd.Series] = None
     ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
         """
         This function does the following:

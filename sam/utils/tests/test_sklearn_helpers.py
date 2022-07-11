@@ -25,9 +25,7 @@ class TestSklearnHelpers(unittest.TestCase):
         )
 
         original_transformer = FunctionTransformer(
-            decompose_datetime,
-            validate=False,
-            kw_args={"components": ["hour", "minute"]},
+            decompose_datetime, validate=False, kw_args={"components": ["hour", "minute"]}
         )
 
         newdata = transformer.fit_transform(self.data)

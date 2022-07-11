@@ -76,15 +76,7 @@ class TestRollingFeatures(unittest.TestCase):
             {
                 "X#trimmean_3": [np.nan, np.nan, 12 + 1 / 3, 12, 8, 3, 1 / 3],
                 "X#trimmean_4": [np.nan, np.nan, np.nan, 11, 10.5, 4.5, 0.5],
-                "X#trimmean_5": [
-                    np.nan,
-                    np.nan,
-                    np.nan,
-                    np.nan,
-                    10 + 1 / 3,
-                    7,
-                    3 + 1 / 3,
-                ],
+                "X#trimmean_5": [np.nan, np.nan, np.nan, np.nan, 10 + 1 / 3, 7, 3 + 1 / 3],
             },
             columns=["X#trimmean_3", "X#trimmean_4", "X#trimmean_5"],
         )
@@ -134,20 +126,12 @@ class TestRollingFeatures(unittest.TestCase):
 
     def test_ewm(self):
         result = self.simple_transform("ewm", 0, window_size=None, alpha=0.5)
-        expected = pd.DataFrame(
-            {
-                "X#ewm_0.5": self.X.X.ewm(alpha=0.5).mean(),
-            }
-        )
+        expected = pd.DataFrame({"X#ewm_0.5": self.X.X.ewm(alpha=0.5).mean()})
         assert_frame_equal(result, expected, check_dtype=False)
 
         # alpha 1 should result in identity function
         result = self.simple_transform("ewm", 0, window_size=None, alpha=1)
-        expected = pd.DataFrame(
-            {
-                "X#ewm_1": self.X.X,
-            }
-        )
+        expected = pd.DataFrame({"X#ewm_1": self.X.X})
         assert_frame_equal(result, expected, check_dtype=False)
 
     def test_fourier(self):
@@ -306,12 +290,7 @@ class TestRollingFeatures(unittest.TestCase):
         )
         _ = roller.fit_transform(self.X)
         result = roller.get_feature_names()
-        expected = [
-            "X",
-            "X#lag_1_lookback_0",
-            "X#lag_2_lookback_0",
-            "X#lag_3_lookback_0",
-        ]
+        expected = ["X", "X#lag_1_lookback_0", "X#lag_2_lookback_0", "X#lag_3_lookback_0"]
         self.assertEqual(result, expected)
 
         roller = BuildRollingFeatures(
@@ -319,12 +298,7 @@ class TestRollingFeatures(unittest.TestCase):
         )
         _ = roller.fit_transform(self.X)
         result = roller.get_feature_names()
-        expected = [
-            "X",
-            "X#lag_1_lookback_2",
-            "X#lag_2_lookback_2",
-            "X#lag_3_lookback_2",
-        ]
+        expected = ["X", "X#lag_1_lookback_2", "X#lag_2_lookback_2", "X#lag_3_lookback_2"]
         self.assertEqual(result, expected)
 
     def test_datetimeindex(self):
@@ -365,10 +339,7 @@ class TestRollingFeatures(unittest.TestCase):
         roller = BuildRollingFeatures("sum", lookback=1, window_size="61min")
         result = roller.fit_transform(self.X_times)
         expected = pd.DataFrame(
-            {
-                "X": [10, 12, 15, 9, 0, 0, 1],
-                "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0],
-            },
+            {"X": [10, 12, 15, 9, 0, 0, 1], "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0]},
             columns=["X", "X#sum_61min"],
             index=pd.DatetimeIndex(self.times),
         )
@@ -406,20 +377,16 @@ class TestRollingFeatures(unittest.TestCase):
                 nfft_helper(np.array([0, 1, 2, 4, 5, 6]), np.array([10, 12, 15, 9, 0, 0])),
                 nfft_helper(np.array([1, 2, 4, 5, 6, 7]) - 1, np.array([12, 15, 9, 0, 0, 1])),
                 nfft_helper(
-                    np.array([0, 1, 2, 4, 5, 6, 7, 8]),
-                    np.array([10, 12, 15, 9, 0, 0, 1, 10]),
+                    np.array([0, 1, 2, 4, 5, 6, 7, 8]), np.array([10, 12, 15, 9, 0, 0, 1, 10])
                 ),
                 nfft_helper(
-                    np.array([1, 2, 4, 5, 6, 7, 8, 9]) - 1,
-                    np.array([12, 15, 9, 0, 0, 1, 10, 12]),
+                    np.array([1, 2, 4, 5, 6, 7, 8, 9]) - 1, np.array([12, 15, 9, 0, 0, 1, 10, 12])
                 ),
                 nfft_helper(
-                    np.array([2, 4, 5, 6, 7, 8, 9, 10]) - 2,
-                    np.array([15, 9, 0, 0, 1, 10, 12, 15]),
+                    np.array([2, 4, 5, 6, 7, 8, 9, 10]) - 2, np.array([15, 9, 0, 0, 1, 10, 12, 15])
                 ),
                 nfft_helper(
-                    np.array([4, 5, 6, 7, 8, 9, 10, 12]) - 4,
-                    np.array([9, 0, 0, 1, 10, 12, 15, 9]),
+                    np.array([4, 5, 6, 7, 8, 9, 10, 12]) - 4, np.array([9, 0, 0, 1, 10, 12, 15, 9])
                 ),
                 nfft_helper(
                     np.array([5, 6, 7, 8, 9, 10, 12, 13]) - 5,
@@ -476,20 +443,12 @@ class TestRollingFeatures(unittest.TestCase):
             Exception, validate, window_size=1, deviation="subtract", rolling_type="cwt"
         )
         self.assertRaises(
-            Exception,
-            validate,
-            window_size=1,
-            deviation="subtract",
-            rolling_type="fourier",
+            Exception, validate, window_size=1, deviation="subtract", rolling_type="fourier"
         )
 
         # trimmean must have proportiontocut in [0, 0.5)
         self.assertRaises(
-            Exception,
-            validate,
-            window_size=0,
-            rolling_type="trimmean",
-            proportiontocut=-0.2,
+            Exception, validate, window_size=0, rolling_type="trimmean", proportiontocut=-0.2
         )
         self.assertRaises(Exception, validate, rolling_type="trimmean", proportiontocut=0.8)
         self.assertRaises(Exception, validate, rolling_type="trimmean", proportiontocut=[0.1, 0.2])
@@ -500,11 +459,7 @@ class TestRollingFeatures(unittest.TestCase):
             ValueError, validate, X=self.X_times, window_size="1H", rolling_type="lag"
         )
         self.assertRaises(
-            ValueError,
-            validate,
-            X=self.X_times,
-            window_size=[1, "1H"],
-            rolling_type="lag",
+            ValueError, validate, X=self.X_times, window_size=[1, "1H"], rolling_type="lag"
         )
 
 

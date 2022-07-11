@@ -46,6 +46,7 @@ class SignalAligner:
     >>> sa = SignalAligner()
     >>> df, offset = sa.align_dataframes(df1, df2, col1, col2, reference=0)
     """
+
     def __init__(self, signal_one=None, signal_two=None):
 
         self.signal_one = signal_one
@@ -101,7 +102,7 @@ class SignalAligner:
         signal_pad : np.ndarray
             Zero-padded input signal
         """
-        signal_pad = np.concatenate([np.zeros((N - len(signal), )), signal])
+        signal_pad = np.concatenate([np.zeros((N - len(signal),)), signal])
         return signal_pad
 
     @staticmethod
@@ -125,7 +126,7 @@ class SignalAligner:
         aligned_signal : np.ndarray
             Aligned signal, non-overlapping values are filled with np.nan
         """
-        xcorr = np.correlate(signal_one, signal_two, mode='full')
+        xcorr = np.correlate(signal_one, signal_two, mode="full")
         offset = len(xcorr) // 2 - np.where(xcorr == np.amax(xcorr))[0][0]
 
         aligned_signal = np.full(signal_one.shape, np.nan)
@@ -184,23 +185,16 @@ class SignalAligner:
         """
         if reference == 0:
             if col1 not in df_aligned.columns:
-                col1 += '_x'
+                col1 += "_x"
             df_aligned = df_aligned.dropna(subset=[col1])
         elif reference == 1:
             if col2 not in df_aligned.columns:
-                col2 += '_y'
+                col2 += "_y"
             df_aligned = df_aligned.dropna(subset=[col2])
 
         return df_aligned
 
-    def align_dataframes(
-        self,
-        df1,
-        df2,
-        col1,
-        col2,
-        reference=None
-    ):
+    def align_dataframes(self, df1, df2, col1, col2, reference=None):
         """Instead of just aligning two numpy array signals, we might want to
         align two pandas data frames based on specific columns.
 
@@ -233,8 +227,7 @@ class SignalAligner:
             df2 = self._pad_df_with_nans(df2, row_diff)
 
         offset, aligned_signal = self.align_signals(
-            df1.loc[:, col1].fillna(0).values,
-            df2.loc[:, col2].fillna(0).values
+            df1.loc[:, col1].fillna(0).values, df2.loc[:, col2].fillna(0).values
         )
 
         if offset > 0:
@@ -256,13 +249,10 @@ class SignalAligner:
                 duplicate_names.append(c)
 
         for duplicate_name in duplicate_names:
-            df1 = df1.rename(columns={duplicate_name: duplicate_name + '_x'})
-            df2 = df2.rename(columns={duplicate_name: duplicate_name + '_y'})
+            df1 = df1.rename(columns={duplicate_name: duplicate_name + "_x"})
+            df2 = df2.rename(columns={duplicate_name: duplicate_name + "_y"})
 
-        df_aligned = pd.concat(
-            [df1.reset_index(drop=True), df2.reset_index(drop=True)],
-            axis=1,
-        )
+        df_aligned = pd.concat([df1.reset_index(drop=True), df2.reset_index(drop=True)], axis=1)
 
         df_aligned = self._prune_combined_data(df_aligned, col1, col2, reference)
 

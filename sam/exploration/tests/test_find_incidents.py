@@ -37,11 +37,7 @@ class TestFindIncidentCurves(unittest.TestCase):
 
     def test_nooutliers(self):
         data = pd.DataFrame(
-            {
-                "ACTUAL": [0.5, 0.5, 0.5, 0.5, 0.5],
-                "PREDICT_HIGH": 0.6,
-                "PREDICT_LOW": 0.4,
-            }
+            {"ACTUAL": [0.5, 0.5, 0.5, 0.5, 0.5], "PREDICT_HIGH": 0.6, "PREDICT_LOW": 0.4}
         )
         result = incident_curves(data, max_gap=1)
         assert_array_equal(result, np.array([0, 0, 0, 0, 0]))

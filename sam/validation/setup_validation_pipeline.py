@@ -1,9 +1,7 @@
 from typing import Union
 
 from sam.validation import RemoveExtremeValues, RemoveFlatlines
-from sklearn import (
-    __version__ as sklearn_version,
-)  # For testing if IterativeImputer is available
+from sklearn import __version__ as sklearn_version  # For testing if IterativeImputer is available
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression

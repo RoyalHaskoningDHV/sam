@@ -100,11 +100,7 @@ def make_shifted_target(
     return result
 
 
-def make_differenced_target(
-    y: pd.Series,
-    lags: Union[int, list] = 1,
-    newcol_prefix: str = None,
-):
+def make_differenced_target(y: pd.Series, lags: Union[int, list] = 1, newcol_prefix: str = None):
     """
     Creates a target dataframe by performing differencing (once or multiple times)
     on a monospaced series. The dataframe contains columns 'TARGET_lead_x', where `x` are the

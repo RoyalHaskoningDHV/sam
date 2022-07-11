@@ -10,10 +10,7 @@ class TestQuantileMetrics(unittest.TestCase):
 
         y = pd.Series([1, 1.5, 1, 2, 5])
         pred = pd.DataFrame(
-            {
-                "predict_lead_0_q_0.2": [1, 2, 1, 2, 1],
-                "predict_lead_0_q_0.8": [3, 4, 3, 4, 3],
-            }
+            {"predict_lead_0_q_0.2": [1, 2, 1, 2, 1], "predict_lead_0_q_0.8": [3, 4, 3, 4, 3]}
         )
 
         res = compute_quantile_ratios(y, pred)
@@ -34,12 +31,7 @@ class TestQuantileMetrics(unittest.TestCase):
         )
 
         res = compute_quantile_crossings(pred)
-        expected_keys = [
-            "0.800 < 0.600",
-            "0.600 < mean",
-            "mean < 0.400",
-            "0.400 < 0.200",
-        ]
+        expected_keys = ["0.800 < 0.600", "0.600 < mean", "mean < 0.400", "0.400 < 0.200"]
         expected_values = [0.25, 0.0, 0.75, 0.5]
         assert_array_equal(list(res.keys()), expected_keys)
         assert_array_equal(list(res.values()), expected_values)

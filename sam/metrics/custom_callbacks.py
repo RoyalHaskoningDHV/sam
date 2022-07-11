@@ -7,12 +7,7 @@ from tensorflow.keras.callbacks import Callback
 
 
 class R2Evaluation(Callback):
-    def __init__(
-        self,
-        all_data: Dict[str, np.array],
-        prediction_cols: list,
-        predict_ahead: int,
-    ):
+    def __init__(self, all_data: Dict[str, np.array], prediction_cols: list, predict_ahead: int):
         """
         Custom keras callback that computes r2 compared to the training mean.
         Computing R2 at every batch and then averaging biases r2 estimates.

@@ -299,11 +299,7 @@ def _interactive_quantile_plot(
     if date_range is not None:
         fig.layout.update(xaxis_range=date_range)
 
-    fig.layout.update(
-        yaxis_title=y_title,
-        width=1000,
-        height=500,
-    )
+    fig.layout.update(yaxis_title=y_title, width=1000, height=500)
 
     return fig
 
@@ -386,14 +382,7 @@ def _static_quantile_plot(
                 np.convolve(outliers, k, mode="full")[: len(outliers)] >= outlier_limit
             ).astype(bool)
 
-        plt.plot(
-            y_true[outliers].index,
-            y_true[outliers],
-            "o",
-            ms=5,
-            color="r",
-            label="outlier",
-        )
+        plt.plot(y_true[outliers].index, y_true[outliers], "o", ms=5, color="r", label="outlier")
 
     # set some plot properties
     if data_prop is not None and y_range is None:

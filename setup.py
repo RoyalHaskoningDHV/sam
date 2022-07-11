@@ -4,9 +4,7 @@ from setuptools import find_packages, setup
 
 config = configparser.ConfigParser()
 config.read("setup.cfg")
-version = (
-    config["metadata"]["major-version"] + "." + config["metadata"]["minor-version"]
-)
+version = config["metadata"]["major-version"] + "." + config["metadata"]["minor-version"]
 
 setup(
     name="sam",
@@ -21,7 +19,7 @@ setup(
     project_urls={
         "Q&A": "https://github.com/RoyalHaskoningDHV/sam/discussions",
         "Issues": "https://github.com/RoyalHaskoningDHV/sam/issues",
-        "Documentation": "https://sam-rhdhv.readthedocs.io/en/latest/"
+        "Documentation": "https://sam-rhdhv.readthedocs.io/en/latest/",
     },
     classifiers=[
         "Programming Language :: Python :: 3",

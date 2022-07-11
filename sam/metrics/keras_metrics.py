@@ -47,10 +47,7 @@ def keras_tilted_loss(y_true: tf.Tensor, y_pred: tf.Tensor, quantile: float = 0.
 
 
 def keras_joint_mse_tilted_loss(
-    y_true: tf.Tensor,
-    y_pred: tf.Tensor,
-    quantiles: List[float] = None,
-    n_targets: int = 1,
+    y_true: tf.Tensor, y_pred: tf.Tensor, quantiles: List[float] = None, n_targets: int = 1
 ):
     """
     Joint mean and quantile regression loss function using mse.
@@ -105,10 +102,7 @@ def keras_joint_mse_tilted_loss(
 
 
 def keras_joint_mae_tilted_loss(
-    y_true: tf.Tensor,
-    y_pred: tf.Tensor,
-    quantiles: List[float] = None,
-    n_targets: int = 1,
+    y_true: tf.Tensor, y_pred: tf.Tensor, quantiles: List[float] = None, n_targets: int = 1
 ):
     """Joint mean and quantile regression loss function using mae.
     Sum of mean absolute error and multiple tilted loss functions

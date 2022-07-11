@@ -6,12 +6,7 @@ import pandas as pd
 import pytest
 from pandas.testing import assert_series_equal
 from sam import config
-from sam.data_sources import (
-    read_knmi,
-    read_knmi_stations,
-    read_openweathermap,
-    read_regenradar,
-)
+from sam.data_sources import read_knmi, read_knmi_stations, read_openweathermap, read_regenradar
 
 try:
     owm_apikey = config["openweathermap"]["apikey"]
@@ -41,8 +36,7 @@ class TestWeather(unittest.TestCase):
         result = read_knmi_stations()
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(
-            result.columns.tolist(),
-            ["number", "longitude", "latitude", "altitude", "name"],
+            result.columns.tolist(), ["number", "longitude", "latitude", "altitude", "name"]
         )
         self.assertGreater(result.shape[0], 1)
 
@@ -85,11 +79,7 @@ class TestWeather(unittest.TestCase):
         expected_time.name = "TIME"
         assert_series_equal(expected_time, result["TIME"])
 
-        expected_dtypes = [
-            np.dtype("float64"),
-            np.dtype("float64"),
-            np.dtype("<M8[ns]"),
-        ]
+        expected_dtypes = [np.dtype("float64"), np.dtype("float64"), np.dtype("<M8[ns]")]
         self.assertEqual(expected_dtypes, result.dtypes.tolist())
 
     def test_nonan_knmi_station(self):
@@ -169,11 +159,7 @@ class TestWeather(unittest.TestCase):
 
     def test_incorrect_knmi(self):
         self.assertRaises(
-            Exception,
-            read_knmi,
-            "2017-01-01 00:00:00",
-            "2017-01-01 00:06:00",
-            freq="monthly",
+            Exception, read_knmi, "2017-01-01 00:00:00", "2017-01-01 00:06:00", freq="monthly"
         )
 
     @skipowm
