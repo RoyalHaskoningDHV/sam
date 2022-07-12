@@ -48,7 +48,7 @@ data-science = [
     "Jinja2~=3.0.3",
     "statsmodels"
 ]
-test = ["pytest", "pytest-cov", "pytest-mpl", "fastparquet"]
+test = ["pytest", "pytest-cov", "pytest-mpl<=0.15.0", "fastparquet"]
 
 [project.urls]
 homepage = "https://github.com/RoyalHaskoningDHV/sam"
