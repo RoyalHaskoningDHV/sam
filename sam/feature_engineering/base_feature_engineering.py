@@ -4,7 +4,6 @@ from typing import Callable
 
 import pandas as pd
 from sklearn.base import TransformerMixin
-from sklearn.utils.validation import check_is_fitted
 
 
 class BaseFeatureEngineer(TransformerMixin, ABC):
@@ -81,8 +80,8 @@ class FeatureEngineer(BaseFeatureEngineer):
 
 class IdentityFeatureEngineer(BaseFeatureEngineer):
     """
-    Identity feature engineering class. This is a placeholder class for when you don't want to apply any
-    feature engineering. Makes compatibility with the sam API easier.
+    Identity feature engineering class. This is a placeholder class for when you don't want to
+    apply any feature engineering. Makes compatibility with the sam API easier.
 
     Parameters
     ----------

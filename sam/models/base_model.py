@@ -1,7 +1,7 @@
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Any, Callable, Sequence, Tuple, Union, List
+from typing import Callable, Sequence, Tuple, Union, List
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,6 @@ from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.feature_engineering import BaseFeatureEngineer
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
-from sklearn.pipeline import Pipeline
 from sklearn.utils.validation import check_is_fitted
 
 
