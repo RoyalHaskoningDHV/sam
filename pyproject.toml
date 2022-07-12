@@ -2,6 +2,60 @@
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "sam"
+version = "2.11.0"
+description = "Time series anomaly detection and forecasting"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [{name = "Royal HaskoningDHV", email = "ruben.peters@rhdhv.com"}]
+keywords = ["python", "data-science", "time-series", "forecasting", "anomaly-detection", "asset-management"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = ["pandas~=1.3", "numpy>=1.18,<1.22", "scikit-learn>=0.23,<1.1"]
+
+[project.optional-dependencies]
+all = [
+    "matplotlib",
+    "cloudpickle",
+    "nfft",
+    "pymongo",
+    "requests",
+    "scipy",
+    "seaborn",
+    "tensorflow>=2.3.1,<2.9",
+    "protobuf<=3.20.1",
+    "eli5",
+    "Jinja2~=3.0.3",
+    "shap",
+    "plotly",
+    "statsmodels"
+]
+plotting = ["matplotlib", "plotly", "seaborn"]
+data-engineering = ["requests", "pymongo"]
+data-science = [
+    "tensorflow>=2.3.1,<2.9",
+    "cloudpickle",
+    "nfft",
+    "scipy",
+    "shap",
+    "eli5",
+    "Jinja2~=3.0.3",
+    "statsmodels"
+]
+test = ["pytest", "pytest-cov", "pytest-mpl<=0.15.0", "fastparquet"]
+
+[project.urls]
+homepage = "https://github.com/RoyalHaskoningDHV/sam"
+issues = "https://github.com/RoyalHaskoningDHV/sam/issues"
+discussions = "https://github.com/RoyalHaskoningDHV/sam/discussions"
+documentation = "https://sam-rhdhv.readthedocs.io/en/latest/"
+
 [tool.black]
 line-length = 99
 target-version = ['py38', 'py39', 'py310']
