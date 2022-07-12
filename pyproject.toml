@@ -56,9 +56,6 @@ issues = "https://github.com/RoyalHaskoningDHV/sam/issues"
 discussions = "https://github.com/RoyalHaskoningDHV/sam/discussions"
 documentation = "https://sam-rhdhv.readthedocs.io/en/latest/"
 
-[tool.setuptools]
-packages = ["sam"]
-
 [tool.black]
 line-length = 99
 target-version = ['py38', 'py39', 'py310']
