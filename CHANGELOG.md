@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.11.0
+
+### Changes
+- Moved to pyproject.toml instead of setup.py to make this package more future proof
+- Removed deprecated Azure Devops pipelines
+
 ## Version 2.10.3
 
 ### Changes
