@@ -49,7 +49,7 @@ class TestSimpleFeatureEngineer(unittest.TestCase):
         ]
         X_out_exp = pd.DataFrame(
             {
-                "A_mean_2": [np.nan, 1, 1.5, 2.5, 3.5, 4.5],
+                "A_mean_2": [np.nan, 1.5, 2.5, 3.5, 4.5],
                 "B_mean_3": [np.nan, np.nan, 4, 5, 6],
                 "A_mean_1": [1, 2, 3, 4, 5],
             },
@@ -57,7 +57,7 @@ class TestSimpleFeatureEngineer(unittest.TestCase):
         )
         fe = SimpleFeatureEngineer(rolling_features=rolling_features)
         X_out = fe.fit_transform(self.X)
-        assert_frame_equal(X_out, X_out_exp)
+        assert_frame_equal(X_out, X_out_exp, check_dtype=False)
 
     def test_rolling_feature_datestring(self):
         rolling_features = [
