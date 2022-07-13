@@ -127,7 +127,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
 
     def _get_time_column(self, X, component):
         # First select the datetime column
-        if self.time_col:
+        if self.time_col is not None:
             datetime = X[self.time_col]
         else:
             datetime = X.index.to_series().copy()
@@ -142,18 +142,26 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
             raise ValueError(f"Invalid component: {component}")
 
     def feature_engineer_(self, X, y=None):
+        X = X.copy()
         if self.keep_original:
             X_out = X.copy()
+            return X
         else:
             X_out = pd.DataFrame(index=X.index, columns=[])
 
         # Rolling features
+        if self.time_col is not None:
+            X = X.set_index(self.time_col)
+
         for col, method, window in self.rolling_features:
             colname = f"{col}_{method}_{window}"
             if method == "lag":
-                X_out[colname] = X[col].shift(window)
+                X_out[colname] = X[col].shift(window).values
             else:
-                X_out[colname] = X[col].rolling(window=window).agg(method)
+                X_out[colname] = X[col].rolling(window=window).agg(method).values
+
+        if self.time_col is not None:
+            X = X.reset_index(drop=False)
 
         # Time features
         for component, type in self.time_features:

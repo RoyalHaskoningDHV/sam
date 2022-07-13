@@ -20,8 +20,7 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
         raise NotImplementedError("You need to implement the feature_engineer method.")
 
     def fit(self, X, y=None):
-        X_out = self.transform(X)
-        self._feature_names = X_out.columns.tolist()
+        self._feature_names = self.feature_engineer_(X, y).columns.tolist()
         return self
 
     def transform(self, X, y=None) -> pd.DataFrame:

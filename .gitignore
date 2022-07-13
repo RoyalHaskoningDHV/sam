@@ -143,3 +143,4 @@ venv.bak/
 
 # Exceptions
 !docs/requirements.txt
+!data/rainbow_beach.feather
