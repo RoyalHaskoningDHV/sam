@@ -117,7 +117,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
         self,
         predict_ahead: Union[int, Sequence[int]] = 1,
         quantiles: Sequence[float] = (),
-        use_diff_of_y: bool = True,
+        use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
         feature_engineer: BaseFeatureEngineer = None,
@@ -521,7 +521,6 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
 
         if self.predict_ahead != [0]:
             y_target = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead).iloc[:, 0]
-
         else:
             y_target = y.copy().astype(float)
 

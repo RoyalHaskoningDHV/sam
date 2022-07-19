@@ -1,3 +1,4 @@
+from os import remove
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
@@ -11,6 +12,7 @@ from sam.feature_engineering import BaseFeatureEngineer
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
+from sam.models.utils import remove_target_nan, remove_until_first_value
 
 
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
@@ -125,13 +127,15 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             The dataframe to validate
         """
         if self.timecol is None:
-            warnings.warn(
-                (
-                    "No timecolumn given. Make sure the data is"
-                    "monospaced when given to this model!"
-                ),
-                UserWarning,
-            )
+            pass
+            # TODO: Support for DateTimeIndex
+            # warnings.warn(
+            #     (
+            #         "No timecolumn given. Make sure the data is"
+            #         "monospaced when given to this model!"
+            #     ),
+            #     UserWarning,
+            # )
         else:
             monospaced = X[self.timecol].diff()[1:].unique().size == 1
             if not monospaced:
@@ -151,45 +155,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         #         UserWarning,
         #     )
 
-    def prepare_input_and_target(
-        self, X: pd.DataFrame, y: pd.Series
-    ) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Prepares the input dataframe X and target series y by:
-        - Scaling y
-        - Adding target as feature to input
-        - Transforming the target
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The independent variables used to 'train' the model
-        y: pd.Series
-            Target data (dependent variable) used to 'train' the model
-
-        Returns
-        -------
-        X: pd.DataFrame:
-            The (enriched) training input dataframe
-        y_transformed: pd.Series
-            The transformed target series
-        """
-        if self.y_scaler is not None:
-            y = pd.Series(
-                self.y_scaler.fit_transform(y.values.reshape(-1, 1)).ravel(),
-                index=y.index,
-                name=y.name,
-            )
-
-        # Create the actual target
-        if self.predict_ahead != [0]:
-            y_transformed = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
-        else:
-            # Dataframe with 1 column. Will use y's index and name
-            y_transformed = pd.DataFrame(y.copy()).astype(float)
-
-        return X, y_transformed
-
     @staticmethod
     def verify_same_indexes(X: pd.DataFrame, y: pd.Series, y_can_be_none=True):
         """
@@ -197,6 +162,41 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         if not y.index.equals(X.index):
             raise ValueError("For training, X and y must have an identical index")
+
+    def preprocess(self, X, y, train=False):
+        """
+        Preprocess the data. This is the first step in the pipeline.
+        """
+        X, y = X.copy(), y.copy()
+        y = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
+        if train:
+            if self.y_scaler is not None:
+                y = pd.DataFrame(
+                    self.y_scaler.fit_transform(y),
+                    index=y.index,
+                    columns=y.columns,
+                )
+            self._set_input_cols(X)
+            X = pd.DataFrame(
+                self.feature_engineer_.fit_transform(X, y),
+                index=X.index,
+                columns=self.get_feature_names(),
+            )
+            self.n_inputs_ = len(self.get_feature_names())
+        else:
+            if self.y_scaler is not None:
+                y = pd.DataFrame(
+                    self.y_scaler.transform(y),
+                    index=y.index,
+                    columns=y.columns,
+                )
+            X = pd.DataFrame(
+                self.feature_engineer_.transform(X),
+                index=X.index,
+                columns=self.get_feature_names(),
+            )
+
+        return X, y
 
     def preprocess_fit(
         self,
@@ -224,11 +224,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         Returns
         -------
-        X_transformed: pd.DataDrame
+        X_trans: pd.DataDrame
             The transformed featuretable, ready to be used in fitting the model
-        y_transformed: pd.Series
+        y_trans: pd.Series
             The transformed target, ready to be used in fitting the model
-        X_val_transformed: pd.DataFrame
+        X_val_trans: pd.DataFrame
             The transformed featuretable, ready to be used for validating the model
             If no validation data is provided, this returns None
         y_val_tranformed: pd.Series
@@ -238,22 +238,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         BaseTimeseriesRegressor.verify_same_indexes(X, y)
         self.validate_predict_ahead()
         self.validate_data(X)
-
-        # Update the input and target depending on settings
-        X, y_transformed = self.prepare_input_and_target(X, y)
-
-        # Save input columns names
-        self._set_input_cols(X)
-
-        # Apply feature engineering
-        X_transformed = self.feature_engineer_.fit_transform(X, y)
-
-        # Now feature names are set, we can start using self.get_feature_names()
-        X_transformed = pd.DataFrame(
-            X_transformed, columns=self.get_feature_names(), index=X.index
-        )
-
-        self.n_inputs_ = len(self.get_feature_names())
 
         # Create output column names. In this model, our outputs are assumed to have the
         # form: [quantile_1_output_1, quantile_1_output_2, ... ,
@@ -265,65 +249,22 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.prediction_cols_ += ["predict_lead_{}_mean".format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
-        # Remove the first n rows because they are nan anyway because of rolling features
-        # find first row without nan
-        first_complete_index = X_transformed.dropna(axis=0, how="any").index[0]
-        X_transformed = X_transformed.loc[first_complete_index:]
-        y_transformed = y_transformed.loc[first_complete_index:]
-
-        # Remove rows with nan that can't be used for fitting
-        targetnanrows = y_transformed.isna().any(axis=1)
-        X_transformed = X_transformed.loc[~targetnanrows]
-        y_transformed = y_transformed.loc[~targetnanrows]
-
-        assert_contains_nans(
-            X_transformed, "Data cannot contain nans. Imputation not supported for now"
-        )
+        X_trans, y_trans = self.preprocess(X, y, train=True)
+        X_trans, y_trans = remove_until_first_value(X_trans, y_trans)
+        X_trans, y_trans = remove_target_nan(X_trans, y_trans)
+        assert_contains_nans(X_trans, "Data cannot contain nans. Imputation not supported for now")
 
         # Apply transformations to validation data if provided:
         if validation_data is not None:
             X_val, y_val = validation_data
-
             self.validate_data(X_val)
-
-            if self.y_scaler is not None:
-                y_val = pd.Series(
-                    self.y_scaler.transform(y_val.values.reshape(-1, 1)).ravel(),
-                    index=y_val.index,
-                    name=y_val.name,
-                )
-
-            # This does not affect training: it only calls transform, not fit
-            X_val_transformed = self.preprocess_predict(X_val, y_val)
-            X_val_transformed = pd.DataFrame(
-                X_val_transformed, columns=self.get_feature_names(), index=X_val.index
-            )
-            if self.predict_ahead != [0]:
-                y_val_transformed = make_shifted_target(
-                    y_val, self.use_diff_of_y, self.predict_ahead
-                )
-            else:
-                # Dataframe with 1 column. Will use y's index and name
-                y_val_transformed = pd.DataFrame(y_val.copy()).astype(float)
-
-            # Remove the first n rows because they are nan anyway because of rolling features
-            first_complete_index = X_transformed.dropna(axis=0, how="all").index[0]
-            X_transformed = X_transformed.loc[first_complete_index:]
-            y_transformed = y_transformed.loc[first_complete_index:]
-            # The lines below are only to deal with nans in the validation set
-            # These should eventually be replaced by Arjans/Fennos function for removing nan rows
-            # So that this code will be much more readable
-            targetnanrows = y_val_transformed.isna().any(axis=1)
-
-            # Filter rows where the target is unknown
-            X_val_transformed = X_val_transformed.loc[~targetnanrows]
-            y_val_transformed = y_val_transformed.loc[~targetnanrows]
-            # Until here
-            validation_data = (X_val_transformed, y_val_transformed)
+            X_val_trans, y_val_trans = self.preprocess(X_val, y_val, train=False)
+            X_val_trans, y_val_trans = remove_until_first_value(X_val_trans, y_val_trans)
+            X_val_trans, y_val_trans = remove_target_nan(X_val_trans, y_val_trans)
         else:
-            X_val_transformed, y_val_transformed = (None, None)
+            X_val_trans, y_val_trans = (None, None)
 
-        return X_transformed, y_transformed, X_val_transformed, y_val_transformed
+        return X_trans, y_trans, X_val_trans, y_val_trans
 
     @abstractmethod
     def fit(
@@ -393,7 +334,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         -------
         prediction: pd.DataFrame
             The predictions coming from the model
-        X_transformed: pd.DataFrame, optional
+        X_trans: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
         return NotImplemented
@@ -422,10 +363,15 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if y is not None:
             BaseTimeseriesRegressor.verify_same_indexes(X, y)
 
-        X_transformed = self.feature_engineer_.transform(X, y)
+        X_trans = pd.DataFrame(
+            self.feature_engineer_.transform(X, y),
+            index=X.index,
+            columns=self.get_feature_names(),
+        )
+
         if dropna:
-            X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
-        return X_transformed
+            X_trans = X_trans[~np.isnan(X_trans).any(axis=1)]
+        return X_trans
 
     def postprocess_predict(
         self,
@@ -460,35 +406,26 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         # Put the predictions in a dataframe so we can undo the differencing
         prediction = pd.DataFrame(prediction, columns=self.prediction_cols_, index=X.index)
-        # If we performed differencing, we undo it here
+
+        # Undo the scaling
+        # TODO: For each target differently...
+        if self.y_scaler is not None:
+            for output_col in [f"q_{q}" for q in self.quantiles] + ["mean"]:
+                mask = prediction.columns.str.contains(output_col)
+                sub_prediction = prediction.loc[:, mask]
+                sub_prediction = pd.DataFrame(
+                    self.y_scaler.inverse_transform(sub_prediction.values),
+                    index=sub_prediction.index,
+                    columns=sub_prediction.columns,
+                )
+                prediction.loc[:, mask] = sub_prediction
+
+        # Undo the differencing
         if self.use_diff_of_y:
             prediction = inverse_differenced_target(prediction, y)
 
-        if prediction.shape[1] == 1:
-            # If you just wanted to predict a single value without quantiles,
-            # just return a series. Easier to work with.
-            prediction = prediction.iloc[:, 0]
-
-            if self.y_scaler is not None:
-                prediction = pd.Series(
-                    self.y_scaler.inverse_transform(prediction.values.reshape(-1, 1)).ravel(),
-                    index=prediction.index,
-                    name=prediction.name,
-                )
-
-        else:
-            if self.y_scaler is not None:
-                inv_pred = np.zeros_like(prediction)
-                for i in range(prediction.shape[1]):
-                    inv_pred[:, i] = self.y_scaler.inverse_transform(
-                        prediction.iloc[:, i].values.reshape(-1, 1)
-                    ).ravel()
-                prediction = pd.DataFrame(
-                    inv_pred, columns=prediction.columns, index=prediction.index
-                )
-
-            if force_monotonic_quantiles:
-                prediction = self.make_prediction_monotonic(prediction)
+        if force_monotonic_quantiles:
+            prediction = self.make_prediction_monotonic(prediction)
 
         return prediction
 
@@ -663,9 +600,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # actual usually has some missings at the end
         # prediction usually has some missings at the beginning
         # We ignore the rows with missings
-        missings = actual.isna().any(axis=1) | prediction.isna().any(axis=1)
-        actual = actual.loc[~missings]
-        prediction = prediction.loc[~missings]
+        actual, missing = remove_target_nan(prediction, actual, use_x=True)
 
         # self.prediction_cols_[-1] defines the mean prediction
         # For n outputs, we need the last n columns instead

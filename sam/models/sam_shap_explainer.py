@@ -2,7 +2,7 @@ from typing import Callable
 
 import numpy as np
 import pandas as pd
-from sam.models import SamQuantileMLP
+from sam.models import TimeseriesMLP
 
 
 class SamShapExplainer(object):
@@ -31,7 +31,7 @@ class SamShapExplainer(object):
             fit = None
             use_y_as_feature = model.use_y_as_feature
             feature_names_ = model.get_feature_names()
-            preprocess_predict = SamQuantileMLP.preprocess_predict
+            preprocess_predict = TimeseriesMLP.preprocess_predict
 
         self.model = SamProxyModel()
         # Trick sklearn into thinking this is a fitted variable
