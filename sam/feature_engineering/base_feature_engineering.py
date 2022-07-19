@@ -17,7 +17,7 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
 
     @abstractmethod
     def feature_engineer_(self, X, y=None) -> pd.DataFrame:
-        raise NotImplementedError("You need to implement the feature_engineer method.")
+        raise NotImplementedError("You need to implement the feature_engineer_ method.")
 
     def fit(self, X, y=None):
         self._feature_names = self.feature_engineer_(X, y).columns.tolist()
@@ -46,8 +46,9 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
 class FeatureEngineer(BaseFeatureEngineer):
     """
     Feature engineering class. This class is used to feature engineer the data using default
-    methods. You can implement your own feature engineering code and use the `_from_function`
-    method to create a new feature engineering transformer.
+    methods and makes integration with the timeseries models easier. You can implement your own
+    feature engineering code as a function that takes two arguments: X and y and returns a
+    feature table as a pandas dataframe.
 
     Parameters
     ----------
@@ -61,7 +62,7 @@ class FeatureEngineer(BaseFeatureEngineer):
     >>>     X['C'] = X['A'] + X['B']
     >>>     return X
     >>> df = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]})
-    >>> fe = FeatureEngineer._from_function(feature_engineering)
+    >>> fe = FeatureEngineer(feature_engineering)
     >>> df_out = fe.fit_transform(df)
     """
 
