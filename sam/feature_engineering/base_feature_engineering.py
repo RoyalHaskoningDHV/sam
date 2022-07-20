@@ -2,6 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Callable
 
+import numpy as np
 import pandas as pd
 from sklearn.base import TransformerMixin
 
@@ -85,8 +86,8 @@ class IdentityFeatureEngineer(BaseFeatureEngineer):
 
     Parameters
     ----------
-    feature_engineer_function : Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame]
-        The feature engineering function.
+    numeric_only : bool
+        Whether to only include numeric columns in the output.
 
     Example
     -------
@@ -96,8 +97,10 @@ class IdentityFeatureEngineer(BaseFeatureEngineer):
     >>> df_out = fe.fit_transform(df)
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, numeric_only=True):
+        self.numeric_only = numeric_only
 
     def feature_engineer_(self, X, y=None) -> pd.DataFrame:
+        if self.numeric_only:
+            return X.select_dtypes(include=np.number)
         return X
