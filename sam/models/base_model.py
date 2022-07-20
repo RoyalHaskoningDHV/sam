@@ -550,15 +550,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
 
-        actual = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
-        if self.y_scaler is not None:
-            actual = pd.DataFrame(
-                self.y_scaler.inverse_transform(actual),
-                index=y.index,
-                columns=y.columns,
-            )
+        # No scaling or differencing applied, because the predict() method already reversed this
+        actual = make_shifted_target(y, use_diff_of_y=False, lags=self.predict_ahead)
 
-        if len(self.predict_ahead) == 1:
+        if actual.shape[1] == 1:
             actual = actual.iloc[:, 0]
 
         return actual
@@ -574,8 +569,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         #         actual = inverse_differenced_target(actual, y)
         # else:
         #     actual = y.copy().astype(float)
-
-        return actual
 
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
         """
