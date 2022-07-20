@@ -37,7 +37,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     Parameters
     ----------
-    predict_ahead: integer or list of integers, optional (default=1)
+    predict_ahead: integer or list of integers, optional (default=[0])
         how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
         2 timesteps into the future. If [0], predict the present. If not equal to 0 or [0],
         predict the future, with differencing.
@@ -45,7 +45,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     quantiles: array-like, optional (default=())
         The quantiles to predict. Between 0 and 1. Keep in mind that the mean will be predicted
         regardless of this parameter
-    use_diff_of_y: bool, optional (default=True)
+    use_diff_of_y: bool, optional (default=False)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).
     timecol: string, optional (default=None)
@@ -67,9 +67,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def __init__(
         self,
-        predict_ahead: Union[int, List[int]] = 1,
+        predict_ahead: Union[int, List[int]] = [0],
         quantiles: Sequence[float] = (),
-        use_diff_of_y: bool = True,
+        use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
         feature_engineer: BaseFeatureEngineer = None,
@@ -126,7 +126,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         if self.timecol is None:
             if isinstance(X.index, pd.DatetimeIndex):
-                monospaced = X.index.values.diff().unique().size == 1
+                monospaced = X.index.to_series().diff().dropna().unique().size == 1
             else:
                 warnings.warn(
                     (

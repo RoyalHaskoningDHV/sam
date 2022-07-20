@@ -117,12 +117,13 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     Parameters
     ----------
-    predict_ahead: integer, optional (default=(1,))
-        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
-        2 timesteps into the future. If (0), predict the present. If not equal to (0),
-        predict the future, with differencing.
+    predict_ahead: integer, optional (default=[0]])
+        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
+        2 timesteps into the future. If [0], predict the present. If not equal to [0],
+        predict the future. Combine with `use_diff_of_y` to get a persistence benchmark forecasting
+        model.
         A single integer is also allowed, in which case the value is converted to a singleton list.
-    quantiles: array-like, optional (default=())
+    quantiles: array-like, optional (default=[])
         The quantiles to predict. Between 0 and 1. Keep in mind that the median will be predicted
         regardless of this parameter
     use_y_as_feature: boolean, optional (default=False)
@@ -152,7 +153,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
     >>> X = data.drop('T', axis=1)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
     ...
-    >>> model = SPCRegressor(timecol='TIME', quantiles=(0.25, 0.75))
+    >>> model = SPCRegressor(timecol='TIME', quantiles=[0.25, 0.75])
     ...
     >>> model.fit(X_train, y_train)
     >>> pred = model.predict(X_test, y_test)
@@ -167,7 +168,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     def __init__(
         self,
-        predict_ahead: int = [1],
+        predict_ahead: int = [0],
         quantiles: Sequence[float] = [],
         use_diff_of_y: bool = False,
         timecol: str = None,
