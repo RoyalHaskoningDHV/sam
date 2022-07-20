@@ -11,7 +11,7 @@ class SamShapExplainer(object):
     interface which can be found here
     <https://github.com/slundberg/shap/blob/master/shap/explainers/explainer.py>.
     The more advanced, tensorflow-specific attributes can be accessed with obj.explainer.
-    The reason the interface is only sort of implemented, is the same reason why SamQuantileMLP
+    The reason the interface is only sort of implemented, is the same reason why TimeseriesMLP
     doesn't entirely implement the skearn interface - for predicting, y is needed, which is
     not supported by the SamShapExplainer.
 
@@ -19,7 +19,7 @@ class SamShapExplainer(object):
     ----------
     explainer: shap TFDeepExplainer object
         A shap explainer object. This will be used to generate the actual shap values
-    model: SAMQuantileMLP model
+    model: BaseTimeseriesRegressor model
         This will be used to do the preprocessing before calling explainer.shap_values
     """
 

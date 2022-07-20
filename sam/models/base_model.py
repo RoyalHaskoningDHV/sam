@@ -19,8 +19,8 @@ from sam.models.utils import remove_target_nan, remove_until_first_value
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     """
     This is an abstract class for all SAM models.
-    Every SAM model (including the most used SamQuantileMLP)
-    needs to inherit this class and implement the abstract methods.
+    Every SAM model (including the most used TimeseriesMLP) needs to inherit this class and
+    implement the abstract methods.
 
     There are some notes:
     - There is no validation yet. Therefore, the input data must already be sorted and monospaced
