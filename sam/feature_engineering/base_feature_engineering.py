@@ -5,6 +5,7 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 from sklearn.base import TransformerMixin
+from sklearn.utils.validation import check_is_fitted
 
 
 class BaseFeatureEngineer(TransformerMixin, ABC):
@@ -40,7 +41,7 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
         list:
             list of feature names
         """
-        # check_is_fitted(self.feature_engineer_, "_feature_names")
+        check_is_fitted(self, "_feature_names")
         return self._feature_names
 
 
