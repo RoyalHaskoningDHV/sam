@@ -10,8 +10,10 @@
 *.xlsx
 *.xml
 *.json
+*.parquet
+*.feather
 
-data/
+.ignore/
 output/
 
 # Documentation is on internal server, not in repo
@@ -143,4 +145,4 @@ venv.bak/
 
 # Exceptions
 !docs/requirements.txt
-!data/rainbow_beach.feather
+!data/rainbow_beach.parquet
