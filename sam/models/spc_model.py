@@ -3,6 +3,8 @@ from typing import Any, Callable, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from sam.feature_engineering.base_feature_engineering import IdentityFeatureEngineer
+from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
 from sam.models.base_model import BaseTimeseriesRegressor
 from sam.utils.sklearnhelpers import FunctionTransformerWithNames
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
@@ -133,17 +135,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         creating features from a DateTimeIndex is not supported yet.
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
-        E.g.: StandardScaler() or PowerTransformer()
-    time_components: array-like, optional (default=('minute', 'hour', 'day', 'weekday'))
-        Not used in this class, only for compatibility.
-    time_cyclicals: array-like, optional (default=('minute', 'hour', 'day'))
-        Not used in this class, only for compatibility.
-    time_onehots: array-like, optional (default=('weekday'))
-        Not used in this class, only for compatibility.
-    rolling_window_size: array-like, optional (default=(5,))
-        Not used in this class, only for compatibility.
-    rolling_features: array-like, optional (default=('mean'))
-        Not used in this class, only for compatibility.
+        E.g.: StandardScaler() or PowerTransformer().
 
     Examples
     --------
@@ -175,50 +167,20 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     def __init__(
         self,
-        predict_ahead: int = (1,),
-        quantiles: Sequence[float] = (),
-        use_y_as_feature: bool = False,
+        predict_ahead: int = [1],
+        quantiles: Sequence[float] = [],
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        time_components: Sequence[str] = None,
-        time_cyclicals: Sequence[str] = None,
-        time_onehots: Sequence[str] = None,
-        rolling_window_size: Sequence[int] = (),
-        rolling_features: Sequence[str] = None,
     ) -> None:
-        self.predict_ahead = predict_ahead
-        self.quantiles = quantiles
-        self.use_y_as_feature = use_y_as_feature
-        self.use_diff_of_y = use_diff_of_y
-        self.timecol = timecol
-        self.y_scaler = y_scaler
-        self.time_components = time_components
-        self.time_cyclicals = time_cyclicals
-        self.time_onehots = time_onehots
-        self.rolling_features = rolling_features
-        self.rolling_window_size = rolling_window_size
-
-    def get_feature_engineer(self) -> Pipeline:
-        """
-        The SPC model doesn't do any feature building, but it has to impute values
-        since sam can't work with NaNs and pass the column names in a transformer
-        called 'columns'.
-
-        Returns
-        -------
-        sklearn.pipeline.Pipeline:
-            The feature building pipeline
-        """
-        columns = self._input_cols
-        if self.timecol:
-            columns = [col for col in columns if col != self.timecol]
-
-        feature_engineering_steps = [
-            ("passthrough", FunctionTransformerWithNames(validate=False), columns),
-        ]
-        engineer = ColumnTransformer(feature_engineering_steps, remainder="drop")
-        return Pipeline([("columns", engineer), ("impute", SimpleImputer())])
+        super().__init__(
+            predict_ahead=predict_ahead,
+            quantiles=quantiles,
+            use_diff_of_y=use_diff_of_y,
+            timecol=timecol,
+            y_scaler=y_scaler,
+            feature_engineer=None,
+        )
 
     def get_untrained_model(self) -> Callable:
         """Returns an underlying model that can be trained
@@ -259,7 +221,6 @@ class SPCRegressor(BaseTimeseriesRegressor):
         Always returns None, since there is no history object of the fit procedure
         """
         X_transformed, y_transformed, _, _ = self.preprocess_fit(X, y, validation_data)
-
         self.model_ = self.get_untrained_model()
         self.model_.fit(X_transformed, y_transformed)
         return None

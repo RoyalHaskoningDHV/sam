@@ -7,6 +7,7 @@ from typing import Callable, Sequence, Tuple, Union, List
 import numpy as np
 import pandas as pd
 from sam.feature_engineering import IdentityFeatureEngineer
+from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.feature_engineering import BaseFeatureEngineer
 from sam.utils import assert_contains_nans, make_df_monotonic
@@ -78,7 +79,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.use_diff_of_y = use_diff_of_y
         self.timecol = timecol
         self.y_scaler = y_scaler
-        self.feature_engineer_ = feature_engineer if feature_engineer else IdentityFeatureEngineer
+        self.feature_engineer_ = (
+            feature_engineer if feature_engineer else IdentityFeatureEngineer()
+        )
 
     @abstractmethod
     def get_untrained_model(self) -> Callable:
@@ -173,7 +176,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             if self.y_scaler is not None:
                 y = pd.DataFrame(
                     self.y_scaler.fit_transform(y),
-                    index=y.index,
+                    index=X.index,
                     columns=y.columns,
                 )
             self._set_input_cols(X)
@@ -187,7 +190,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             if self.y_scaler is not None:
                 y = pd.DataFrame(
                     self.y_scaler.transform(y),
-                    index=y.index,
+                    index=X.index,
                     columns=y.columns,
                 )
             X = pd.DataFrame(
@@ -407,8 +410,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # Put the predictions in a dataframe so we can undo the differencing
         prediction = pd.DataFrame(prediction, columns=self.prediction_cols_, index=X.index)
 
-        # Undo the scaling
-        # TODO: For each target differently...
+        # Undo the scaling per quantile
         if self.y_scaler is not None:
             for output_col in [f"q_{q}" for q in self.quantiles] + ["mean"]:
                 mask = prediction.columns.str.contains(output_col)
@@ -426,6 +428,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         if force_monotonic_quantiles:
             prediction = self.make_prediction_monotonic(prediction)
+
+        if prediction.shape[1] == 1:
+            prediction = prediction.iloc[:, 0]
 
         return prediction
 
@@ -544,17 +549,31 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
-        if len(self.predict_ahead) == 1:
-            pred = self.predict_ahead[0]
-        else:
-            pred = self.predict_ahead
 
-        if self.predict_ahead != [0]:
-            actual = make_shifted_target(y, self.use_diff_of_y, pred)
-            if self.use_diff_of_y:
-                actual = inverse_differenced_target(actual, y)
-        else:
-            actual = y.copy().astype(float)
+        actual = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
+        if self.y_scaler is not None:
+            actual = pd.DataFrame(
+                self.y_scaler.inverse_transform(actual),
+                index=y.index,
+                columns=y.columns,
+            )
+
+        if len(self.predict_ahead) == 1:
+            actual = actual.iloc[:, 0]
+
+        return actual
+
+        # if len(self.predict_ahead) == 1:
+        #     pred = self.predict_ahead[0]
+        # else:
+        #     pred = self.predict_ahead
+
+        # if self.predict_ahead != [0]:
+        #     actual = make_shifted_target(y, self.use_diff_of_y, pred)
+        #     if self.use_diff_of_y:
+        #         actual = inverse_differenced_target(actual, y)
+        # else:
+        #     actual = y.copy().astype(float)
 
         return actual
 
@@ -600,7 +619,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # actual usually has some missings at the end
         # prediction usually has some missings at the beginning
         # We ignore the rows with missings
-        actual, missing = remove_target_nan(prediction, actual, use_x=True)
+        prediction, actual = remove_target_nan(prediction, actual, use_x=True)
 
         # self.prediction_cols_[-1] defines the mean prediction
         # For n outputs, we need the last n columns instead
