@@ -107,12 +107,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if not all([p >= 0 for p in self.predict_ahead]):
             raise ValueError("All values of predict_ahead must be 0 or larger!")
 
-        if self.predict_ahead == [0] and self.use_diff_of_y:
+        if 0 in self.predict_ahead and self.use_diff_of_y:
             raise ValueError("use_diff_of_y must be false when predict_ahead is 0")
-
-        # TODO: Make sure this is correct
-        # if self.predict_ahead == [0] and self.use_y_as_feature:
-        #     raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
 
         if len(np.unique(self.predict_ahead)) != len(self.predict_ahead):
             raise ValueError("predict_ahead contains double values")
@@ -122,7 +118,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         Validates the data and raises an exception if:
         - There is no time columns
         - The data is not monospaced
-        - There is not enought data
 
         Parameters
         ----------
@@ -130,33 +125,24 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             The dataframe to validate
         """
         if self.timecol is None:
-            pass
-            # TODO: Support for DateTimeIndex
-            # warnings.warn(
-            #     (
-            #         "No timecolumn given. Make sure the data is"
-            #         "monospaced when given to this model!"
-            #     ),
-            #     UserWarning,
-            # )
+            if isinstance(X.index, pd.DatetimeIndex):
+                monospaced = X.index.values.diff().unique().size == 1
+            else:
+                warnings.warn(
+                    (
+                        "No timecolumn given. Make sure the data is"
+                        "monospaced when given to this model!"
+                    ),
+                    UserWarning,
+                )
+                monospaced = True
         else:
             monospaced = X[self.timecol].diff()[1:].unique().size == 1
-            if not monospaced:
-                raise ValueError(
-                    "Data is not monospaced, which is required for"
-                    "this model. fit/predict is not possible"
-                )
-
-        # TODO: Add this check somewhere
-        # enough_data = len(self.rolling_window_size) == 0 or X.shape[0] > max(
-        #     self.rolling_window_size
-        # )
-        # if not enough_data:
-        #     warnings.warn(
-        #         "Not enough data given to calculate rolling features. "
-        #         "Output will be entirely missing values.",
-        #         UserWarning,
-        #     )
+        if not monospaced:
+            raise ValueError(
+                "Data is not monospaced, which is required for"
+                "this model. fit/predict is not possible"
+            )
 
     @staticmethod
     def verify_same_indexes(X: pd.DataFrame, y: pd.Series, y_can_be_none=True):
@@ -557,18 +543,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             actual = actual.iloc[:, 0]
 
         return actual
-
-        # if len(self.predict_ahead) == 1:
-        #     pred = self.predict_ahead[0]
-        # else:
-        #     pred = self.predict_ahead
-
-        # if self.predict_ahead != [0]:
-        #     actual = make_shifted_target(y, self.use_diff_of_y, pred)
-        #     if self.use_diff_of_y:
-        #         actual = inverse_differenced_target(actual, y)
-        # else:
-        #     actual = y.copy().astype(float)
 
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
         """

@@ -109,8 +109,30 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
 
     Examples
     --------
-    TODO: Minimum example
-
+    >>> import pandas as pd
+    >>> from sam.models import TimeseriesMLP
+    >>> from sam.feature_engineering import SimpleFeatureEngineer
+    ...
+    >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
+    >>> X, y = data, data["water_temperature"]
+    ...
+    >>> simple_features = SimpleFeatureEngineer(
+    >>>     rolling_features=[
+    >>>         ("wave_height", "mean", 24),
+    >>>         ("wave_height", "mean", 12),
+    >>>     ],
+    >>>     time_features=[
+    >>>         ("hour_of_day", "cyclical"),
+    >>>     ],
+    >>>     keep_original=False,
+    >>> )
+    ...
+    >>> model = TimeseriesMLP(
+    >>>     predict_ahead=0,
+    >>>     feature_engineer=simple_features,
+    >>> )
+    ....
+    >>> model.fit(X, y)
     """
 
     def __init__(

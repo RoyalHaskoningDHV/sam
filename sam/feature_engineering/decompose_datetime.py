@@ -10,9 +10,6 @@ from sam.logging_functions import log_dataframe_characteristics, log_new_columns
 logger = logging.getLogger(__name__)
 
 
-# TODO: Check how to integrate this class with feature engineering
-
-
 @dataclass
 class CyclicalMaxes:
     """Class for keeping track of maximum integer values of specific cyclicals"""
