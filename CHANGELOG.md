@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 2.11.1
+
+### Changes
+- Fixed the version info for the Sphinx docs
+
 ## Version 2.11.0
 
 ### Changes

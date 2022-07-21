@@ -7,11 +7,11 @@ packages = ['sam']
 
 [project]
 name = "sam"
-version = "2.11.0"
+version = "2.11.1"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE"}
+license = {text = "MIT"}
 authors = [{name = "Royal HaskoningDHV", email = "ruben.peters@rhdhv.com"}]
 keywords = ["python", "data-science", "time-series", "forecasting", "anomaly-detection", "asset-management"]
 classifiers = [
