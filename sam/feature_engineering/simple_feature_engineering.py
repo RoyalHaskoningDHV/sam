@@ -141,14 +141,8 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         else:
             raise ValueError(f"Invalid component: {component}")
 
-    def feature_engineer_(self, X, y=None):
-        X = X.copy()
-        if self.keep_original:
-            X_out = X.copy()
-            return X
-        else:
-            X_out = pd.DataFrame(index=X.index, columns=[])
-
+    def _get_rolling_features(self, X):
+        X_out = pd.DataFrame(index=X.index, columns=[])
         # Rolling features
         if self.time_col is not None:
             X = X.set_index(self.time_col)
@@ -162,8 +156,11 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
 
         if self.time_col is not None:
             X = X.reset_index(drop=False)
+        return X_out
 
-        # Time features
+    def _get_time_features(self, X):
+        X_out = pd.DataFrame(index=X.index, columns=[])
+
         for component, type in self.time_features:
             colname = f"{component}_{type}"
             comp_min, comp_max = self.component_range[component]
@@ -185,5 +182,17 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
                 X_out[colname + "_cos"] = np.cos(2 * np.pi * comp_norm).astype(float)
             else:
                 raise ValueError(f"Invalid type: {type}")
+
+        return X_out
+
+    def feature_engineer_(self, X, y=None):
+        X = X.copy()
+        if self.keep_original:
+            X_out = X.copy()
+        else:
+            X_out = pd.DataFrame(index=X.index, columns=[])
+
+        X_out = pd.concat([X_out, self._get_rolling_features(X)], axis=1)
+        X_out = pd.concat([X_out, self._get_time_features(X)], axis=1)
 
         return X_out

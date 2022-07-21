@@ -1,19 +1,16 @@
-from os import remove
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Callable, Sequence, Tuple, Union, List
+from typing import Callable, List, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from sam.feature_engineering import IdentityFeatureEngineer
-from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
+from sam.feature_engineering import BaseFeatureEngineer, IdentityFeatureEngineer
+from sam.models.utils import remove_target_nan, remove_until_first_value
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
-from sam.feature_engineering import BaseFeatureEngineer
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
-from sam.models.utils import remove_target_nan, remove_until_first_value
 
 
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):

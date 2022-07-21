@@ -1,5 +1,4 @@
 import os
-from pyexpat import ExpatError
 import random
 import tempfile
 import unittest
@@ -9,8 +8,6 @@ import pandas as pd
 from sam.models import SPCRegressor
 from sam.models.spc_model import SPCTemplate
 from sklearn.utils.estimator_checks import check_estimator
-
-from sam.models.utils import remove_target_nan
 
 
 class TestSPCTemplate(unittest.TestCase):

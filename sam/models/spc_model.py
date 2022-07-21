@@ -3,15 +3,9 @@ from typing import Any, Callable, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from sam.feature_engineering.base_feature_engineering import IdentityFeatureEngineer
-from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
 from sam.models.base_model import BaseTimeseriesRegressor
-from sam.utils.sklearnhelpers import FunctionTransformerWithNames
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 
 class SPCTemplate(BaseEstimator, RegressorMixin):
