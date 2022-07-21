@@ -42,7 +42,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
 
     Parameters
     ----------
-    predict_ahead: integer or list of integers, optional (default=0)
+    predict_ahead: integer or list of integers, optional (default=[0])
         how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
         2 timesteps into the future. If [0], predict the present. If not equal to 0 or [0],
         predict the future, with differencing.
