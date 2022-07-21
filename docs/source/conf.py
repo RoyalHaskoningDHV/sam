@@ -1,6 +1,4 @@
-import os
-import sys
-import configparser
+import toml
 from recommonmark.parser import CommonMarkParser
 
 # -*- coding: utf-8 -*-
@@ -28,14 +26,14 @@ project = "sam"
 copyright = "2018-2022, Royal HaskoningDHV"
 author = "Royal HaskoningDHV"
 
-config = configparser.ConfigParser()
-config.read("../../setup.cfg")
+
+config = toml.load("../../pyproject.toml")
 
 # The short X.Y version
-version = config["metadata"]["major-version"]
+version = config["project"]["version"]
 
 # The full version, including alpha/beta/rc tags
-release = version + "." + config["metadata"]["major-version"]
+release = version
 
 
 # -- General configuration ---------------------------------------------------
