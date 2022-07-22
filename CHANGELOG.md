@@ -9,6 +9,23 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.0.0
+
+### New features
+- New class `sam.feature_engineering.BaseFeatureEngineer` to create a default interface for feature engineering transformers.
+- New class `sam.feature_engineering.FeatureEngineer` to make any feature engineering transformer from a function.
+- New class `sam.feature_engineering.IdentyEngineer` to make a transformer that only passes data (does nothing). Utility for other features.
+- New class `sam.feature_engineering.SimpleFeatureEngineer` for creating time series features: rolling features and time components (one-hot or cyclical)
+- Utility functions `sam.models.utils.remove_target_nan` and `sam.models.utils.remove_until_first_value` for removing nans in training data.
+- 
+
+### Changes
+- Replaces `SamQuantileMLP` with new `TimeseriesMLP`, which has more general purpose. Allows to provide any feature engineering transformer / pipeline. Default parameters are changed as well.
+- New example notebooks and corresponding datasets for new feature engineering and model classes.
+- Combination of `use_diff_of_y` and scaler did not work correctly. Fixed.
+- Changed deprecated `lr` to `learning_rate` in `tensorflow.keras.optimizers.Adam`.
+
+
 ## Version 2.11.1
 
 ### Changes
