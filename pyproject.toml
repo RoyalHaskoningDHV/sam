@@ -2,9 +2,12 @@
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["sam"]
+
 [project]
 name = "sam"
-version = "2.11.1"
+version = "3.0.0"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.8"

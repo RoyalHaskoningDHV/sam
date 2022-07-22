@@ -3,103 +3,18 @@ from typing import Callable, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
+from sam.feature_engineering import BaseFeatureEngineer
 from sam.metrics import R2Evaluation, keras_joint_mse_tilted_loss
 from sam.models import create_keras_quantile_mlp
 from sam.models.base_model import BaseTimeseriesRegressor
 from sam.preprocessing import make_shifted_target
-from sam.utils import FunctionTransformerWithNames
 from sklearn import __version__ as skversion
 from sklearn.base import TransformerMixin
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
+from sam.models.sam_shap_explainer import SamShapExplainer
 
 
-class SamShapExplainer(object):
-    def __init__(self, explainer: Callable, model: Callable) -> None:
-        """
-        An object that imitates a SHAP explainer object. (Sort of) implements the base Explainer
-        interface which can be found here
-        <https://github.com/slundberg/shap/blob/master/shap/explainers/explainer.py>.
-        The more advanced, tensorflow-specific attributes can be accessed with obj.explainer.
-        The reason the interface is only sort of implemented, is the same reason why SamQuantileMLP
-        doesn't entirely implement the skearn interface - for predicting, y is needed, which is
-        not supported by the SamShapExplainer.
-
-        Parameters
-        ----------
-        explainer: shap TFDeepExplainer object
-            A shap explainer object. This will be used to generate the actual shap values
-        model: SAMQuantileMLP model
-            This will be used to do the preprocessing before calling explainer.shap_values
-        """
-        self.explainer = explainer
-
-        # Create a proxy model that can call only 3 attributes we need
-        class SamProxyModel:
-            fit = None
-            use_y_as_feature = model.use_y_as_feature
-            feature_names_ = model.get_feature_names()
-            preprocess_predict = SamQuantileMLP.preprocess_predict
-
-        self.model = SamProxyModel()
-        # Trick sklearn into thinking this is a fitted variable
-        self.model.feature_engineer_ = model.feature_engineer_
-        # Will likely be somewhere around 0
-        self.expected_value = explainer.expected_value
-
-    def shap_values(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
-        """
-        Imitates explainer.shap_values, but combined with the preprocessing from the model.
-        Returns a similar format as a regular shap explainer: a list of numpy arrays, one
-        for each output of the model.
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The dataframe used to 'train' the explainer
-        y: pd.Series, optional (default=None)
-            Target data used to 'train' the explainer.
-        """
-        X_transformed = self.model.preprocess_predict(X, y, dropna=False)
-        return self.explainer.shap_values(X_transformed, *args, **kwargs)
-
-    def attributions(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
-        """
-        Imitates explainer.attributions, which by default just mirrors shap_values
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The dataframe used to 'train' the explainer
-        y: pd.Series, optional (default=None)
-            Target data used to 'train' the explainer.
-        """
-        return self.shap_values(X, y, *args, **kwargs)
-
-    def test_values(self, X: pd.DataFrame, y: pd.Series = None) -> pd.DataFrame:
-        """
-        Only the preprocessing from the model, without the shap values.
-        Returns a pandas dataframe with the actual values used for the explaining
-        Can be used to better interpret the numpy array that is outputted by shap_values.
-        For example, if shap_values outputs a 5x20 numpy array, that means you explained 5 objects
-        with 20 features. This function will then return a 5x20 pandas dataframe.
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The dataframe used to 'train' the explainer
-        y: pd.Series, optional (default=None)
-            Target data used to 'train' the explainer.
-        """
-        X_transformed = self.model.preprocess_predict(X, y, dropna=False)
-        return pd.DataFrame(X_transformed, columns=self.model.feature_names_, index=X.index)
-
-
-class SamQuantileMLP(BaseTimeseriesRegressor):
+class TimeseriesMLP(BaseTimeseriesRegressor):
     """
     This is an example class for how the SAM skeleton can work. This is not the final/only model,
     there are some notes:
@@ -127,18 +42,12 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
     Parameters
     ----------
-    predict_ahead: integer or list of integers, optional (default=1)
-        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
-        2 timesteps into the future. If [0], predict the present. If not equal to 0 or [0],
-        predict the future, with differencing.
-        A single integer is also allowed, in which case the value is converted to a singleton list.
-    quantiles: array-like, optional (default=())
-        The quantiles to predict. Between 0 and 1. Keep in mind that the mean will be predicted
+    predict_ahead: tuple of integers, optional (default=(0,))
+        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
+        2 timesteps into the future. If (0,), predict the present.
+    quantiles: tuple of floats, optional (default=())
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
         regardless of this parameter
-    use_y_as_feature: boolean, optional (default=True)
-        Whether or not to use y as a feature for predicting. If predict_ahead=0, this must be False
-        Due to time limitations, for now, this option has to be True, unless predict_ahead is 0.
-        Potentially in the future, this option can also be False when predict_ahead is not 0.s
     use_diff_of_y: bool, optional (default=True)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).
@@ -148,17 +57,9 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer()
-    time_components: array-like, optional (default=('minute', 'hour', 'day', 'weekday'))
-        The timefeatures to create. See :ref:`decompose_datetime`.
-    time_cyclicals: array-like, optional (default=('minute', 'hour', 'day'))
-        The cyclical timefeatures to create. See :ref:`decompose    _datetime`.
-    time_onehots: array-like, optional (default=('weekday'))
-        The onehot timefeatures to create. See :ref:`decompose_datetime`.
-    rolling_window_size: array-like, optional (default=(5,))
-        The window size to use for `BuildRollingFeatures`
-    rolling_features: array-like, optional (default=('mean'))
-        The rolling functions to generate in the default feature engineering function.
-        Values should be interpretable by BuildRollingFeatures.
+    feature_engineering: object, optional (default=None)
+        Should be an sklearn-type transformer that has a transform method, e.g.
+        `sam.feature_engineering.SimpleFeatureEngineer`.
     n_neurons: integer, optional (default=200)
         The number of neurons to use in the model, see :ref:`create_keras_quantile_mlp
         <create-keras-quantile-mlp>`
@@ -206,64 +107,40 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
     Examples
     --------
-    >>> from sam.models import SamQuantileMLP
-    >>> from sam.data_sources import read_knmi
-    >>> from sklearn.model_selection import train_test_split
-    >>> from sklearn.metrics import mean_squared_error
-    >>> import tensorflow as tf
-    >>> tf.random.set_seed(42)
-    >>> # Prepare data
-    >>> data = read_knmi('2018-02-01', '2019-10-01', latitude=52.11, longitude=5.18, freq='hourly',
-    ...                  variables=['FH', 'FF', 'FX', 'T', 'TD', 'SQ', 'Q', 'DR', 'RH', 'P',
-    ...                             'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
-    >>> y = data['T']
-    >>> X = data.drop('T', axis=1)
-    >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
-    >>> # We are predicting the weather 1 hour ahead. Since weather is highly autocorrelated, we
-    >>> # expect this the persistence benchmark to score decently high, but also it should be
-    >>> # easy to predict the weather 1 hour ahead, so the model should do even better.
-    >>> model = SamQuantileMLP(predict_ahead=1, use_y_as_feature=True, timecol='TIME',
-    ...                        quantiles=(0.25, 0.75), epochs=5, verbose=0,
-    ...                        time_components=('hour', 'month', 'weekday'),
-    ...                        time_cyclicals=('hour', 'month', 'weekday'),
-    ...                        time_onehots=None,
-    ...                        rolling_window_size=(1,5,6))
-    >>> # fit returns a keras history callback object, which can be used as normally
-    >>> history = model.fit(X_train, y_train)
-    >>> pred = model.predict(X_test, y_test).dropna()
-    >>> actual = model.get_actual(y_test).dropna()
-    >>> # Because of impossible to know values, some rows have to be dropped. After dropping
-    >>> # them, make sure the indexes still match by dropping the same rows from each side
-    >>> pred, actual = pred.reindex(actual.index).dropna(), actual.reindex(pred.index).dropna()
-    >>> mse_score = mean_squared_error(actual, pred.iloc[:, -1])  # last column contains mean preds
-    >>> print(round(mse_score, 2))
-    66.08
-    >>> # Persistence corresponds to predicting the present, so use ytest
-    >>> persistence_prediction = y_test.reindex(actual.index).dropna()
-    >>> persistence_mse_score = mean_squared_error(actual, persistence_prediction)
-    >>> print(round(persistence_mse_score, 2))
-    149.45
-    >>> # As we can see, the model performs significantly better than the persistence benchmark
-    >>> # Mean benchmark, which does much worse:
-    >>> mean_prediction = pd.Series(y_test.mean(), index = actual)
-    >>> bench_mse_score = mean_squared_error(actual, mean_prediction)
-    >>> print(round(bench_mse_score, 2))
-    2410.59
+    >>> import pandas as pd
+    >>> from sam.models import TimeseriesMLP
+    >>> from sam.feature_engineering import SimpleFeatureEngineer
+    ...
+    >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
+    >>> X, y = data, data["water_temperature"]
+    ...
+    >>> simple_features = SimpleFeatureEngineer(
+    >>>     rolling_features=[
+    >>>         ("wave_height", "mean", 24),
+    >>>         ("wave_height", "mean", 12),
+    >>>     ],
+    >>>     time_features=[
+    >>>         ("hour_of_day", "cyclical"),
+    >>>     ],
+    >>>     keep_original=False,
+    >>> )
+    ...
+    >>> model = TimeseriesMLP(
+    >>>     predict_ahead=(0,),
+    >>>     feature_engineer=simple_features,
+    >>> )
+    ....
+    >>> model.fit(X, y)
     """
 
     def __init__(
         self,
-        predict_ahead: Union[int, Sequence[int]] = 1,
+        predict_ahead: Sequence[int] = (0,),
         quantiles: Sequence[float] = (),
-        use_y_as_feature: bool = True,
-        use_diff_of_y: bool = True,
+        use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        time_components: Sequence[str] = ("minute", "hour", "day", "weekday"),
-        time_cyclicals: Sequence[str] = ("minute", "hour", "day"),
-        time_onehots: Sequence[str] = ("weekday",),
-        rolling_window_size: Sequence[int] = (12,),
-        rolling_features: Sequence[str] = ("mean",),
+        feature_engineer: BaseFeatureEngineer = None,
         n_neurons: int = 200,
         n_layers: int = 2,
         batch_size: int = 16,
@@ -278,15 +155,10 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         super().__init__(
             predict_ahead=predict_ahead,
             quantiles=quantiles,
-            use_y_as_feature=use_y_as_feature,
             use_diff_of_y=use_diff_of_y,
             timecol=timecol,
             y_scaler=y_scaler,
-            time_components=time_components,
-            time_cyclicals=time_cyclicals,
-            time_onehots=time_onehots,
-            rolling_features=rolling_features,
-            rolling_window_size=rolling_window_size,
+            feature_engineer=feature_engineer,
         )
         self.n_neurons = n_neurons
         self.n_layers = n_layers
@@ -301,81 +173,9 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
         if self.average_type == "median" and 0.5 in self.quantiles:
             raise ValueError(
-                "average_type is mean, but 0.5 is also in quantiles. "
-                "Either set average_type to mean or add 0.5 to quantiles"
+                "average_type is mean, but 0.5 is also in quantiles (duplicate). "
+                "Either set average_type to mean or remove 0.5 from quantiles"
             )
-
-    def get_feature_engineer(self) -> Pipeline:
-        """
-        Function that returns a sklearn Pipeline with a column transformer, an imputer and
-        a scaler
-
-        The steps followed by the columntransformer are:
-        - On the time col (if it was passed), does decompose_datetime and cyclicals
-        - On the other columns, calculates lag/max/min/mean features for a given window size
-        - On the other (nontime) columns, passes them through unchanged (same as lag 0)
-
-        The imputer is passed in case some datapoints are missing.
-        The scaler is used to improve the MLP performance
-
-        Overwrites the abstract method from SamQuantileRegressor
-
-        Returns
-        -------
-        sklearn.pipeline.Pipeline:
-            The pipeline with steps 'columns', 'impute', 'scaler'
-        """
-
-        def time_transformer(dates: pd.DataFrame) -> pd.DataFrame:
-            return decompose_datetime(
-                dates,
-                self.timecol,
-                components=self.time_components,
-                cyclicals=self.time_cyclicals,
-                onehots=self.time_onehots,
-                keep_original=False,
-            )
-
-        def identity(x):
-            return x
-
-        feature_engineer_steps = [
-            # Rolling features
-            (
-                rol,
-                BuildRollingFeatures(
-                    rolling_type=rol,
-                    window_size=self.rolling_window_size,
-                    lookback=0,
-                    keep_original=False,
-                ),
-                self.rolling_cols_,
-            )
-            for rol in self.rolling_features
-        ] + [
-            # Other features
-            (
-                "passthrough",
-                FunctionTransformerWithNames(identity, validate=False),
-                self.rolling_cols_,
-            )
-        ]
-        if self.timecol:
-            feature_engineer_steps += [
-                (
-                    "timefeats",
-                    FunctionTransformerWithNames(time_transformer, validate=False),
-                    [self.timecol],
-                )
-            ]
-
-        # Drop the time column if exists
-        engineer = ColumnTransformer(feature_engineer_steps, remainder="drop")
-
-        imputer = SimpleImputer()
-        scaler = StandardScaler()
-
-        return Pipeline([("columns", engineer), ("impute", imputer), ("scaler", scaler)])
 
     def get_untrained_model(self) -> Callable:
         """
@@ -474,7 +274,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
         # Fit model
         history = self.model_.fit(
-            X_transformed,
+            X_transformed.values,
             y_transformed,
             batch_size=self.batch_size,
             epochs=self.epochs,
@@ -741,7 +541,6 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
 
         if self.predict_ahead != [0]:
             y_target = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead).iloc[:, 0]
-
         else:
             y_target = y.copy().astype(float)
 

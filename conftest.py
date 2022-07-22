@@ -1,5 +1,6 @@
 import matplotlib
 import os
+
 # For this unit test, we don't need GPU
 # So run on CPU to increase reliability
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -13,12 +14,13 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 # is called before any tests are ran. This is neccecary because you cannot change the backend
 # after it has been chosen already.
 def pytest_configure(config):
-    matplotlib.use('Agg')
+    matplotlib.use("Agg")
 
 
 # Tensorflow is an optional dependency
 try:
     import tensorflow as tf
+
     # Force tensorflow to run single-threaded, for further determinism
     # This needs to be done immediately after loading tensorflow
     tf.config.threading.set_intra_op_parallelism_threads(1)

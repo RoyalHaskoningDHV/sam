@@ -53,11 +53,12 @@ class TestSPCRegressor(unittest.TestCase):
         model = SPCRegressor(timecol="TIME")
         model.fit(self.X_train, self.y_train)
         preds = model.predict(self.X_test, self.y_test)
-
         score = model.score(self.X_test, self.y_test)
+
         # Loss score should be equal to the MSE, since there are no quantiles
-        expected_score = np.sum(np.mean((model.get_actual(self.y_test) - preds) ** 2, axis=0))
-        self.assertEqual(score, expected_score)
+        exp_y = model.get_actual(self.y_test)
+        exp_score = (exp_y - preds).pow(2).mean().sum()
+        self.assertEqual(score, exp_score)
 
     def test_normal_use(self):
         """Test if the SPC model performs normally with some quantiles"""
@@ -71,17 +72,11 @@ class TestSPCRegressor(unittest.TestCase):
     def test_replacement_sam(self):
         """Test if SPC model also works with all the default SAM parameters"""
         model = SPCRegressor(
-            predict_ahead=(1,),
-            quantiles=(),
-            use_y_as_feature=True,
+            predict_ahead=[1],
+            quantiles=[],
             use_diff_of_y=True,
             timecol="TIME",
             y_scaler=None,
-            time_components=("minute", "hour", "day", "weekday"),
-            time_cyclicals=("minute", "hour", "day"),
-            time_onehots=("weekday",),
-            rolling_window_size=(12,),
-            rolling_features=("mean",),
         )
         model.fit(self.X_train, self.y_train)
         y_pred = model.predict(self.X_test, self.y_test)
