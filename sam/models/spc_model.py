@@ -122,8 +122,6 @@ class SPCRegressor(BaseTimeseriesRegressor):
     quantiles: tuple of floats, optional (default=())
         The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
         regardless of this parameter
-    use_y_as_feature: boolean, optional (default=False)
-        Not used in this class, only for compatibility.
     use_diff_of_y: bool, optional (default=True)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).

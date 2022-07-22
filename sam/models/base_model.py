@@ -92,7 +92,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         -------
         A trainable model class
         """
-        return NotImplemented
+        raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     def validate_predict_ahead(self):
         """
@@ -143,7 +143,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @staticmethod
     def verify_same_indexes(X: pd.DataFrame, y: pd.Series, y_can_be_none=True):
-        """
+        """inv
         Verify that X and y have the same index
         """
         if not y.index.equals(X.index):
@@ -182,6 +182,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 columns=self.get_feature_names(),
             )
 
+        X, y = remove_until_first_value(X, y)
+        X, y = remove_target_nan(X, y, use_x=False)
+
         return X, y
 
     def preprocess_fit(
@@ -210,11 +213,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         Returns
         -------
-        X_trans: pd.DataDrame
+        X_transformed: pd.DataDrame
             The transformed featuretable, ready to be used in fitting the model
-        y_trans: pd.Series
+        y_transformed: pd.Series
             The transformed target, ready to be used in fitting the model
-        X_val_trans: pd.DataFrame
+        X_val_transformed: pd.DataFrame
             The transformed featuretable, ready to be used for validating the model
             If no validation data is provided, this returns None
         y_val_tranformed: pd.Series
@@ -235,22 +238,21 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.prediction_cols_ += ["predict_lead_{}_mean".format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
-        X_trans, y_trans = self.preprocess(X, y, train=True)
-        X_trans, y_trans = remove_until_first_value(X_trans, y_trans)
-        X_trans, y_trans = remove_target_nan(X_trans, y_trans)
-        assert_contains_nans(X_trans, "Data cannot contain nans. Imputation not supported for now")
+        X_transformed, y_transformed = self.preprocess(X, y, train=True)
+
+        assert_contains_nans(
+            X_transformed, "Data cannot contain nans. Imputation not supported for now"
+        )
 
         # Apply transformations to validation data if provided:
         if validation_data is not None:
             X_val, y_val = validation_data
             self.validate_data(X_val)
-            X_val_trans, y_val_trans = self.preprocess(X_val, y_val, train=False)
-            X_val_trans, y_val_trans = remove_until_first_value(X_val_trans, y_val_trans)
-            X_val_trans, y_val_trans = remove_target_nan(X_val_trans, y_val_trans)
+            X_val_transformed, y_val_transformed = self.preprocess(X_val, y_val, train=False)
         else:
-            X_val_trans, y_val_trans = (None, None)
+            X_val_transformed, y_val_transformed = None, None
 
-        return X_trans, y_trans, X_val_trans, y_val_trans
+        return X_transformed, y_transformed, X_val_transformed, y_val_transformed
 
     @abstractmethod
     def fit(
@@ -282,7 +284,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         Callable
             Usually this returns the history of the fit (when using keras)
         """
-        return NotImplemented
+        raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     @abstractmethod
     def predict(
@@ -320,10 +322,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         -------
         prediction: pd.DataFrame
             The predictions coming from the model
-        X_trans: pd.DataFrame, optional
+        X_transformed: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
-        return NotImplemented
+        raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     def preprocess_predict(
         self, X: pd.DataFrame, y: pd.Series, dropna: bool = False
@@ -349,15 +351,15 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if y is not None:
             BaseTimeseriesRegressor.verify_same_indexes(X, y)
 
-        X_trans = pd.DataFrame(
+        X_transformed = pd.DataFrame(
             self.feature_engineer_.transform(X),
             index=X.index,
             columns=self.get_feature_names(),
         )
 
         if dropna:
-            X_trans = X_trans[~np.isnan(X_trans).any(axis=1)]
-        return X_trans
+            X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
+        return X_transformed
 
     def postprocess_predict(
         self,
