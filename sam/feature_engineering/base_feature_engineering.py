@@ -18,16 +18,16 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
         pass
 
     @abstractmethod
-    def feature_engineer_(self, X, y=None) -> pd.DataFrame:
+    def feature_engineer_(self, X) -> pd.DataFrame:
         raise NotImplementedError("You need to implement the feature_engineer_ method.")
 
-    def fit(self, X, y=None):
-        self._feature_names = self.feature_engineer_(X, y).columns.tolist()
+    def fit(self, X):
+        self._feature_names = self.feature_engineer_(X).columns.tolist()
         return self
 
-    def transform(self, X, y=None) -> pd.DataFrame:
+    def transform(self, X) -> pd.DataFrame:
         logging.info("Feature engineering - input shape: %s", X.shape)
-        X_out = self.feature_engineer_(X, y)
+        X_out = self.feature_engineer_(X)
         logging.info("Feature engineering - output shape: %s", X_out.shape)
         return X_out
 
@@ -74,10 +74,10 @@ class FeatureEngineer(BaseFeatureEngineer):
     ):
         self.feature_engineer_function = feature_engineer_function
 
-    def feature_engineer_(self, X, y=None) -> pd.DataFrame:
+    def feature_engineer_(self, X: pd.DataFrame) -> pd.DataFrame:
         if self.feature_engineer_function is None:
             raise ValueError("You need to specify a feature engineering function.")
-        return self.feature_engineer_function(X, y)
+        return self.feature_engineer_function(X)
 
 
 class IdentityFeatureEngineer(BaseFeatureEngineer):
@@ -98,10 +98,10 @@ class IdentityFeatureEngineer(BaseFeatureEngineer):
     >>> df_out = fe.fit_transform(df)
     """
 
-    def __init__(self, numeric_only=True):
+    def __init__(self, numeric_only: bool = True):
         self.numeric_only = numeric_only
 
-    def feature_engineer_(self, X, y=None) -> pd.DataFrame:
+    def feature_engineer_(self, X: pd.DataFrame) -> pd.DataFrame:
         if self.numeric_only:
             return X.select_dtypes(include=np.number)
         return X

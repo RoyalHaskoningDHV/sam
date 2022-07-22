@@ -85,8 +85,8 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
 
     def __init__(
         self,
-        rolling_features: Optional[Union[List[Tuple], pd.DataFrame]] = [],
-        time_features: Optional[Union[List[Tuple], pd.DataFrame]] = [],
+        rolling_features: Optional[Union[List[Tuple], pd.DataFrame]] = None,
+        time_features: Optional[Union[List[Tuple], pd.DataFrame]] = None,
         time_col: Optional[str] = None,
         timezone: Optional[str] = None,
         drop_first: bool = True,
@@ -104,6 +104,8 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     def _input_df_to_list(
         data: pd.DataFrame,
     ) -> List[Tuple]:
+        if data is None:
+            return []
         if isinstance(data, pd.DataFrame):
             return list(data.to_records(index=False))
         elif isinstance(data, list):
@@ -125,7 +127,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
             datetime = datetime.dt.tz_convert(self.timezone)
         return datetime
 
-    def _get_time_column(self, X, component):
+    def _get_time_column(self, X: pd.DataFrame, component: str) -> pd.Series:
         # First select the datetime column
         if self.time_col is not None:
             datetime = X[self.time_col]
@@ -141,7 +143,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         else:
             raise ValueError(f"Invalid component: {component}")
 
-    def _get_rolling_features(self, X):
+    def _get_rolling_features(self, X: pd.DataFrame) -> pd.DataFrame:
         X_out = pd.DataFrame(index=X.index, columns=[])
         # Rolling features
         if self.time_col is not None:
@@ -158,7 +160,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
             X = X.reset_index(drop=False)
         return X_out
 
-    def _get_time_features(self, X):
+    def _get_time_features(self, X: pd.DataFrame) -> pd.DataFrame:
         X_out = pd.DataFrame(index=X.index, columns=[])
 
         for component, type in self.time_features:
@@ -185,7 +187,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
 
         return X_out
 
-    def feature_engineer_(self, X, y=None):
+    def feature_engineer_(self, X: pd.DataFrame) -> pd.DataFrame:
         X = X.copy()
         if self.keep_original:
             X_out = X.copy()

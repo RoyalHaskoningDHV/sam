@@ -126,21 +126,20 @@ def assert_performance(
 @pytest.mark.parametrize(
     "predict_ahead,quantiles,average_type,use_diff_of_y,y_scaler,max_mae",
     [
-        pytest.param(0, [], "mean", True, None, 3, marks=pytest.mark.xfail),  # should fail
-        pytest.param([0, 1], [], "mean", True, None, 3, marks=pytest.mark.xfail),  # should fail
-        (0, [], "mean", False, None, 3),  # plain regression
-        ([0], [], "mean", False, None, 3),  # predict_ahead as list
-        (0, [0.1, 0.9], "mean", False, None, 3.0),  # quantile regression
-        (0, [], "median", False, None, 3.0),  # median prediction
-        (0, [], "mean", False, StandardScaler(), 3.0),  # scaler
-        (1, [], "mean", False, None, 3.0),  # forecast
-        (1, [], "mean", True, None, 3.0),  # use_diff_of_y
-        ([1, 2, 3], [], "mean", False, None, 3.0),  # multiforecast
-        ([1, 2, 3], [], "mean", True, None, 3.0),  # multiforecast with use_diff_of_y
-        (0, [0.1, 0.5, 0.9], "mean", False, None, 3.0),  # quantiles
-        ([1, 2, 3], [0.1, 0.5, 0.9], "mean", False, None, 3.0),  # quantiles multiforecast
-        ([1], [], "mean", True, StandardScaler(), 3.0),  # all options except quantiles
-        ([1, 2, 3], [0.1, 0.5, 0.9], "mean", True, StandardScaler(), 3.0),  # all options
+        pytest.param((0,), (), "mean", True, None, 3, marks=pytest.mark.xfail),  # should fail
+        pytest.param((0, 1), (), "mean", True, None, 3, marks=pytest.mark.xfail),  # should fail
+        ((0,), (), "mean", False, None, 3),  # plain regression
+        ((0,), (0.1, 0.9), "mean", False, None, 3.0),  # quantile regression
+        ((0,), (), "median", False, None, 3.0),  # median prediction
+        ((0,), (), "mean", False, StandardScaler(), 3.0),  # scaler
+        ((1,), (), "mean", False, None, 3.0),  # forecast
+        ((1,), (), "mean", True, None, 3.0),  # use_diff_of_y
+        ((1, 2, 3), (), "mean", False, None, 3.0),  # multiforecast
+        ((1, 2, 3), (), "mean", True, None, 3.0),  # multiforecast with use_diff_of_y
+        ((0,), (0.1, 0.5, 0.9), "mean", False, None, 3.0),  # quantiles
+        ((1, 2, 3), (0.1, 0.5, 0.9), "mean", False, None, 3.0),  # quantiles multiforecast
+        ((1,), (), "mean", True, StandardScaler(), 3.0),  # all options except quantiles
+        ((1, 2, 3), (0.1, 0.5, 0.9), "mean", True, StandardScaler(), 3.0),  # all options
     ],
 )
 def test_mlp(

@@ -2,6 +2,7 @@ import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
 from typing import Callable, List, Sequence, Tuple, Union
+from xml.etree.ElementTree import PI
 
 import numpy as np
 import pandas as pd
@@ -11,6 +12,7 @@ from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
+from sklearn.pipeline import Pipeline
 
 
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
@@ -34,13 +36,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     Parameters
     ----------
-    predict_ahead: integer or list of integers, optional (default=[0])
-        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
-        2 timesteps into the future. If [0], predict the present. If not equal to 0 or [0],
-        predict the future, with differencing.
-        A single integer is also allowed, in which case the value is converted to a singleton list.
-    quantiles: array-like, optional (default=())
-        The quantiles to predict. Between 0 and 1. Keep in mind that the mean will be predicted
+    predict_ahead: tuple of integers, optional (default=(0,))
+        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
+        2 timesteps into the future. If (0,), predict the present.
+    quantiles: tuple of floats, optional (default=())
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
         regardless of this parameter
     use_diff_of_y: bool, optional (default=False)
         If True differencing is used (the difference between y now and shifted y),
@@ -64,14 +64,14 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def __init__(
         self,
-        predict_ahead: Union[int, List[int]] = [0],
+        predict_ahead: Sequence[int] = (0,),
         quantiles: Sequence[float] = (),
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
         feature_engineer: BaseFeatureEngineer = None,
     ) -> None:
-        self.predict_ahead = predict_ahead if isinstance(predict_ahead, List) else [predict_ahead]
+        self.predict_ahead = predict_ahead
         self.quantiles = quantiles
         self.use_diff_of_y = use_diff_of_y
         self.timecol = timecol
@@ -149,12 +149,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if not y.index.equals(X.index):
             raise ValueError("For training, X and y must have an identical index")
 
-    def preprocess(self, X, y, train=False):
+    def preprocess(self, X: pd.DataFrame, y: pd.DataFrame, train: bool = False):
         """
         Preprocess the data. This is the first step in the pipeline.
         """
         X, y = X.copy(), y.copy()
-        y = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
+        y = make_shifted_target(y=y, use_diff_of_y=self.use_diff_of_y, lags=self.predict_ahead)
         if train:
             if self.y_scaler is not None:
                 y = pd.DataFrame(
@@ -164,7 +164,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 )
             self._set_input_cols(X)
             X = pd.DataFrame(
-                self.feature_engineer_.fit_transform(X, y),
+                self.feature_engineer_.fit_transform(X),
                 index=X.index,
                 columns=self.get_feature_names(),
             )
@@ -350,7 +350,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             BaseTimeseriesRegressor.verify_same_indexes(X, y)
 
         X_trans = pd.DataFrame(
-            self.feature_engineer_.transform(X, y),
+            self.feature_engineer_.transform(X),
             index=X.index,
             columns=self.get_feature_names(),
         )
@@ -476,7 +476,25 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         list:
             list of feature names
         """
-        return self.feature_engineer_.get_feature_names()
+
+        if hasattr(self.feature_engineer_, "feature_engineer_"):
+            return self.feature_engineer_.get_feature_names()
+        elif isinstance(self.feature_engineer_, Pipeline):
+            # select last step that has get_feature_names method
+            feature_steps = [
+                step[-1]
+                for step in self.feature_engineer_.steps
+                if hasattr(step[-1], "get_feature_names")
+            ]
+            if len(feature_steps) > 0:
+                return feature_steps[-1].get_feature_names()
+            else:
+                raise ValueError(
+                    "Feature engineering pipelines require at least one step "
+                    "with get_feature_names method"
+                )
+        else:
+            raise ValueError("Feature engineering must be a Pipeline or a BaseFeatureEngineer")
 
     def _set_input_cols(self, X: pd.DataFrame) -> None:
         """
@@ -534,7 +552,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         check_is_fitted(self, "model_")
 
         # No scaling or differencing applied, because the predict() method already reversed this
-        actual = make_shifted_target(y, use_diff_of_y=False, lags=self.predict_ahead)
+        actual = make_shifted_target(y=y, use_diff_of_y=False, lags=self.predict_ahead)
 
         if actual.shape[1] == 1:
             actual = actual.iloc[:, 0]

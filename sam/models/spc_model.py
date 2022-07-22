@@ -20,18 +20,21 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
 
     Parameters
     ----------
-    quantiles: Sequence of float, optional
-        The quantiles that need to be present in the output, by default ()
-    predict_ahead: Sequence of int, optional
+    predict_ahead: Sequence of int or int, optional (default=0)
         How many timepoints we want to predict ahead. Is only used to determine the
-        number of rows in the output, by default (1,)
+        number of rows in the output.
+    quantiles: Sequence of float, optional (default=())
+        The quantiles that need to be present in the output.
+
     """
 
     def __init__(
-        self, quantiles: Sequence[float] = (), predict_ahead: Sequence[int] = (1,)
+        self,
+        predict_ahead: Sequence[int] = (0,),
+        quantiles: Sequence[float] = (),
     ) -> None:
-        self.quantiles = quantiles
         self.predict_ahead = predict_ahead
+        self.quantiles = quantiles
 
     def fit(self, X: Any, y: Any, **kwargs: dict):
         """Fit the SPC model
@@ -111,14 +114,13 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     Parameters
     ----------
-    predict_ahead: integer, optional (default=[0]])
-        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
-        2 timesteps into the future. If [0], predict the present. If not equal to [0],
+    predict_ahead: tuple of integers, optional (default=(0,))
+        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
+        2 timesteps into the future. If (0,), predict the present. If not equal to (0,),
         predict the future. Combine with `use_diff_of_y` to get a persistence benchmark forecasting
         model.
-        A single integer is also allowed, in which case the value is converted to a singleton list.
-    quantiles: array-like, optional (default=[])
-        The quantiles to predict. Between 0 and 1. Keep in mind that the median will be predicted
+    quantiles: tuple of floats, optional (default=())
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
         regardless of this parameter
     use_y_as_feature: boolean, optional (default=False)
         Not used in this class, only for compatibility.
@@ -162,8 +164,8 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     def __init__(
         self,
-        predict_ahead: int = [0],
-        quantiles: Sequence[float] = [],
+        predict_ahead: Sequence[int] = (0,),
+        quantiles: Sequence[float] = (),
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
@@ -186,7 +188,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         -------
         A trainable model class
         """
-        return SPCTemplate(self.quantiles, self.predict_ahead)
+        return SPCTemplate(predict_ahead=self.predict_ahead, quantiles=self.quantiles)
 
     def fit(
         self,

@@ -38,7 +38,7 @@ def remove_until_first_value(X, y):
 
     """
     X, y = X.copy(), y.copy()
-    first_complete_index = X.dropna(axis=0, how="all").index[0]
+    first_complete_index = X.dropna(axis=0, how="any").index[0]
     X = X.loc[first_complete_index:]
     y = y.loc[first_complete_index:]
 
