@@ -10,13 +10,10 @@ sphinx:
   configuration: docs/source/conf.py
   fail_on_warning: true
 
-# Explicitly set the version of Python and its requirements
-python:
-  install:
-    - requirements: docs/requirements.txt
-
 # Install our python package before building the docs
 python:
   install:
     - method: pip
       path: .
+      extra_requirements: 
+        - docs
