@@ -30,3 +30,5 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
+
+SAM has its documentation hosted on Read the Docs.
