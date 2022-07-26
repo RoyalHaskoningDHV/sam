@@ -198,27 +198,6 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                     )
                 )
 
-        class UnitTransformer(BaseEstimator, TransformerMixin):
-            """
-            This transformer does nothing but pass on the features
-            This is required to pass on the time features without changing them
-            (the Columntransformer passthrough option does not preserve feature names)
-            """
-
-            def __init__(self):
-                pass
-
-            def get_feature_names_out(self, input_features=None) -> list[int]:
-                check_is_fitted(self, "feature_names_")
-                return self.feature_names_
-
-            def fit(self, X, y):
-                self.feature_names_ = X.columns
-                return self
-
-            def transform(self, X):
-                return X
-
         for time_feature in time_features:
             rolls.append((time_feature, IdentityFeatureEngineer(), [time_feature]))
 
