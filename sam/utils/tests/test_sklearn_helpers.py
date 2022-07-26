@@ -32,7 +32,7 @@ class TestSklearnHelpers(unittest.TestCase):
 
         newdata = transformer.fit_transform(self.data)
         expectednames = ["TIME", "VALUE", "TIME_hour", "TIME_minute"]
-        resultnames = transformer.get_feature_names()
+        resultnames = transformer.get_feature_names_out()
         self.assertEqual(expectednames, resultnames)
 
         expecteddata = original_transformer.fit_transform(self.data)

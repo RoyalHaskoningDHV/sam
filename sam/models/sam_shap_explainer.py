@@ -30,7 +30,7 @@ class SamShapExplainer(object):
         class SamProxyModel:
             fit = None
             use_y_as_feature = model.use_y_as_feature
-            feature_names_ = model.get_feature_names()
+            feature_names_ = model.get_feature_names_out()
             preprocess_predict = TimeseriesMLP.preprocess_predict
 
         self.model = SamProxyModel()

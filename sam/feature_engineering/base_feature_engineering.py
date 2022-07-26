@@ -31,7 +31,7 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
         logging.info("Feature engineering - output shape: %s", X_out.shape)
         return X_out
 
-    def get_feature_names(self) -> list:
+    def get_feature_names_out(self) -> list:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
