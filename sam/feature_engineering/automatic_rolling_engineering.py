@@ -23,7 +23,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
     """
     Steps for automatic rolling engineering:
     - setup self.n_rollings number of different rolling features (unparameterized yet) in
-        sklearn ColumnTransformer pipeline
+        sklearn mer pipeline
     - find the best parameters for each of the rolling features using random search
     - setup a ColumnTransformer with these best features that can be used in the transform method
 
@@ -207,7 +207,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             def __init__(self):
                 pass
 
-            def get_feature_names(self):
+            def get_feature_names_out(self, input_features=None):
                 check_is_fitted(self, "feature_names_")
                 return self.feature_names_
 
@@ -331,9 +331,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         return X, timecols
 
-    def get_feature_names(self) -> None:
+    def get_feature_names_out(self, input_features=None):
         check_is_fitted(self, "feature_names_")
-
         return self.feature_names_
 
     def fit(self, X: pd.DataFrame, y: pd.DataFrame):
@@ -380,7 +379,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         search.fit(X, y)
 
         # recover feature names
-        feature_names: list = search.best_estimator_["rollpipe"].get_feature_names()
+        feature_names: list = search.best_estimator_["rollpipe"].get_feature_names_out()
 
         # fix names from e.g. 'RH_1__RH#mean_96' to 'RH#mean_96'
         feature_names: list = [f.split("__")[1] for f in feature_names]

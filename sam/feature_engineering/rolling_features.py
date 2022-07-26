@@ -526,7 +526,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
         return result
 
-    def get_feature_names(self) -> List[str]:
+    def get_feature_names_out(self, input_features=None) -> List[str]:
         """
         Returns feature names for the outcome of the last transform call.
         """

@@ -468,7 +468,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         return prediction
 
-    def get_feature_names_out(self) -> list:
+    def get_feature_names_out(self, input_features=None) -> list:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
