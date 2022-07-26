@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
+from sam.feature_engineering.base_feature_engineering import IdentityFeatureEngineer
 from sam.utils import has_strictly_increasing_index
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.compose import ColumnTransformer
@@ -197,29 +198,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                     )
                 )
 
-        class UnitTransformer(BaseEstimator, TransformerMixin):
-            """
-            This transformer does nothing but pass on the features
-            This is required to pass on the time features without changing them
-            (the Columntransformer passthrough option does not preserve feature names)
-            """
-
-            def __init__(self):
-                pass
-
-            def get_feature_names(self):
-                check_is_fitted(self, "feature_names_")
-                return self.feature_names_
-
-            def fit(self, X, y):
-                self.feature_names_ = X.columns
-                return self
-
-            def transform(self, X):
-                return X
-
         for time_feature in time_features:
-            rolls.append((time_feature, UnitTransformer(), [time_feature]))
+            rolls.append((time_feature, IdentityFeatureEngineer(), [time_feature]))
 
         pipeline = Pipeline(
             steps=[
@@ -331,9 +311,8 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         return X, timecols
 
-    def get_feature_names(self) -> None:
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         check_is_fitted(self, "feature_names_")
-
         return self.feature_names_
 
     def fit(self, X: pd.DataFrame, y: pd.DataFrame):
@@ -380,7 +359,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         search.fit(X, y)
 
         # recover feature names
-        feature_names: list = search.best_estimator_["rollpipe"].get_feature_names()
+        feature_names: list = search.best_estimator_["rollpipe"].get_feature_names_out()
 
         # fix names from e.g. 'RH_1__RH#mean_96' to 'RH#mean_96'
         feature_names: list = [f.split("__")[1] for f in feature_names]

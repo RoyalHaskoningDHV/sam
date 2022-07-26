@@ -58,7 +58,7 @@ class FunctionTransformerWithNames(FunctionTransformer):
     >>> transformer = FunctionTransformerWithNames(decompose_datetime,
     >>>                                            kw_args={'components': ['hour', 'minute']})
     >>> transformer.fit_transform(data)
-    >>> transformer.get_feature_names()
+    >>> transformer.get_feature_names_out()
     ['TIME', 'VALUE', 'TIME_hour', 'TIME_minute']
     """
 
@@ -91,7 +91,7 @@ class FunctionTransformerWithNames(FunctionTransformer):
         self._feature_names = list(output.columns.values)
         return output
 
-    def get_feature_names(self):
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         """
         Returns the feature names saved during `transform`
         """

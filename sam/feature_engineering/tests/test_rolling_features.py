@@ -293,10 +293,10 @@ class TestRollingFeatures(unittest.TestCase):
         )
         assert_frame_equal(result, expected, check_dtype=False)
 
-    def test_get_feature_names(self):
+    def test_get_feature_names_out(self):
         roller = BuildRollingFeatures("lag", lookback=0, window_size=[1, 2, 3])
         _ = roller.fit_transform(self.X)
-        result = roller.get_feature_names()
+        result = roller.get_feature_names_out()
         expected = ["X", "X#lag_1", "X#lag_2", "X#lag_3"]
         self.assertEqual(result, expected)
 
@@ -305,7 +305,7 @@ class TestRollingFeatures(unittest.TestCase):
             "lag", lookback=0, window_size=[1, 2, 3], add_lookback_to_colname=True
         )
         _ = roller.fit_transform(self.X)
-        result = roller.get_feature_names()
+        result = roller.get_feature_names_out()
         expected = [
             "X",
             "X#lag_1_lookback_0",
@@ -318,7 +318,7 @@ class TestRollingFeatures(unittest.TestCase):
             "lag", lookback=2, window_size=[1, 2, 3], add_lookback_to_colname=True
         )
         _ = roller.fit_transform(self.X)
-        result = roller.get_feature_names()
+        result = roller.get_feature_names_out()
         expected = [
             "X",
             "X#lag_1_lookback_2",

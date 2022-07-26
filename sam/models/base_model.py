@@ -166,9 +166,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             X = pd.DataFrame(
                 self.feature_engineer_.fit_transform(X),
                 index=X.index,
-                columns=self.get_feature_names(),
+                columns=self.get_feature_names_out(),
             )
-            self.n_inputs_ = len(self.get_feature_names())
+            self.n_inputs_ = len(self.get_feature_names_out())
         else:
             if self.y_scaler is not None:
                 y = pd.DataFrame(
@@ -179,7 +179,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             X = pd.DataFrame(
                 self.feature_engineer_.transform(X),
                 index=X.index,
-                columns=self.get_feature_names(),
+                columns=self.get_feature_names_out(),
             )
 
         X, y = remove_until_first_value(X, y)
@@ -354,7 +354,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         X_transformed = pd.DataFrame(
             self.feature_engineer_.transform(X),
             index=X.index,
-            columns=self.get_feature_names(),
+            columns=self.get_feature_names_out(),
         )
 
         if dropna:
@@ -468,7 +468,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         return prediction
 
-    def get_feature_names(self) -> list:
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
@@ -480,16 +480,16 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
 
         if hasattr(self.feature_engineer_, "feature_engineer_"):
-            return self.feature_engineer_.get_feature_names()
+            return self.feature_engineer_.get_feature_names_out()
         elif isinstance(self.feature_engineer_, Pipeline):
             # select last step that has get_feature_names method
             feature_steps = [
                 step[-1]
                 for step in self.feature_engineer_.steps
-                if hasattr(step[-1], "get_feature_names")
+                if hasattr(step[-1], "get_feature_names_out")
             ]
             if len(feature_steps) > 0:
-                return feature_steps[-1].get_feature_names()
+                return feature_steps[-1].get_feature_names_out()
             else:
                 raise ValueError(
                     "Feature engineering pipelines require at least one step "

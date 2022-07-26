@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -526,7 +526,7 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
 
         return result
 
-    def get_feature_names(self) -> List[str]:
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         """
         Returns feature names for the outcome of the last transform call.
         """

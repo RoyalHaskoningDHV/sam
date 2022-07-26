@@ -441,7 +441,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
         print_fn(str(self))
-        print_fn(self.get_feature_names())
+        print_fn(self.get_feature_names_out())
         self.model_.summary(print_fn=print_fn)
 
     def quantile_feature_importances(
@@ -554,7 +554,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
             score, X_transformed, y_target, n_iter=n_iter
         )
 
-        decreases_df = pd.DataFrame(score_decreases, columns=self.get_feature_names())
+        decreases_df = pd.DataFrame(score_decreases, columns=self.get_feature_names_out())
 
         if sum_time_components:
             for component in self.time_components:
@@ -576,7 +576,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
         create shap values and explain predictions.
 
         Keep in mind that this will explain
-        the created features from `self.get_feature_names()`, not the input features.
+        the created features from `self.get_feature_names_out()`, not the input features.
         To help with this, the explainer comes with a `test_values()` attribute
         that calculates the test values corresponding to the shap values
 
