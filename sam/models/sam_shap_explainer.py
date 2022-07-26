@@ -2,7 +2,6 @@ from typing import Callable
 
 import numpy as np
 import pandas as pd
-from sam.models import MLPTimeseriesRegressor
 
 
 class SamShapExplainer(object):
@@ -23,15 +22,16 @@ class SamShapExplainer(object):
         This will be used to do the preprocessing before calling explainer.shap_values
     """
 
-    def __init__(self, explainer: Callable, model: Callable) -> None:
+    def __init__(self, explainer: Callable, model: Callable, preprocess_predict: Callable) -> None:
         self.explainer = explainer
+        self.preprocess_predict = preprocess_predict
 
         # Create a proxy model that can call only 3 attributes we need
         class SamProxyModel:
             fit = None
             use_y_as_feature = model.use_y_as_feature
             feature_names_ = model.get_feature_names_out()
-            preprocess_predict = MLPTimeseriesRegressor.preprocess_predict
+            preprocess_predict = self.preprocess_predict
 
         self.model = SamProxyModel()
         # Trick sklearn into thinking this is a fitted variable

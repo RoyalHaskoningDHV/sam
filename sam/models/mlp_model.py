@@ -616,4 +616,4 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             sampled = np.random.choice(X_transformed.shape[0], sample_n, replace=False)
             X_transformed = X_transformed[sampled, :]
         explainer = shap.DeepExplainer(self.model_, X_transformed)
-        return SamShapExplainer(explainer, self)
+        return SamShapExplainer(explainer, self, preprocess_predict=self.preprocess_predict)

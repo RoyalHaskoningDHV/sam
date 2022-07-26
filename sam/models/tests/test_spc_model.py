@@ -6,14 +6,14 @@ import unittest
 import numpy as np
 import pandas as pd
 from sam.models import ConstantTimeseriesRegressor
-from sam.models.spc_model import SPCTemplate
+from sam.models.spc_model import ConstantTemplate
 from sklearn.utils.estimator_checks import check_estimator
 
 
-class TestSPCTemplate(unittest.TestCase):
+class TestConstantTemplate(unittest.TestCase):
     def test_sklearn_estimator(self):
         """Test if default template follows sklearn estimator standards"""
-        spc_model = SPCTemplate()
+        spc_model = ConstantTemplate()
         check_estimator(spc_model)
 
 

@@ -8,8 +8,8 @@ from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 
-class SPCTemplate(BaseEstimator, RegressorMixin):
-    """SPC template for usage in BaseQuantileRegressor
+class ConstantTemplate(BaseEstimator, RegressorMixin):
+    """Constant regression template for usage in BaseQuantileRegressor
 
     This template class follows scikit-learn estimator principles and
     always predicts quantiles and median values.
@@ -37,7 +37,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         self.quantiles = quantiles
 
     def fit(self, X: Any, y: Any, **kwargs: dict):
-        """Fit the SPC model
+        """Fit the model
 
         The X parameter is only used so it is compatible with sklearn.
         Fits the quantiles and median values using the y data and saves
@@ -64,7 +64,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X: Any):
-        """Predict using the SPC model
+        """Predict using the model
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
 
 
 class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
-    """SPC Regressor model
+    """Constant Regression model
 
     Baseline model that always predict the median and quantiles.
     This model can be used as a benchmark or fall-back method, since the
@@ -183,13 +183,13 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
     def get_untrained_model(self) -> Callable:
         """Returns an underlying model that can be trained
 
-        Creates an instance of the SPCTemplate class
+        Creates an instance of the ConstantTemplate class
 
         Returns
         -------
         A trainable model class
         """
-        return SPCTemplate(predict_ahead=self.predict_ahead, quantiles=self.quantiles)
+        return ConstantTemplate(predict_ahead=self.predict_ahead, quantiles=self.quantiles)
 
     def fit(
         self,

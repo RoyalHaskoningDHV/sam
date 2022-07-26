@@ -24,7 +24,7 @@ Keras templates
 Statistical process control
 ---------------------------
 
-.. autoclass:: sam.models.SPCTemplate
+.. autoclass:: sam.models.ConstantTemplate
     :members:
     :undoc-members:
     :show-inheritance:
