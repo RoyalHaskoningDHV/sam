@@ -8,7 +8,6 @@ build:
 # Build from the docs/ directory with Sphinx
 sphinx:
   configuration: docs/source/conf.py
-  fail_on_warning: true
 
 # Install our python package before building the docs
 python:
