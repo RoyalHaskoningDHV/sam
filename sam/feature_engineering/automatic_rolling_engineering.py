@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from sam.feature_engineering import BuildRollingFeatures, decompose_datetime
+from sam.feature_engineering.base_feature_engineering import IdentityFeatureEngineer
 from sam.utils import has_strictly_increasing_index
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.compose import ColumnTransformer
@@ -23,7 +24,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
     """
     Steps for automatic rolling engineering:
     - setup self.n_rollings number of different rolling features (unparameterized yet) in
-        sklearn mer pipeline
+        sklearn ColumnTransformer pipeline
     - find the best parameters for each of the rolling features using random search
     - setup a ColumnTransformer with these best features that can be used in the transform method
 
@@ -207,7 +208,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
             def __init__(self):
                 pass
 
-            def get_feature_names_out(self, input_features=None):
+            def get_feature_names_out(self, input_features=None) -> list[int]:
                 check_is_fitted(self, "feature_names_")
                 return self.feature_names_
 
@@ -219,7 +220,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
                 return X
 
         for time_feature in time_features:
-            rolls.append((time_feature, UnitTransformer(), [time_feature]))
+            rolls.append((time_feature, IdentityFeatureEngineer(), [time_feature]))
 
         pipeline = Pipeline(
             steps=[
@@ -331,7 +332,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         return X, timecols
 
-    def get_feature_names_out(self, input_features=None):
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         check_is_fitted(self, "feature_names_")
         return self.feature_names_
 

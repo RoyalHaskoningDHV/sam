@@ -91,7 +91,7 @@ class FunctionTransformerWithNames(FunctionTransformer):
         self._feature_names = list(output.columns.values)
         return output
 
-    def get_feature_names_out(self, input_features=None):
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         """
         Returns the feature names saved during `transform`
         """

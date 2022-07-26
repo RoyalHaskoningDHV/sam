@@ -4,11 +4,11 @@ from typing import Callable
 
 import numpy as np
 import pandas as pd
-from sklearn.base import TransformerMixin
+from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils.validation import check_is_fitted
 
 
-class BaseFeatureEngineer(TransformerMixin, ABC):
+class BaseFeatureEngineer(BaseEstimator, TransformerMixin, ABC):
     """
     Base class for feature engineering.
     To use this class, you need to implement the feature_engineer method.
@@ -21,7 +21,7 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
     def feature_engineer_(self, X) -> pd.DataFrame:
         raise NotImplementedError("You need to implement the feature_engineer_ method.")
 
-    def fit(self, X):
+    def fit(self, X, y=None):
         self._feature_names = self.feature_engineer_(X).columns.tolist()
         return self
 
@@ -31,7 +31,7 @@ class BaseFeatureEngineer(TransformerMixin, ABC):
         logging.info("Feature engineering - output shape: %s", X_out.shape)
         return X_out
 
-    def get_feature_names_out(self, input_features=None) -> list:
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
