@@ -18,7 +18,7 @@ from sklearn.pipeline import Pipeline
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     """
     This is an abstract class for all SAM models.
-    Every SAM model (including the most used TimeseriesMLP) needs to inherit this class and
+    Every SAM model (including the most used MLPTimeseriesRegressor) needs to inherit this class and
     implement the abstract methods.
 
     There are some notes:

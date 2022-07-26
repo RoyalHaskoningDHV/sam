@@ -14,7 +14,7 @@ from sklearn.utils.validation import check_is_fitted
 from sam.models.sam_shap_explainer import SamShapExplainer
 
 
-class TimeseriesMLP(BaseTimeseriesRegressor):
+class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     """
     This is an example class for how the SAM skeleton can work. This is not the final/only model,
     there are some notes:
@@ -110,7 +110,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
     Examples
     --------
     >>> import pandas as pd
-    >>> from sam.models import TimeseriesMLP
+    >>> from sam.models import MLPTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
     ...
     >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
@@ -127,7 +127,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
     >>>     keep_original=False,
     >>> )
     ...
-    >>> model = TimeseriesMLP(
+    >>> model = MLPTimeseriesRegressor(
     >>>     predict_ahead=(0,),
     >>>     feature_engineer=simple_features,
     >>> )

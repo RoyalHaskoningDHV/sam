@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 import pandas as pd
-from sam.models import SPCRegressor
+from sam.models import ConstantTimeseriesRegressor
 from sam.models.spc_model import SPCTemplate
 from sklearn.utils.estimator_checks import check_estimator
 
@@ -17,7 +17,7 @@ class TestSPCTemplate(unittest.TestCase):
         check_estimator(spc_model)
 
 
-class TestSPCRegressor(unittest.TestCase):
+class TestConstantTimeseriesRegressor(unittest.TestCase):
     def setUp(self):
         """
         We are deliberately creating an extremely easy, linear problem here
@@ -50,7 +50,7 @@ class TestSPCRegressor(unittest.TestCase):
         """Sanity check if default params work
         Score should be 0, since this is a benchmark model
         """
-        model = SPCRegressor(timecol="TIME")
+        model = ConstantTimeseriesRegressor(timecol="TIME")
         model.fit(self.X_train, self.y_train)
         preds = model.predict(self.X_test, self.y_test)
         score = model.score(self.X_test, self.y_test)
@@ -62,7 +62,7 @@ class TestSPCRegressor(unittest.TestCase):
 
     def test_normal_use(self):
         """Test if the SPC model performs normally with some quantiles"""
-        model = SPCRegressor(timecol="TIME", quantiles=(0.25, 0.75))
+        model = ConstantTimeseriesRegressor(timecol="TIME", quantiles=(0.25, 0.75))
         model.fit(self.X_train, self.y_train)
         y_pred = model.predict(self.X_test, self.y_test)
 
@@ -71,7 +71,7 @@ class TestSPCRegressor(unittest.TestCase):
 
     def test_replacement_sam(self):
         """Test if SPC model also works with all the default SAM parameters"""
-        model = SPCRegressor(
+        model = ConstantTimeseriesRegressor(
             predict_ahead=[1],
             quantiles=[],
             use_diff_of_y=True,
@@ -88,13 +88,13 @@ class TestSPCRegressor(unittest.TestCase):
         """Test if the model can be dumped and loaded"""
         temp_dir = tempfile.gettempdir()
 
-        model = SPCRegressor(timecol="TIME", quantiles=(0.25, 0.75))
+        model = ConstantTimeseriesRegressor(timecol="TIME", quantiles=(0.25, 0.75))
         model.fit(self.X_train, self.y_train)
         model.dump(temp_dir)
 
         del model
 
-        new_model = SPCRegressor.load(foldername=temp_dir)
+        new_model = ConstantTimeseriesRegressor.load(foldername=temp_dir)
         y_pred = new_model.predict(self.X_test, self.y_test)
 
         self.assertEqual(y_pred.shape, (20, 3))

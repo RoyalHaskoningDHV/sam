@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
-from sam.models import TimeseriesMLP
+from sam.models import MLPTimeseriesRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import StandardScaler
 
@@ -160,7 +160,7 @@ def test_mlp(
     X, y = get_dataset()
 
     fe = SimpleFeatureEngineer(keep_original=True)
-    model = TimeseriesMLP(
+    model = MLPTimeseriesRegressor(
         predict_ahead=predict_ahead,
         quantiles=quantiles,
         use_diff_of_y=use_diff_of_y,

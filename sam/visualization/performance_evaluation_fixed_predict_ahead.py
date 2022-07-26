@@ -33,11 +33,11 @@ def performance_evaluation_fixed_predict_ahead(
     y_true_train: pd.Series
         Series that contains the true train values.
     y_hat_train: pd.DataFrame
-        DataFrame that contains the predicted train values (output of TimeseriesMLP model.predict)
+        DataFrame that contains the predicted train values (output of MLPTimeseriesRegressor model.predict)
     y_true_test: pd.Series
         Series that contains the true test values.
     y_hat_test: pd.DataFrame
-        DataFrame that contains the predicted test values (output of TimeseriesMLP model.predict)
+        DataFrame that contains the predicted test values (output of MLPTimeseriesRegressor model.predict)
     resolutions: list (default=[None])
         List of strings (and/or None) that are interpretable by pandas resampler.
         If set to None, will return results for the native data resolution.

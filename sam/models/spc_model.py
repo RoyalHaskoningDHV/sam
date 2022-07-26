@@ -94,7 +94,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         return {"poor_score": True}
 
 
-class SPCRegressor(BaseTimeseriesRegressor):
+class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
     """SPC Regressor model
 
     Baseline model that always predict the median and quantiles.
@@ -136,7 +136,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     Examples
     --------
-    >>> from sam.models import SPCRegressor
+    >>> from sam.models import ConstantTimeseriesRegressor
     >>> from sam.data_sources import read_knmi
     >>> from sklearn.model_selection import train_test_split
     >>> from sklearn.metrics import mean_squared_error
@@ -149,7 +149,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
     >>> X = data.drop('T', axis=1)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
     ...
-    >>> model = SPCRegressor(timecol='TIME', quantiles=[0.25, 0.75])
+    >>> model = ConstantTimeseriesRegressor(timecol='TIME', quantiles=[0.25, 0.75])
     ...
     >>> model.fit(X_train, y_train)
     >>> pred = model.predict(X_test, y_test)
@@ -198,7 +198,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         validation_data: Tuple[pd.DataFrame, pd.Series] = None,
         **fit_kwargs,
     ) -> Callable:
-        """Fit the SPCRegressor model
+        """Fit the ConstantTimeseriesRegressor model
 
         This function will preprocess the input data, get the untrained underlying model
         and fits the model.
@@ -227,7 +227,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False, **predict_kwargs
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """
-        Predict using the SPCRegressor
+        Predict using the ConstantTimeseriesRegressor
 
         This will either predict the static bounds that were fitted during
         fit() or when using `use_diff_of_y` it will predict the last timestep plus
@@ -304,7 +304,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
         Returns
         -------
-        A fitted SPCRegressor object
+        A fitted ConstantTimeseriesRegressor object
         """
         import cloudpickle
 

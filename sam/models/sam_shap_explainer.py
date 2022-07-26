@@ -2,7 +2,7 @@ from typing import Callable
 
 import numpy as np
 import pandas as pd
-from sam.models import TimeseriesMLP
+from sam.models import MLPTimeseriesRegressor
 
 
 class SamShapExplainer(object):
@@ -11,7 +11,7 @@ class SamShapExplainer(object):
     interface which can be found here
     <https://github.com/slundberg/shap/blob/master/shap/explainers/explainer.py>.
     The more advanced, tensorflow-specific attributes can be accessed with obj.explainer.
-    The reason the interface is only sort of implemented, is the same reason why TimeseriesMLP
+    The reason the interface is only sort of implemented, is the same reason why MLPTimeseriesRegressor
     doesn't entirely implement the skearn interface - for predicting, y is needed, which is
     not supported by the SamShapExplainer.
 
@@ -31,7 +31,7 @@ class SamShapExplainer(object):
             fit = None
             use_y_as_feature = model.use_y_as_feature
             feature_names_ = model.get_feature_names_out()
-            preprocess_predict = TimeseriesMLP.preprocess_predict
+            preprocess_predict = MLPTimeseriesRegressor.preprocess_predict
 
         self.model = SamProxyModel()
         # Trick sklearn into thinking this is a fitted variable
