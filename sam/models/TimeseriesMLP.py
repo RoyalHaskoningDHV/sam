@@ -91,6 +91,8 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
         node in the output layer and does not reflect a quantile, but rather estimates the central
         tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
         setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
+    kwargs: dict, optional (default={})
+        Not used. Just for compatibility with other SAM models.
 
     Attributes
     ----------
@@ -151,6 +153,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
         verbose: int = 1,
         r2_callback_report: bool = False,
         average_type: str = "mean",
+        **kwargs,
     ) -> None:
         super().__init__(
             predict_ahead=predict_ahead,
@@ -159,6 +162,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
             timecol=timecol,
             y_scaler=y_scaler,
             feature_engineer=feature_engineer,
+            **kwargs,
         )
         self.n_neurons = n_neurons
         self.n_layers = n_layers

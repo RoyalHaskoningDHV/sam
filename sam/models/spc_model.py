@@ -131,6 +131,8 @@ class SPCRegressor(BaseTimeseriesRegressor):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer().
+    kwargs: dict, optional (default={})
+        Not used. Just for compatibility with other SAM models.
 
     Examples
     --------
@@ -167,6 +169,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
+        **kwargs,
     ) -> None:
         super().__init__(
             predict_ahead=predict_ahead,
@@ -174,7 +177,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
             use_diff_of_y=use_diff_of_y,
             timecol=timecol,
             y_scaler=y_scaler,
-            feature_engineer=None,
+            **kwargs,
         )
 
     def get_untrained_model(self) -> Callable:
