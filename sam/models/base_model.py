@@ -143,7 +143,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @staticmethod
     def verify_same_indexes(X: pd.DataFrame, y: pd.Series, y_can_be_none=True):
-        """inv
+        """
         Verify that X and y have the same index
         """
         if not y.index.equals(X.index):
