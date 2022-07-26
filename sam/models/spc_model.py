@@ -131,7 +131,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer().
-    kwargs: dict, optional (default={})
+    kwargs: dict, optional
         Not used. Just for compatibility with other SAM models.
 
     Examples

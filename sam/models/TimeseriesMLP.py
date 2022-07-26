@@ -91,7 +91,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
         node in the output layer and does not reflect a quantile, but rather estimates the central
         tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
         setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
-    kwargs: dict, optional (default={})
+    kwargs: dict, optional
         Not used. Just for compatibility with other SAM models.
 
     Attributes
