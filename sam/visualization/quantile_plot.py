@@ -27,7 +27,7 @@ def sam_quantile_plot(
     benchmark_color: str = "purple",
 ):
     """
-    Uses the output from SamQuantileMLPs predict function to create a quantile prediction plot.
+    Uses the output from TimeseriesMLP predict function to create a quantile prediction plot.
     It plots the actual data, the prediction, and the quantiles as shaded regions.
     The plot displays a single prediction per timepoint (e.g. made 10 timepoints ago).
     The plot can be made for any predict_ahead, and can be resampled to any time-resolution.
@@ -41,7 +41,7 @@ def sam_quantile_plot(
     y_true: pd.DataFrame
         Pandas DataFrame with single row (the actual values) should have same index as y_hat.
     y_hat: pd.DataFrame
-        Dataframe returned by the SamQuantileMLP .predict() function.
+        Dataframe returned by the TimeseriesMLP .predict() function.
         Columns should contain at least `predict_lead_x_mean`, where x is predict ahead
         and for each quantile: `predict_lead_x_q_y` where x is the predict_ahead, and
         y is the quantile. So e.g.:
@@ -69,7 +69,7 @@ def sam_quantile_plot(
         Cannot be used in conjunction with `outliers`.
     predict_ahead: int (default=0)
         Number of samples ago that prediction was made.
-        Should be one that was included in the SamQuantileMLP fit procedure.
+        Should be one that was included in the TimeseriesMLP fit procedure.
     res: string (default=None)
         Time resolution to resample data to. Should be interpretable by pandas resamples
         (e.g. '5min', '1D' etc.). For this to work, the data must have datetime indices.
@@ -89,7 +89,7 @@ def sam_quantile_plot(
         value to ignore during resampling (e.g. 0 for pumps that often go off)
     benchmark: pd.DataFrame
         The benchmark used to determine R2 of y_hat, for example a dataframe returned by the
-        SamQuantileMLP.predict() function. Columns should contain at least `predict_lead_x_mean`,
+        TimeseriesMLP.predict() function. Columns should contain at least `predict_lead_x_mean`,
         where x is predict ahead and for each quantile: `predict_lead_x_q_y` where x is the
         predict_ahead, and y is the quantile. So e.g.:
         `['predict_lead_0_q_0.25, predict_lead_0_q_0.75, predict_lead_mean']`
