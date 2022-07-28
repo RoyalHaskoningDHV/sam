@@ -38,7 +38,7 @@ Rolling Features
     :undoc-members:
     :show-inheritance:
 
-.. autofunction:: sam.feature_engineering.lag_range_column
+.. autofunction:: sam.feature_engineering.range_lag_column
 
 Automatic Rolling Engineering
 -----------------------------

@@ -15,6 +15,6 @@ Incident curves information
 
 Retrieve correlation features
 -----------------------------
-.. autofunction:: sam.exploration.create_lag_correlation
+.. autofunction:: sam.exploration.lag_correlation
 .. autofunction:: sam.exploration.top_score_correlations
 .. autofunction:: sam.exploration.top_n_correlations

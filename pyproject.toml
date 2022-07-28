@@ -52,6 +52,15 @@ data-science = [
     "statsmodels"
 ]
 test = ["pytest", "pytest-cov", "pytest-mpl<=0.15.0", "fastparquet"]
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    "numpydoc",
+    "recommonmark",
+    "readthedocs-sphinx-search",
+    "sphinx-markdown-tables",
+    "toml"
+]
 
 [project.urls]
 homepage = "https://github.com/RoyalHaskoningDHV/sam"
