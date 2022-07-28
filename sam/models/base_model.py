@@ -2,7 +2,6 @@ import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
 from typing import Callable, List, Sequence, Tuple, Union
-from xml.etree.ElementTree import PI
 
 import numpy as np
 import pandas as pd
@@ -471,7 +470,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         return prediction
 
-    def get_feature_names_out(self, input_features=None) -> list[str]:
+    def get_feature_names_out(self, input_features=None) -> List[str]:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
