@@ -46,8 +46,8 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
         2 timesteps into the future. If (0,), predict the present.
     quantiles: tuple of floats, optional (default=())
-        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
-        regardless of this parameter
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be
+        predicted regardless of this parameter
     use_diff_of_y: bool, optional (default=True)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).

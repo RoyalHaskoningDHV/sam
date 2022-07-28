@@ -10,9 +10,9 @@ class SamShapExplainer(object):
     interface which can be found here
     <https://github.com/slundberg/shap/blob/master/shap/explainers/explainer.py>.
     The more advanced, tensorflow-specific attributes can be accessed with obj.explainer.
-    The reason the interface is only sort of implemented, is the same reason why MLPTimeseriesRegressor
-    doesn't entirely implement the skearn interface - for predicting, y is needed, which is
-    not supported by the SamShapExplainer.
+    The reason the interface is only sort of implemented, is the same reason why
+    MLPTimeseriesRegressor doesn't entirely implement the skearn interface - for predicting, y is
+    needed, which is not supported by the SamShapExplainer.
 
     Parameters
     ----------

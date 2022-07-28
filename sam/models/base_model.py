@@ -1,8 +1,7 @@
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Callable, List, Sequence, Tuple, Union
-from xml.etree.ElementTree import PI
+from typing import Callable, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -18,8 +17,8 @@ from sklearn.pipeline import Pipeline
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     """
     This is an abstract class for all SAM models.
-    Every SAM model (including the most used MLPTimeseriesRegressor) needs to inherit this class and
-    implement the abstract methods.
+    Every SAM model (including the most used MLPTimeseriesRegressor) needs to inherit this class
+    and implement the abstract methods.
 
     There are some notes:
     - There is no validation yet. Therefore, the input data must already be sorted and monospaced
@@ -40,8 +39,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
         2 timesteps into the future. If (0,), predict the present.
     quantiles: tuple of floats, optional (default=())
-        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
-        regardless of this parameter
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be
+        predicted regardless of this parameter
     use_diff_of_y: bool, optional (default=False)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).

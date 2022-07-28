@@ -27,8 +27,8 @@ def sam_quantile_plot(
     benchmark_color: str = "purple",
 ):
     """
-    Uses the output from MLPTimeseriesRegressor predict function to create a quantile prediction plot.
-    It plots the actual data, the prediction, and the quantiles as shaded regions.
+    Uses the output from MLPTimeseriesRegressor predict function to create a quantile prediction
+    plot. It plots the actual data, the prediction, and the quantiles as shaded regions.
     The plot displays a single prediction per timepoint (e.g. made 10 timepoints ago).
     The plot can be made for any predict_ahead, and can be resampled to any time-resolution.
     The plot also highlights outliers as all true values that fall outside the `outlier_min_q`th
@@ -89,9 +89,9 @@ def sam_quantile_plot(
         value to ignore during resampling (e.g. 0 for pumps that often go off)
     benchmark: pd.DataFrame
         The benchmark used to determine R2 of y_hat, for example a dataframe returned by the
-        MLPTimeseriesRegressor.predict() function. Columns should contain at least `predict_lead_x_mean`,
-        where x is predict ahead and for each quantile: `predict_lead_x_q_y` where x is the
-        predict_ahead, and y is the quantile. So e.g.:
+        MLPTimeseriesRegressor.predict() function. Columns should contain at least
+        `predict_lead_x_mean`, where x is predict ahead and for each quantile: `predict_lead_x_q_y`
+        where x is the predict_ahead, and y is the quantile. So e.g.:
         `['predict_lead_0_q_0.25, predict_lead_0_q_0.75, predict_lead_mean']`
     benchmark_color: string (default='purple')
         a valid colorstring for the benchmark line/scatter color
