@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import pandas as pd
 from sam.models import ConstantTimeseriesRegressor
-from sam.models.model_model import ConstantTemplate
+from sam.models.constant_model import ConstantTemplate
 from sklearn.utils.estimator_checks import check_estimator
 
 
