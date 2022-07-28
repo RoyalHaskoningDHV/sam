@@ -22,10 +22,12 @@ class BaseFeatureEngineer(BaseEstimator, TransformerMixin, ABC):
         raise NotImplementedError("You need to implement the feature_engineer_ method.")
 
     def fit(self, X, y=None):
+        """fit method"""
         self._feature_names = self.feature_engineer_(X).columns.tolist()
         return self
 
     def transform(self, X) -> pd.DataFrame:
+        """transform method"""
         logging.info("Feature engineering - input shape: %s", X.shape)
         X_out = self.feature_engineer_(X)
         logging.info("Feature engineering - output shape: %s", X_out.shape)
@@ -75,6 +77,7 @@ class FeatureEngineer(BaseFeatureEngineer):
         self.feature_engineer_function = feature_engineer_function
 
     def feature_engineer_(self, X: pd.DataFrame) -> pd.DataFrame:
+        """feature engineering function"""
         if self.feature_engineer_function is None:
             raise ValueError("You need to specify a feature engineering function.")
         return self.feature_engineer_function(X)
