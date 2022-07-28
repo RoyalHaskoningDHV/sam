@@ -14,5 +14,5 @@ from .keras_templates import (  # noqa: F401
 from .sam_shap_explainer import SamShapExplainer  # noqa: F401
 from .linear_model import LinearQuantileRegression  # noqa: F401
 from .base_model import BaseTimeseriesRegressor  # noqa: F401
-from .spc_model import ConstantTimeseriesRegressor  # noqa: F401
+from .constant_model import ConstantTimeseriesRegressor  # noqa: F401
 from .mlp_model import MLPTimeseriesRegressor  # noqa: F401

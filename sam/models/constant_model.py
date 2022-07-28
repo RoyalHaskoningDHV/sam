@@ -59,8 +59,8 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         X, y = check_X_y(X, y, y_numeric=True)
         self.n_features_in_ = X.shape[1]
 
-        self.spc_median_ = np.median(y)
-        self.spc_quantiles_ = np.quantile(y[~np.isnan(y)], q=np.sort(self.quantiles))
+        self.model_median_ = np.median(y)
+        self.model_quantiles_ = np.quantile(y[~np.isnan(y)], q=np.sort(self.quantiles))
         return self
 
     def predict(self, X: Any):
@@ -80,7 +80,7 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         check_is_fitted(self)
         X = check_array(X)
 
-        prediction = np.append(self.spc_quantiles_, self.spc_median_)
+        prediction = np.append(self.model_quantiles_, self.model_median_)
         prediction = np.repeat(prediction, len(self.predict_ahead))
         if len(self.quantiles) > 1:
             return np.tile(prediction, (len(X), 1))
