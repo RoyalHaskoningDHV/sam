@@ -59,7 +59,8 @@ docs = [
     "recommonmark",
     "readthedocs-sphinx-search",
     "sphinx-markdown-tables",
-    "toml"
+    "toml",
+    "tensorflow>=2.3.1,<2.9"
 ]
 
 [project.urls]
