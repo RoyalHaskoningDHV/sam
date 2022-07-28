@@ -311,7 +311,7 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
         return X, timecols
 
-    def get_feature_names_out(self, input_features=None) -> list[str]:
+    def get_feature_names_out(self, input_features=None) -> List[str]:
         check_is_fitted(self, "feature_names_")
         return self.feature_names_
 

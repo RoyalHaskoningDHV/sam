@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, List
 
 import numpy as np
 import pandas as pd
@@ -31,7 +31,7 @@ class BaseFeatureEngineer(BaseEstimator, TransformerMixin, ABC):
         logging.info("Feature engineering - output shape: %s", X_out.shape)
         return X_out
 
-    def get_feature_names_out(self, input_features=None) -> list[str]:
+    def get_feature_names_out(self, input_features=None) -> List[str]:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
