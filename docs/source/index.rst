@@ -12,7 +12,7 @@ Welcome to SAM's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   general_documents
+   data
    examples
    data_sources
    preprocessing

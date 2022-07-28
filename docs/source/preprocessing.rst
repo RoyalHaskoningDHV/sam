@@ -26,6 +26,8 @@ Time-specific preprocessing
 .. autofunction:: sam.preprocessing.average_winter_time
 .. autofunction:: sam.preprocessing.label_dst
 
+.. _sam-format-reshaping-functions:
+
 SAM-format Reshaping
 --------------------
 .. autofunction:: sam.preprocessing.sam_format_to_wide
