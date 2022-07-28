@@ -14,7 +14,7 @@ from sklearn.utils.validation import check_is_fitted
 from sam.models.sam_shap_explainer import SamShapExplainer
 
 
-class TimeseriesMLP(BaseTimeseriesRegressor):
+class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     """
     This is an example class for how the SAM skeleton can work. This is not the final/only model,
     there are some notes:
@@ -46,8 +46,8 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
         how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
         2 timesteps into the future. If (0,), predict the present.
     quantiles: tuple of floats, optional (default=())
-        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
-        regardless of this parameter
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be
+        predicted regardless of this parameter
     use_diff_of_y: bool, optional (default=True)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).
@@ -110,7 +110,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
     Examples
     --------
     >>> import pandas as pd
-    >>> from sam.models import TimeseriesMLP
+    >>> from sam.models import MLPTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
     ...
     >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
@@ -127,7 +127,7 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
     >>>     keep_original=False,
     >>> )
     ...
-    >>> model = TimeseriesMLP(
+    >>> model = MLPTimeseriesRegressor(
     >>>     predict_ahead=(0,),
     >>>     feature_engineer=simple_features,
     >>> )
@@ -616,4 +616,4 @@ class TimeseriesMLP(BaseTimeseriesRegressor):
             sampled = np.random.choice(X_transformed.shape[0], sample_n, replace=False)
             X_transformed = X_transformed[sampled, :]
         explainer = shap.DeepExplainer(self.model_, X_transformed)
-        return SamShapExplainer(explainer, self)
+        return SamShapExplainer(explainer, self, preprocess_predict=self.preprocess_predict)

@@ -20,10 +20,11 @@ class R2Evaluation(Callback):
         We therefore implemented it as a callback, which is only evaluated at the end of each
         epoch.
 
-        NOTE: this should only be used with TimeseriesMLP models, not any custom keras model.
+        NOTE: this should only be used with MLPTimeseriesRegressor models, not any custom keras
+        model.
         NOTE-2: this function returns r2 with the keras_model.predict function. This means that
-            if values are differences in TimeseriesMLP, it returns r2 for the differenced values.
-            This can deviate from r2 computed over un-differenced values.
+            if values are differences in MLPTimeseriesRegressor, it returns r2 for the differenced
+            values. This can deviate from r2 computed over un-differenced values.
 
         Parameters
         ----------

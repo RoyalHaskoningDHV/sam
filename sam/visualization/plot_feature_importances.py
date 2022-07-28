@@ -7,7 +7,7 @@ def plot_feature_importances(importances: pd.DataFrame, feature_names: Iterable 
     """
     Create bar graph of feature importances, with highest first.
     Also creates aggregated features over lag features. For this, pass a list of features as
-    feature_names. It accepts the output of TimeseriesMLP.quantile_feature_importances().
+    feature_names. It accepts the output of MLPTimeseriesRegressor.quantile_feature_importances().
     Alternatively, you can format your own feature importances as a pandas DataFrame with columns
     as features and rows as potentially multiple random iterations.
 

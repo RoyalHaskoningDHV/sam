@@ -24,19 +24,19 @@ Keras templates
 Statistical process control
 ---------------------------
 
-.. autoclass:: sam.models.SPCTemplate
+.. autoclass:: sam.models.ConstantTemplate
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: sam.models.SPCRegressor
+.. autoclass:: sam.models.ConstantTimeseriesRegressor
     :members:
     :undoc-members:
     :show-inheritance:
 
 Multilayer Perceptron (MLP)
 ---------------------------
-.. autoclass:: sam.models.TimeseriesMLP
+.. autoclass:: sam.models.MLPTimeseriesRegressor
     :members:
     :undoc-members:
     :show-inheritance:

@@ -8,8 +8,8 @@ from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 
-class SPCTemplate(BaseEstimator, RegressorMixin):
-    """SPC template for usage in BaseQuantileRegressor
+class ConstantTemplate(BaseEstimator, RegressorMixin):
+    """Constant regression template for usage in BaseQuantileRegressor
 
     This template class follows scikit-learn estimator principles and
     always predicts quantiles and median values.
@@ -37,7 +37,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         self.quantiles = quantiles
 
     def fit(self, X: Any, y: Any, **kwargs: dict):
-        """Fit the SPC model
+        """Fit the model
 
         The X parameter is only used so it is compatible with sklearn.
         Fits the quantiles and median values using the y data and saves
@@ -64,7 +64,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X: Any):
-        """Predict using the SPC model
+        """Predict using the model
 
         Parameters
         ----------
@@ -94,8 +94,8 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         return {"poor_score": True}
 
 
-class SPCRegressor(BaseTimeseriesRegressor):
-    """SPC Regressor model
+class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
+    """Constant Regression model
 
     Baseline model that always predict the median and quantiles.
     This model can be used as a benchmark or fall-back method, since the
@@ -120,8 +120,8 @@ class SPCRegressor(BaseTimeseriesRegressor):
         predict the future. Combine with `use_diff_of_y` to get a persistence benchmark forecasting
         model.
     quantiles: tuple of floats, optional (default=())
-        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be predicted
-        regardless of this parameter
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be
+        predicted regardless of this parameter
     use_diff_of_y: bool, optional (default=True)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).
@@ -136,7 +136,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     Examples
     --------
-    >>> from sam.models import SPCRegressor
+    >>> from sam.models import ConstantTimeseriesRegressor
     >>> from sam.data_sources import read_knmi
     >>> from sklearn.model_selection import train_test_split
     >>> from sklearn.metrics import mean_squared_error
@@ -149,7 +149,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
     >>> X = data.drop('T', axis=1)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
     ...
-    >>> model = SPCRegressor(timecol='TIME', quantiles=[0.25, 0.75])
+    >>> model = ConstantTimeseriesRegressor(timecol='TIME', quantiles=[0.25, 0.75])
     ...
     >>> model.fit(X_train, y_train)
     >>> pred = model.predict(X_test, y_test)
@@ -183,13 +183,13 @@ class SPCRegressor(BaseTimeseriesRegressor):
     def get_untrained_model(self) -> Callable:
         """Returns an underlying model that can be trained
 
-        Creates an instance of the SPCTemplate class
+        Creates an instance of the ConstantTemplate class
 
         Returns
         -------
         A trainable model class
         """
-        return SPCTemplate(predict_ahead=self.predict_ahead, quantiles=self.quantiles)
+        return ConstantTemplate(predict_ahead=self.predict_ahead, quantiles=self.quantiles)
 
     def fit(
         self,
@@ -198,7 +198,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         validation_data: Tuple[pd.DataFrame, pd.Series] = None,
         **fit_kwargs,
     ) -> Callable:
-        """Fit the SPCRegressor model
+        """Fit the ConstantTimeseriesRegressor model
 
         This function will preprocess the input data, get the untrained underlying model
         and fits the model.
@@ -227,7 +227,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False, **predict_kwargs
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """
-        Predict using the SPCRegressor
+        Predict using the ConstantTimeseriesRegressor
 
         This will either predict the static bounds that were fitted during
         fit() or when using `use_diff_of_y` it will predict the last timestep plus
@@ -304,7 +304,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
         Returns
         -------
-        A fitted SPCRegressor object
+        A fitted ConstantTimeseriesRegressor object
         """
         import cloudpickle
 
