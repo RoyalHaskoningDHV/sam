@@ -104,6 +104,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     def _input_df_to_list(
         data: pd.DataFrame,
     ) -> List[Tuple]:
+        """Convert a dataframe to a list of tuples."""
         if data is None:
             return []
         if isinstance(data, pd.DataFrame):
@@ -128,6 +129,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         return datetime
 
     def _get_time_column(self, X: pd.DataFrame, component: str) -> pd.Series:
+        """Get the time column."""
         # First select the datetime column
         if self.time_col is not None:
             datetime = X[self.time_col]
@@ -144,6 +146,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
             raise ValueError(f"Invalid component: {component}")
 
     def _get_rolling_features(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Get the rolling features."""
         X_out = pd.DataFrame(index=X.index, columns=[])
         # Rolling features
         if self.time_col is not None:
@@ -161,6 +164,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         return X_out
 
     def _get_time_features(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Get the time features."""
         X_out = pd.DataFrame(index=X.index, columns=[])
 
         for component, type in self.time_features:
@@ -188,6 +192,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
         return X_out
 
     def feature_engineer_(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Feature engineering function that creates rolling features and time components."""
         X = X.copy()
         if self.keep_original:
             X_out = X.copy()

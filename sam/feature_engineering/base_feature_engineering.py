@@ -19,6 +19,7 @@ class BaseFeatureEngineer(BaseEstimator, TransformerMixin, ABC):
 
     @abstractmethod
     def feature_engineer_(self, X) -> pd.DataFrame:
+        """Implement this method to do the feature engineering."""
         raise NotImplementedError("You need to implement the feature_engineer_ method.")
 
     def fit(self, X, y=None):
@@ -105,6 +106,7 @@ class IdentityFeatureEngineer(BaseFeatureEngineer):
         self.numeric_only = numeric_only
 
     def feature_engineer_(self, X: pd.DataFrame) -> pd.DataFrame:
+        """feature engineering function, returns the input dataframe"""
         if self.numeric_only:
             return X.select_dtypes(include=np.number)
         return X
