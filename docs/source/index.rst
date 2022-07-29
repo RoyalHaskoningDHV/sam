@@ -6,6 +6,8 @@
 Welcome to SAM's documentation!
 ===============================
 
+.. image:: general_documents/images/logo.png
+
 .. include:: intro.rst
 
 .. toctree::

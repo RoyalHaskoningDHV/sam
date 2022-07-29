@@ -1,5 +1,7 @@
 # SAM
 
+![](docs/logo/logo.png)
+
 SAM is a Python package for timeseries analysis, anomaly detection and forecasting.
 
 Author: [Royal HaskoningDHV](https://global.royalhaskoningdhv.com/digital)
