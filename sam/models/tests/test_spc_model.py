@@ -5,19 +5,19 @@ import unittest
 
 import numpy as np
 import pandas as pd
-from sam.models import SPCRegressor
-from sam.models.spc_model import SPCTemplate
+from sam.models import ConstantTimeseriesRegressor
+from sam.models.constant_model import ConstantTemplate
 from sklearn.utils.estimator_checks import check_estimator
 
 
-class TestSPCTemplate(unittest.TestCase):
+class TestConstantTemplate(unittest.TestCase):
     def test_sklearn_estimator(self):
         """Test if default template follows sklearn estimator standards"""
-        spc_model = SPCTemplate()
-        check_estimator(spc_model)
+        model = ConstantTemplate()
+        check_estimator(model)
 
 
-class TestSPCRegressor(unittest.TestCase):
+class TestConstantTimeseriesRegressor(unittest.TestCase):
     def setUp(self):
         """
         We are deliberately creating an extremely easy, linear problem here
@@ -50,18 +50,19 @@ class TestSPCRegressor(unittest.TestCase):
         """Sanity check if default params work
         Score should be 0, since this is a benchmark model
         """
-        model = SPCRegressor(timecol="TIME")
+        model = ConstantTimeseriesRegressor(timecol="TIME")
         model.fit(self.X_train, self.y_train)
         preds = model.predict(self.X_test, self.y_test)
-
         score = model.score(self.X_test, self.y_test)
+
         # Loss score should be equal to the MSE, since there are no quantiles
-        expected_score = np.sum(np.mean((model.get_actual(self.y_test) - preds) ** 2, axis=0))
-        self.assertEqual(score, expected_score)
+        exp_y = model.get_actual(self.y_test)
+        exp_score = (exp_y - preds).pow(2).mean().sum()
+        self.assertEqual(score, exp_score)
 
     def test_normal_use(self):
         """Test if the SPC model performs normally with some quantiles"""
-        model = SPCRegressor(timecol="TIME", quantiles=(0.25, 0.75))
+        model = ConstantTimeseriesRegressor(timecol="TIME", quantiles=(0.25, 0.75))
         model.fit(self.X_train, self.y_train)
         y_pred = model.predict(self.X_test, self.y_test)
 
@@ -70,18 +71,12 @@ class TestSPCRegressor(unittest.TestCase):
 
     def test_replacement_sam(self):
         """Test if SPC model also works with all the default SAM parameters"""
-        model = SPCRegressor(
-            predict_ahead=(1,),
-            quantiles=(),
-            use_y_as_feature=True,
+        model = ConstantTimeseriesRegressor(
+            predict_ahead=[1],
+            quantiles=[],
             use_diff_of_y=True,
             timecol="TIME",
             y_scaler=None,
-            time_components=("minute", "hour", "day", "weekday"),
-            time_cyclicals=("minute", "hour", "day"),
-            time_onehots=("weekday",),
-            rolling_window_size=(12,),
-            rolling_features=("mean",),
         )
         model.fit(self.X_train, self.y_train)
         y_pred = model.predict(self.X_test, self.y_test)
@@ -93,13 +88,13 @@ class TestSPCRegressor(unittest.TestCase):
         """Test if the model can be dumped and loaded"""
         temp_dir = tempfile.gettempdir()
 
-        model = SPCRegressor(timecol="TIME", quantiles=(0.25, 0.75))
+        model = ConstantTimeseriesRegressor(timecol="TIME", quantiles=(0.25, 0.75))
         model.fit(self.X_train, self.y_train)
         model.dump(temp_dir)
 
         del model
 
-        new_model = SPCRegressor.load(foldername=temp_dir)
+        new_model = ConstantTimeseriesRegressor.load(foldername=temp_dir)
         y_pred = new_model.predict(self.X_test, self.y_test)
 
         self.assertEqual(y_pred.shape, (20, 3))

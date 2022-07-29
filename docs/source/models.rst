@@ -21,9 +21,22 @@ Keras templates
 .. autofunction:: sam.models.create_keras_autoencoder_mlp
 .. autofunction:: sam.models.create_keras_autoencoder_rnn
 
-SAM Quantile MLP Model
+Statistical process control
 ---------------------------
-.. autoclass:: sam.models.SamQuantileMLP
+
+.. autoclass:: sam.models.ConstantTemplate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: sam.models.ConstantTimeseriesRegressor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Multilayer Perceptron (MLP)
+---------------------------
+.. autoclass:: sam.models.MLPTimeseriesRegressor
     :members:
     :undoc-members:
     :show-inheritance:

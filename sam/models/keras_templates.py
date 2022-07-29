@@ -116,7 +116,7 @@ def create_keras_quantile_mlp(
     out = Dense(n_out, activation=output_activation)(h)
 
     model = Model(inputs=input_layer, outputs=out)
-    model.compile(loss=mse_tilted, optimizer=Adam(lr=lr))
+    model.compile(loss=mse_tilted, optimizer=Adam(learning_rate=lr))
 
     return model
 

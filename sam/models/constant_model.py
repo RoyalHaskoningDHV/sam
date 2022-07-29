@@ -4,16 +4,12 @@ from typing import Any, Callable, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 from sam.models.base_model import BaseTimeseriesRegressor
-from sam.utils.sklearnhelpers import FunctionTransformerWithNames
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 
-class SPCTemplate(BaseEstimator, RegressorMixin):
-    """SPC template for usage in BaseQuantileRegressor
+class ConstantTemplate(BaseEstimator, RegressorMixin):
+    """Constant regression template for usage in BaseQuantileRegressor
 
     This template class follows scikit-learn estimator principles and
     always predicts quantiles and median values.
@@ -24,21 +20,24 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
 
     Parameters
     ----------
-    quantiles: Sequence of float, optional
-        The quantiles that need to be present in the output, by default ()
-    predict_ahead: Sequence of int, optional
+    predict_ahead: Sequence of int or int, optional (default=0)
         How many timepoints we want to predict ahead. Is only used to determine the
-        number of rows in the output, by default (1,)
+        number of rows in the output.
+    quantiles: Sequence of float, optional (default=())
+        The quantiles that need to be present in the output.
+
     """
 
     def __init__(
-        self, quantiles: Sequence[float] = (), predict_ahead: Sequence[int] = (1,)
+        self,
+        predict_ahead: Sequence[int] = (0,),
+        quantiles: Sequence[float] = (),
     ) -> None:
-        self.quantiles = quantiles
         self.predict_ahead = predict_ahead
+        self.quantiles = quantiles
 
     def fit(self, X: Any, y: Any, **kwargs: dict):
-        """Fit the SPC model
+        """Fit the model
 
         The X parameter is only used so it is compatible with sklearn.
         Fits the quantiles and median values using the y data and saves
@@ -60,12 +59,12 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         X, y = check_X_y(X, y, y_numeric=True)
         self.n_features_in_ = X.shape[1]
 
-        self.spc_median_ = np.median(y)
-        self.spc_quantiles_ = np.quantile(y[~np.isnan(y)], q=np.sort(self.quantiles))
+        self.model_median_ = np.median(y)
+        self.model_quantiles_ = np.quantile(y[~np.isnan(y)], q=np.sort(self.quantiles))
         return self
 
     def predict(self, X: Any):
-        """Predict using the SPC model
+        """Predict using the model
 
         Parameters
         ----------
@@ -81,7 +80,7 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         check_is_fitted(self)
         X = check_array(X)
 
-        prediction = np.append(self.spc_quantiles_, self.spc_median_)
+        prediction = np.append(self.model_quantiles_, self.model_median_)
         prediction = np.repeat(prediction, len(self.predict_ahead))
         if len(self.quantiles) > 1:
             return np.tile(prediction, (len(X), 1))
@@ -95,8 +94,8 @@ class SPCTemplate(BaseEstimator, RegressorMixin):
         return {"poor_score": True}
 
 
-class SPCRegressor(BaseTimeseriesRegressor):
-    """SPC Regressor model
+class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
+    """Constant Regression model
 
     Baseline model that always predict the median and quantiles.
     This model can be used as a benchmark or fall-back method, since the
@@ -115,16 +114,14 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     Parameters
     ----------
-    predict_ahead: integer, optional (default=(1,))
+    predict_ahead: tuple of integers, optional (default=(0,))
         how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
-        2 timesteps into the future. If (0), predict the present. If not equal to (0),
-        predict the future, with differencing.
-        A single integer is also allowed, in which case the value is converted to a singleton list.
-    quantiles: array-like, optional (default=())
-        The quantiles to predict. Between 0 and 1. Keep in mind that the median will be predicted
-        regardless of this parameter
-    use_y_as_feature: boolean, optional (default=False)
-        Not used in this class, only for compatibility.
+        2 timesteps into the future. If (0,), predict the present. If not equal to (0,),
+        predict the future. Combine with `use_diff_of_y` to get a persistence benchmark forecasting
+        model.
+    quantiles: tuple of floats, optional (default=())
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be
+        predicted regardless of this parameter
     use_diff_of_y: bool, optional (default=True)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).
@@ -133,21 +130,13 @@ class SPCRegressor(BaseTimeseriesRegressor):
         creating features from a DateTimeIndex is not supported yet.
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
-        E.g.: StandardScaler() or PowerTransformer()
-    time_components: array-like, optional (default=('minute', 'hour', 'day', 'weekday'))
-        Not used in this class, only for compatibility.
-    time_cyclicals: array-like, optional (default=('minute', 'hour', 'day'))
-        Not used in this class, only for compatibility.
-    time_onehots: array-like, optional (default=('weekday'))
-        Not used in this class, only for compatibility.
-    rolling_window_size: array-like, optional (default=(5,))
-        Not used in this class, only for compatibility.
-    rolling_features: array-like, optional (default=('mean'))
-        Not used in this class, only for compatibility.
+        E.g.: StandardScaler() or PowerTransformer().
+    kwargs: dict, optional
+        Not used. Just for compatibility with other SAM models.
 
     Examples
     --------
-    >>> from sam.models import SPCRegressor
+    >>> from sam.models import ConstantTimeseriesRegressor
     >>> from sam.data_sources import read_knmi
     >>> from sklearn.model_selection import train_test_split
     >>> from sklearn.metrics import mean_squared_error
@@ -160,7 +149,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
     >>> X = data.drop('T', axis=1)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=False)
     ...
-    >>> model = SPCRegressor(timecol='TIME', quantiles=(0.25, 0.75))
+    >>> model = ConstantTimeseriesRegressor(timecol='TIME', quantiles=[0.25, 0.75])
     ...
     >>> model.fit(X_train, y_train)
     >>> pred = model.predict(X_test, y_test)
@@ -175,61 +164,32 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
     def __init__(
         self,
-        predict_ahead: int = (1,),
+        predict_ahead: Sequence[int] = (0,),
         quantiles: Sequence[float] = (),
-        use_y_as_feature: bool = False,
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        time_components: Sequence[str] = None,
-        time_cyclicals: Sequence[str] = None,
-        time_onehots: Sequence[str] = None,
-        rolling_window_size: Sequence[int] = (),
-        rolling_features: Sequence[str] = None,
+        **kwargs,
     ) -> None:
-        self.predict_ahead = predict_ahead
-        self.quantiles = quantiles
-        self.use_y_as_feature = use_y_as_feature
-        self.use_diff_of_y = use_diff_of_y
-        self.timecol = timecol
-        self.y_scaler = y_scaler
-        self.time_components = time_components
-        self.time_cyclicals = time_cyclicals
-        self.time_onehots = time_onehots
-        self.rolling_features = rolling_features
-        self.rolling_window_size = rolling_window_size
-
-    def get_feature_engineer(self) -> Pipeline:
-        """
-        The SPC model doesn't do any feature building, but it has to impute values
-        since sam can't work with NaNs and pass the column names in a transformer
-        called 'columns'.
-
-        Returns
-        -------
-        sklearn.pipeline.Pipeline:
-            The feature building pipeline
-        """
-        columns = self._input_cols
-        if self.timecol:
-            columns = [col for col in columns if col != self.timecol]
-
-        feature_engineering_steps = [
-            ("passthrough", FunctionTransformerWithNames(validate=False), columns),
-        ]
-        engineer = ColumnTransformer(feature_engineering_steps, remainder="drop")
-        return Pipeline([("columns", engineer), ("impute", SimpleImputer())])
+        super().__init__(
+            predict_ahead=predict_ahead,
+            quantiles=quantiles,
+            use_diff_of_y=use_diff_of_y,
+            timecol=timecol,
+            y_scaler=y_scaler,
+            **kwargs,
+        )
 
     def get_untrained_model(self) -> Callable:
         """Returns an underlying model that can be trained
 
-        Creates an instance of the SPCTemplate class
+        Creates an instance of the ConstantTemplate class
 
         Returns
         -------
         A trainable model class
         """
-        return SPCTemplate(self.quantiles, self.predict_ahead)
+        return ConstantTemplate(predict_ahead=self.predict_ahead, quantiles=self.quantiles)
 
     def fit(
         self,
@@ -238,7 +198,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         validation_data: Tuple[pd.DataFrame, pd.Series] = None,
         **fit_kwargs,
     ) -> Callable:
-        """Fit the SPCRegressor model
+        """Fit the ConstantTimeseriesRegressor model
 
         This function will preprocess the input data, get the untrained underlying model
         and fits the model.
@@ -259,7 +219,6 @@ class SPCRegressor(BaseTimeseriesRegressor):
         Always returns None, since there is no history object of the fit procedure
         """
         X_transformed, y_transformed, _, _ = self.preprocess_fit(X, y, validation_data)
-
         self.model_ = self.get_untrained_model()
         self.model_.fit(X_transformed, y_transformed)
         return None
@@ -268,7 +227,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
         self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False, **predict_kwargs
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """
-        Predict using the SPCRegressor
+        Predict using the ConstantTimeseriesRegressor
 
         This will either predict the static bounds that were fitted during
         fit() or when using `use_diff_of_y` it will predict the last timestep plus
@@ -345,7 +304,7 @@ class SPCRegressor(BaseTimeseriesRegressor):
 
         Returns
         -------
-        A fitted SPCRegressor object
+        A fitted ConstantTimeseriesRegressor object
         """
         import cloudpickle
 

@@ -10,7 +10,7 @@ The easiest way to install the package is using pip:
 .. code-block:: bash
 
 	pip install sam
-	# To install all optional dependencies: (such as pymongo, knmy, seaborn)
+	# To install all optional dependencies: (such as pymongo, seaborn, tensorflow, etc.)
 	pip install sam[all]
 
 Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation.

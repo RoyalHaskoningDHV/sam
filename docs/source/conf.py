@@ -17,7 +17,8 @@ from recommonmark.parser import CommonMarkParser
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+
+sys.path.insert(0, os.path.abspath("../.."))
 
 
 # -- Project information -----------------------------------------------------
@@ -25,6 +26,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 project = "sam"
 copyright = "2018-2022, Royal HaskoningDHV"
 author = "Royal HaskoningDHV"
+
 
 config = toml.load("../../pyproject.toml")
 

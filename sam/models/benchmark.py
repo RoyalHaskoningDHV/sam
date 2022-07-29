@@ -254,7 +254,7 @@ def benchmark_wrapper(
     >>>     'detectronic': '7167_6'
     >>> }
     >>> models = {
-    >>>     'mymodel': SAMQuantileMLP(predict_ahead=[3], use_y_as_feature=True, timecol='TIME',
+    >>>     'mymodel': MLPTimeseriesRegressor(predict_ahead=[3], timecol='TIME',
     >>>                               dropout=0.5, verbose=True)  # some non-default params
     >>> }
     >>> benchmark_wrapper(models, datasets, column_filters, targetcols)
