@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. image:: general_documents/images/logo.png
+
 Welcome to SAM's documentation!
 ===============================
-
-.. image:: general_documents/images/logo.png
 
 .. include:: intro.rst
 
