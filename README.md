@@ -1,4 +1,4 @@
-s![](docs/logo/logo.png)
+![](docs/logo/logo.png)
 
 # SAM
 
