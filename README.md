@@ -1,9 +1,4 @@
-<p align="center" width="100%">
-    <img width="50%" src="docs/logo/logo.png">
-</p>
-
 # SAM
-
 
 SAM is a Python package for timeseries analysis, anomaly detection and forecasting.
 
