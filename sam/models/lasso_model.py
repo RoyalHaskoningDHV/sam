@@ -11,8 +11,17 @@ from sklearn.multioutput import MultiOutputRegressor
 
 
 class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
-    """
-    
+    """Linear quantile regression model (Lasso) for time series
+
+    This model combines several approaches to time series data:
+    Multiple outputs for forecasting, quantile regression, and feature engineering.
+    This class implements a linear quantile regression model. For each quantile, a
+    separate model is trained.
+
+    It is a wrapper around
+    the sklearn `QuantileRegressor` and `Lasso`. For more information on the
+    model specifics, see the sklearn documentation.
+
     Parameters
     ----------
     predict_ahead: tuple of integers, optional (default=(0,))
