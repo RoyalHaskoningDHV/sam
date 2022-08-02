@@ -1,4 +1,4 @@
-import logging
+import os
 from typing import Callable, Sequence, Tuple, Union
 
 import numpy as np
@@ -165,7 +165,11 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         prefix : str, optional
            The prefix used in the filename, by default "model"
         """
-        return None
+        import joblib
+
+        if not os.path.exists(foldername):
+            os.makedirs(foldername)
+        joblib.dump(self, os.path.join(foldername, f"{prefix}.pkl"))
 
     @classmethod
     def load(cls, foldername, prefix="model") -> Callable:
@@ -185,4 +189,6 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         -------
         The SAM model that has been loaded from disk
         """
-        return None
+        import joblib
+
+        return joblib.load(os.path.join(foldername, f"{prefix}.pkl"))
