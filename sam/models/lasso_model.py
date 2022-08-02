@@ -57,6 +57,35 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     kwargs: dict, optional
         Not used. Just for compatibility of models that inherit from this class.
 
+    Attributes
+    ----------
+    feature_engineer_: Sklearn transformer
+        The transformer used on the raw data before prediction
+    n_inputs_: integer
+        The number of inputs used for the underlying neural network
+    n_outputs_: integer
+        The number of outputs (columns) from the model
+    prediction_cols_: array of strings
+        The names of the output columns from the model.
+    model_ : object
+        List of sklearn models, one for each quantile.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from sam.models import MLPTimeseriesRegressor
+    >>> from sam.feature_engineering import SimpleFeatureEngineer
+
+    >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
+    >>> X, y = data, data["water_temperature"]
+
+    >>> simple_features = SimpleFeatureEngineer(keep_original=False)
+    >>> model = MLPTimeseriesRegressor(
+    ...     predict_ahead=(0,),
+    ...     feature_engineer=simple_features,
+    ... )
+    >>> model.fit(X, y)
+
     """
 
     def __init__(
