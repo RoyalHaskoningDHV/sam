@@ -6,7 +6,7 @@ import pandas as pd
 from sam.feature_engineering import BaseFeatureEngineer
 from sam.models import BaseTimeseriesRegressor
 from sklearn.base import TransformerMixin
-from sklearn.linear_model import QuantileRegressor
+from sklearn.linear_model import Lasso, QuantileRegressor
 from sklearn.multioutput import MultiOutputRegressor
 
 
@@ -30,9 +30,11 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer()
-    fit_mean: bool, optional (default=False)
-        If True, regular linear regression is used to fit the mean in addition to the
-        quantiles.
+    average_type: str (default='mean')
+        Determines what to fit as the average: 'mean', or 'median'. The average is the last
+        node in the output layer and does not reflect a quantile, but rather estimates the central
+        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
+        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
     feature_engineering: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform method, e.g.
         `sam.feature_engineering.SimpleFeatureEngineer`.
@@ -64,7 +66,7 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        fit_mean: bool = False,
+        average_type: str = "mean",
         feature_engineer: BaseFeatureEngineer = None,
         alpha: float = 1.0,
         fit_intercept: bool = True,
@@ -78,27 +80,38 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
             use_diff_of_y=use_diff_of_y,
             timecol=timecol,
             y_scaler=y_scaler,
-            fit_mean=fit_mean,
             feature_engineer=feature_engineer,
             **kwargs,
         )
+        self.average_type = average_type
         self.alpha = alpha
         self.fit_intercept = fit_intercept
         self.solver = solver
         self.solver_options = solver_options
+        self.feature_engineer = feature_engineer
 
-    def get_untrained_model(self, quantile) -> Callable:
+        if self.average_type == "median" and 0.5 in self.quantiles:
+            raise ValueError(
+                "average_type is mean, but 0.5 is also in quantiles (duplicate). "
+                "Either set average_type to mean or remove 0.5 from quantiles"
+            )
+
+    def get_untrained_model(self, quantile=None) -> Callable:
         """Returns linear quantile regression model"""
-        model = MultiOutputRegressor(
-            estimator=QuantileRegressor(
+        if quantile is not None:
+            estimator = QuantileRegressor(
                 quantile=quantile,
                 alpha=self.alpha,
                 fit_intercept=self.fit_intercept,
                 solver=self.solver,
                 solver_options=self.solver_options,
             )
-        )
-        return model
+        else:
+            estimator = Lasso(
+                alpha=self.alpha,
+                fit_intercept=self.fit_intercept,
+            )
+        return MultiOutputRegressor(estimator=estimator)
 
     def fit(
         self,
@@ -107,9 +120,14 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         **fit_kwargs,
     ):
         X, y, _, _ = self.preprocess_fit(X, y)
-        self.models_ = [self.get_untrained_model(quantile) for quantile in self.quantiles]
-        for quantile, model in zip(self.quantiles, self.models_):
-            logging.info(f"Fitting model for quantile {quantile}")
+        self.model_ = [self.get_untrained_model(quantile) for quantile in self.quantiles]
+        if self.average_type == "mean":
+            self.model_.append(self.get_untrained_model())
+        elif self.average_type == "median":
+            self.model_.append(self.get_untrained_model(0.5))
+        else:
+            raise ValueError(f"Unknown average_type: {self.average_type}")
+        for model in self.model_:
             model.fit(X, y, **fit_kwargs)
         return self
 
@@ -122,11 +140,8 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         self.validate_data(X)
         X_transformed = self.preprocess_predict(X, y)
-        predictions = []
-        for quantile, model in zip(self.quantiles, self.models_):
-            logging.info(f"Predicting quantile {quantile}")
-            predictions.append(model.predict(X_transformed))
-        prediction = np.concatenate(predictions, axis=1)
+        prediction = [model.predict(X_transformed) for model in self.model_]
+        prediction = np.concatenate(prediction, axis=1)
 
         prediction = self.postprocess_predict(
             prediction, X, y, force_monotonic_quantiles=force_monotonic_quantiles

@@ -9,6 +9,15 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.0
+
+### New features
+- New class `sam.models.LassoTimeseriesRegressor` to create a Lasso regression model for time series data incl. quantile predictions.
+
+## Version 3.0.1
+
+No changes, bumped number for release.
+
 ## Version 3.0.0
 
 ### New features

@@ -585,7 +585,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
         # We need a dataframe, regardless of if these functions outputs a series or dataframe
-        prediction = pd.DataFrame(self.predict(X, y))
+        prediction = pd.DataFrame(self.predict(X, y), columns=self.prediction_cols_)
         actual = pd.DataFrame(self.get_actual(y))
 
         # scale these predictions back to get a score that is in same units as keras loss

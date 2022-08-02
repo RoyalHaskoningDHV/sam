@@ -4,7 +4,7 @@ import random
 import numpy as np
 import pytest
 from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
-from sam.models import MLPTimeseriesRegressor
+from sam.models import LassoTimeseriesRegressor
 from sam.models.tests.utils import (
     assert_get_actual,
     assert_performance,
@@ -12,7 +12,6 @@ from sam.models.tests.utils import (
     get_dataset,
 )
 from sklearn.preprocessing import StandardScaler
-
 
 # If tensorflow is not available, skip these unittests
 skipkeras = False
@@ -42,7 +41,7 @@ except ImportError:
         ((1, 2, 3), (0.1, 0.5, 0.9), "mean", True, StandardScaler(), 3.0),  # all options
     ],
 )
-def test_mlp(
+def test_lasso(
     predict_ahead,
     quantiles,
     average_type,
@@ -60,16 +59,14 @@ def test_mlp(
     X, y = get_dataset()
 
     fe = SimpleFeatureEngineer(keep_original=True)
-    model = MLPTimeseriesRegressor(
+    model = LassoTimeseriesRegressor(
         predict_ahead=predict_ahead,
         quantiles=quantiles,
         use_diff_of_y=use_diff_of_y,
         y_scaler=y_scaler,
         feature_engineer=fe,
         average_type=average_type,
-        lr=0.01,
-        epochs=40,
-        verbose=0,
+        alpha=1e-6,  # make sure it can overfit for testing
     )
     model.fit(X, y)
     assert_get_actual(model, X, y, predict_ahead)
