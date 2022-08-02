@@ -50,6 +50,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer()
+    feature_engineering: object, optional (default=None)
+        Should be an sklearn-type transformer that has a transform method, e.g.
+        `sam.feature_engineering.SimpleFeatureEngineer`.
     kwargs: dict, optional
         Not used. Just for compatibility of models that inherit from this class.
 

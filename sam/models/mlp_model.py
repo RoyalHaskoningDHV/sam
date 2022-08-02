@@ -131,7 +131,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     >>>     predict_ahead=(0,),
     >>>     feature_engineer=simple_features,
     >>> )
-    ....
+    ...
     >>> model.fit(X, y)
     """
 
@@ -333,9 +333,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         X_transformed: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
-        if max(self.predict_ahead) > 0 and y is None:
-            raise ValueError("When predict_ahead > 0, y is needed for prediction")
-
         self.validate_data(X)
 
         X_transformed = self.preprocess_predict(X, y)
