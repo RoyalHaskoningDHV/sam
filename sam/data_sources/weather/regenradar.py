@@ -1,16 +1,23 @@
 import logging
 
 import pandas as pd
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 from sam import config  # Credentials file
 from sam.logging_functions import log_dataframe_characteristics
-
-from .utils import _try_parsing_date
+from sam.data_sources.weather.utils import _try_parsing_date
 
 logger = logging.getLogger(__name__)
 
 
-def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq="5min", **kwargs):
+def read_regenradar(
+    start_date: str,
+    end_date: str,
+    latitude: float = 52.11,
+    longitude: float = 5.18,
+    freq: float = "5min",
+    batch_size: str = "7D",
+    **kwargs,
+) -> pd.DataFrame:
     """
     Export historic precipitation from Nationale Regenradar.
 
@@ -44,6 +51,8 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq="
         frequency of export. Minimum, and default frequency is every 5 minutes. To learn more
         about the frequency strings, see `this link
         <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases>`__.
+    batch_size: str, default '7D'
+        batch size for collecting data from the API to avoid time-out. Default is 7 days.
     kwargs: dict
         additional parameters passed in the url. Must be convertable to string. Any entries with a
         value of None will be ignored and not passed in the url.
@@ -93,30 +102,44 @@ def read_regenradar(start_date, end_date, latitude=52.11, longitude=5.18, freq="
             "longitude={}, window={}"
         ).format(start_date, end_date, latitude, longitude, window)
     )
-    if isinstance(start_date, str):
-        start_date = _try_parsing_date(start_date)
-    if isinstance(end_date, str):
-        end_date = _try_parsing_date(end_date)
 
-    regenradar_url = "https://rhdhv.lizard.net/api/v3/raster-aggregates/?"
-    params = {
-        "agg": "average",
-        "rasters": "730d6675",
-        "srs": "EPSG:4326",
-        "start": str(start_date),
-        "stop": str(end_date),
-        "window": str(window),
-        "geom": "POINT+({x}+{y})".format(x=longitude, y=latitude),
-    }
-    params.update(kwargs)
-    params = "&".join("%s=%s" % (k, v) for k, v in params.items() if v is not None)
+    start_date = _try_parsing_date(start_date)
+    end_date = _try_parsing_date(end_date)
 
-    res = requests.get(regenradar_url + params, auth=(user, password))
-    res = res.json()
-    data = json_normalize(res, "data")
+    date_range = pd.date_range(start_date, end_date, freq=batch_size)
 
-    # Time in miliseconds, convert to posixct
-    data.columns = ["TIME", "PRECIPITATION"]
-    data["TIME"] = pd.to_datetime(data["TIME"], unit="ms")
+    result = []
+    for date in date_range:
+        start_date_, end_date_ = date, date + pd.Timedelta(batch_size)
+
+        print(start_date_, end_date_)
+
+        regenradar_url = "https://rhdhv.lizard.net/api/v3/raster-aggregates/?"
+        params = {
+            "agg": "average",
+            "rasters": "730d6675",
+            "srs": "EPSG:4326",
+            "start": str(start_date_),
+            "stop": str(end_date_),
+            "window": str(window),
+            "geom": "POINT+({x}+{y})".format(x=longitude, y=latitude),
+        }
+        params.update(kwargs)
+        params = "&".join("%s=%s" % (k, v) for k, v in params.items() if v is not None)
+
+        res = requests.get(regenradar_url + params, auth=(user, password))
+        res = res.json()
+        data = json_normalize(res, "data")
+
+        # Time in miliseconds, convert to posixct
+        data.columns = ["TIME", "PRECIPITATION"]
+        data["TIME"] = pd.to_datetime(data["TIME"], unit="ms")
+
+        result.append(data)
+    data = pd.concat(result, ignore_index=True)
+
+    # because of batch collection, there can be duplicate data or data outside of the date range
+    data = data.drop_duplicates().loc[data["TIME"].between(start_date, end_date)].reset_index()
+
     log_dataframe_characteristics(data, logging.DEBUG)
     return data
