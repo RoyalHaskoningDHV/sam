@@ -103,8 +103,10 @@ def read_regenradar(
         ).format(start_date, end_date, latitude, longitude, window)
     )
 
-    start_date = _try_parsing_date(start_date)
-    end_date = _try_parsing_date(end_date)
+    if isinstance(start_date, str):
+        start_date = _try_parsing_date(start_date)
+    if isinstance(end_date, str):
+        end_date = _try_parsing_date(end_date)
 
     date_range = pd.date_range(start_date, end_date, freq=batch_size)
 
