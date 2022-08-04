@@ -141,7 +141,11 @@ def read_regenradar(
     data = pd.concat(result, ignore_index=True)
 
     # because of batch collection, there can be duplicate data or data outside of the date range
-    data = data.drop_duplicates().loc[data["TIME"].between(start_date, end_date)].reset_index()
+    data = (
+        data.drop_duplicates()
+        .loc[data["TIME"].between(start_date, end_date)]
+        .reset_index(drop=True)
+    )
 
     log_dataframe_characteristics(data, logging.DEBUG)
     return data
