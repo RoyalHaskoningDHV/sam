@@ -51,18 +51,10 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         Regularization constant that multiplies the L1 penalty term.
     fit_intercept : bool, default=True
         Whether or not to fit the intercept.
-    solver : {'highs-ds', 'highs-ipm', 'highs', 'interior-point', \
-            'revised simplex'}, default='interior-point'
-        Method used by :func:`scipy.optimize.linprog` to solve the linear
-        programming formulation. Note that the highs methods are recommended
-        for usage with `scipy>=1.6.0` because they are the fastest ones.
-        Solvers "highs-ds", "highs-ipm" and "highs" support
-        sparse input data and, in fact, always convert to sparse csc.
-    solver_options : dict, default=None
-        Additional parameters passed to :func:`scipy.optimize.linprog` as
-        options. If `None` and if `solver='interior-point'`, then
-        `{"lstsq": True}` is passed to :func:`scipy.optimize.linprog` for the
-        sake of stability.
+    quantile_options : dict, optional (default=None)
+        Options for `sklearn.linear_model.QuantileRegressor`.
+    mean_options : dict, optional (default=None)
+        Options for `sklearn.linear_model.Lasso`.
     kwargs: dict, optional
         Not used. Just for compatibility of models that inherit from this class.
 
@@ -108,8 +100,8 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         feature_engineer: BaseFeatureEngineer = None,
         alpha: float = 1.0,
         fit_intercept: bool = True,
-        solver: str = "interior-point",
-        solver_options: dict = None,
+        quantile_options: dict = None,
+        mean_options: dict = None,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -124,8 +116,8 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         self.average_type = average_type
         self.alpha = alpha
         self.fit_intercept = fit_intercept
-        self.solver = solver
-        self.solver_options = solver_options
+        self.quantile_options = quantile_options
+        self.mean_options = mean_options
         self.feature_engineer = feature_engineer
 
         if self.average_type == "median" and 0.5 in self.quantiles:
@@ -141,13 +133,13 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
                 quantile=quantile,
                 alpha=self.alpha,
                 fit_intercept=self.fit_intercept,
-                solver=self.solver,
-                solver_options=self.solver_options,
+                **(self.quantile_options or {}),
             )
         else:
             estimator = Lasso(
                 alpha=self.alpha,
                 fit_intercept=self.fit_intercept,
+                **(self.mean_options or {}),
             )
         return MultiOutputRegressor(estimator=estimator)
 
