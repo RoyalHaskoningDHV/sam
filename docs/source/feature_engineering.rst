@@ -4,7 +4,9 @@
 Feature Engineering
 ===================
 
-This is the documentation for feature engineering. Please see `Features <general_documents/feature_extraction.md>`_ for further details on which features to use.
+This is the documentation for feature engineering. For most use cases the `SimpleFeatureEngineer` will suffice.
+It is also possible to create you own function as a feature engineer using `FeatureEngineer`.
+For more info see the `Feature engineering examples <https://github.com/RoyalHaskoningDHV/sam/blob/main/examples/feature_engineering.ipynb>`_
 
 Feature engineering for timeseries
 -----------------------------------
