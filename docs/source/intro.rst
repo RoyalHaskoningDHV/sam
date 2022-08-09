@@ -39,11 +39,10 @@ The package is build up accordingly as can be seen in the Contents below.
 
 Some highlights:
 
-* Easily train a functional model on timeseries data with ``sam.models.SamQuantileMLP``
-* Build features from time series using the ``sam.feature_engineering.BuildRollingFeatures`` class
+* Easily train a functional model on timeseries data with ``sam.models.MLPTimeseriesRegressor``
+* Build features from time series using the ``sam.feature_engineering.SimpleFeatureEngineer`` class
 * Automatically remove extreme values, flatlines and missing values with ``sam.validation.create_validation_pipe``
-* Do quantile regression in Keras, with ``sam.metrics.keras_joint_mse_tilted_loss``
-* Visualise the flags raised by the model in a ``sam.visualization.plot_incident_heatmap``
+* Visualise the predicted quantiles using ``sam.visualization.sam_quantile_plot``
 
 Contributing / requesting features
 ----------------------------------
