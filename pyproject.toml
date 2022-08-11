@@ -3,7 +3,10 @@ requires = ["setuptools>=42", "wheel", "toml", "build"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["sam", "sam.models"]
+packages = ["sam"]
+
+[tool.setuptools.packages]
+include = ["sam*"]
 
 [project]
 name = "sam"
