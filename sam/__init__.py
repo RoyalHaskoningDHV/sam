@@ -5,7 +5,6 @@ import re
 import warnings
 from os.path import isdir
 
-import toml
 
 warnings.filterwarnings(
     "always", category=DeprecationWarning, module=r"^{0}\.".format(re.escape(__name__))
