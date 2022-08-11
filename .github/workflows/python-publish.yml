@@ -28,14 +28,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine
+          pip install build twine wheels sdist
       - name: Build and publish package
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         run: |
-          echo "secrets:"
-          echo "  PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}"
-          echo "  PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}"
           python -m build
+          sed -i 's/PYPI_API_TOKEN/${{ secrets.PYPI_API_TOKEN }}/' .pypirc
+          cat .pypirc
+          cp .pypirc $HOME/
           twine upload dist/* --verbose
