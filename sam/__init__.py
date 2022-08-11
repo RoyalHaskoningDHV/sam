@@ -5,6 +5,8 @@ import re
 import warnings
 from os.path import isdir
 
+import toml
+
 warnings.filterwarnings(
     "always", category=DeprecationWarning, module=r"^{0}\.".format(re.escape(__name__))
 )
@@ -22,6 +24,8 @@ if isdir("logs"):
 config = configparser.ConfigParser()
 config.read(".config")
 
+with open("pyproject.toml") as f:
+    __version__ = toml.load(f)["project"]["version"]
 
 __all__ = [
     "data_sources",
