@@ -35,4 +35,4 @@ jobs:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         run: |
           python -m build
-          twine upload dist/*
+          twine upload dist/* --verbose
