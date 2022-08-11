@@ -30,9 +30,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
       - name: Build and publish package
-        env:
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         run: |
           python -m build
           sed -i 's/PYPI_API_TOKEN/${{ secrets.PYPI_API_TOKEN }}/' .pypirc
