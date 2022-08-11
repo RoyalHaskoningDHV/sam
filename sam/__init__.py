@@ -24,9 +24,6 @@ if isdir("logs"):
 config = configparser.ConfigParser()
 config.read(".config")
 
-with open("pyproject.toml") as f:
-    __version__ = toml.load(f)["project"]["version"]
-
 __all__ = [
     "data_sources",
     "exploration",
