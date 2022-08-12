@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=42", "wheel", "toml"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -19,7 +19,7 @@ packages = [
 
 [project]
 name = "sam"
-version = "3.0.2a7"
+version = "3.0.2"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.8"

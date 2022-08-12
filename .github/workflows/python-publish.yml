@@ -10,7 +10,7 @@ name: Upload Python Package
 
 on:
   push:
-    branches: [pypi-publish]
+    branches: [main]
 
 permissions:
   contents: read
