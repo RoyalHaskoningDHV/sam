@@ -19,7 +19,7 @@ packages = [
 
 [project]
 name = "sam"
-version = "3.0.2a6"
+version = "3.0.2a7"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.8"
