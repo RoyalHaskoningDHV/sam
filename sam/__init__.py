@@ -27,6 +27,7 @@ __all__ = [
     "data_sources",
     "exploration",
     "feature_engineering",
+    "logging_functions",
     "metrics",
     "models",
     "preprocessing",
