@@ -15,7 +15,7 @@ The easiest way to install is package is using pip:
 pip install sam
 ```
 
-There are different optional dependencies for SAM, if you are unsure use `pip install sam[all]` other options include `plotting` (just use the plotting functionality), `data_science` (all dependencies needed for a data scientist) and `data_engineering` (dependencies for data engineer).
+There are different optional dependencies for SAM, if you are unsure use `pip install 'sam[all]'` other options include `plotting` (just use the plotting functionality), `data_science` (all dependencies needed for a data scientist) and `data_engineering` (dependencies for data engineer).
 
 Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the `pip install -U sam` command to install the latest version.
 
