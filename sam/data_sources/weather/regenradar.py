@@ -12,10 +12,11 @@ logger = logging.getLogger(__name__)
 def read_regenradar(
     start_date: str,
     end_date: str,
-    latitude: float = 52.11,
-    longitude: float = 5.18,
+    latitude: float = 52.0237687,
+    longitude: float = 5.5920412,
     freq: float = "5min",
     batch_size: str = "7D",
+    crs: str = "EPSG:4326",
     **kwargs,
 ) -> pd.DataFrame:
     """
@@ -53,6 +54,9 @@ def read_regenradar(
         <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases>`__.
     batch_size: str, default '7D'
         batch size for collecting data from the API to avoid time-out. Default is 7 days.
+    crs: str, default 'EPSG:4326'
+        coordinate system for provided longitude (x) and latitude (y) values (or geometry by
+        kwargs). Default is WGS84.
     kwargs: dict
         additional parameters passed in the url. Must be convertable to string. Any entries with a
         value of None will be ignored and not passed in the url.
@@ -97,10 +101,9 @@ def read_regenradar(
     password = config["regenradar"]["password"]
 
     logger.debug(
-        (
-            "Getting regenradar historic data: start_date={}, end_date={}, latitude={}, "
-            "longitude={}, window={}"
-        ).format(start_date, end_date, latitude, longitude, window)
+        f"Getting regenradar historic data: start_date={start_date}, "
+        f"end_date={end_date}, latitude={latitude}, "
+        f"longitude={longitude}, window={window}"
     )
 
     if isinstance(start_date, str):
@@ -114,17 +117,17 @@ def read_regenradar(
     for date in date_range:
         start_date_, end_date_ = date, date + pd.Timedelta(batch_size)
 
-        print(start_date_, end_date_)
+        logging.debug(f"Getting regenradar data batch for {start_date_} to {end_date_}")
 
-        regenradar_url = "https://rhdhv.lizard.net/api/v3/raster-aggregates/?"
+        regenradar_url = config["regenradar"]["url"]
         params = {
             "agg": "average",
             "rasters": "730d6675",
-            "srs": "EPSG:4326",
+            "srs": crs,
             "start": str(start_date_),
             "stop": str(end_date_),
             "window": str(window),
-            "geom": "POINT+({x}+{y})".format(x=longitude, y=latitude),
+            "geom": f"POINT+({longitude}+{latitude})",
         }
         params.update(kwargs)
         params = "&".join("%s=%s" % (k, v) for k, v in params.items() if v is not None)

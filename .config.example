@@ -1,5 +1,6 @@
 [regenradar]
-user=loes.knoben
+url=https://rhdhv.lizard.net/api/v3/raster-aggregates/?
+user=user.name
 password=secret
 
 [openweathermap]
