@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from sam.validation import RemoveFlatlines
 
@@ -25,8 +24,8 @@ def diagnostic_flatline_removal(rf: RemoveFlatlines, raw_data: pd.DataFrame, col
 
     # get data
     x = raw_data[col].copy()
-    invalid_w = np.where(rf.invalids[col])[0]
-    invalid_values = x.iloc[invalid_w]
+    invalid_w = rf.validate(raw_data)[col]
+    invalid_values = x[invalid_w]
 
     # generate plot
     fig = plt.figure(figsize=(12, 6))

@@ -14,7 +14,7 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
         test_df["values"] = data
         # now detect flatlines
         cols_to_check = ["values"]
-        RF = RemoveFlatlines(cols=cols_to_check, window=2)
+        RF = RemoveFlatlines(cols=cols_to_check, window=3)
         data_corrected = RF.fit_transform(test_df)
 
         self.assertAllNaN(data_corrected.iloc[[4, 5, 6]])
@@ -43,12 +43,13 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
         test_df["values"] = data
         # now detect flatlines with low tolerance (high pvalues)
         cols_to_check = ["values"]
-        RF = RemoveFlatlines(cols=cols_to_check, window="auto", pvalue=0.9999)
+        RF = RemoveFlatlines(cols=cols_to_check, window="auto", pvalue=1 - 1e-6)
         data_corrected = RF.fit_transform(test_df)
 
+        print(data_corrected)
+
         # all flatlines should be removed
-        self.assertAllNaN(data_corrected.iloc[[4, 5, 6, 9, 10, 11, 12]])
-        self.assertAllNotNaN(data_corrected.drop([4, 5, 6, 9, 10, 11, 12], axis=0))
+        self.assertAllNaN(data_corrected)
 
 
 if __name__ == "__main__":

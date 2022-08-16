@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-from sam.validation import RemoveExtremeValues
+from sam.validation import MADValidator
 
 
 def diagnostic_extreme_removal(
-    rev: RemoveExtremeValues,
+    rev: MADValidator,
     raw_data: pd.DataFrame,
     col: str,
 ):
@@ -13,8 +13,8 @@ def diagnostic_extreme_removal(
 
     Parameters:
     ----------
-    rev: sam.validation.RemoveExtremeValues
-        fitted RemoveExtremeValues object
+    rev: sam.validation.MADValidator
+        fitted MADValidator object
     raw_data: pd.DataFrame
         non-transformed data data
     col: string
@@ -30,8 +30,10 @@ def diagnostic_extreme_removal(
 
     # get data
     x = raw_data[col].copy()
-    invalid_w = np.where(rev.invalids[col])[0]
-    invalid_values = x.iloc[invalid_w]
+    invalid_w = rev.validate(raw_data)[col]
+    invalid_values = x.loc[invalid_w]
+    rolling = rev._compute_rolling(x)
+    diff = x.values - rolling
 
     # generate plot
     fig = plt.figure(figsize=(12, 6))
@@ -41,8 +43,8 @@ def diagnostic_extreme_removal(
     plt.plot(x.index, x.values, label="original_signal", lw=5)
 
     plt.plot(
-        rev.rollings[col].index,
-        rev.rollings[col].values,
+        rolling.index,
+        rolling.values,
         "--k",
         label="rolling median",
         lw=3,
@@ -63,7 +65,7 @@ def diagnostic_extreme_removal(
     sns.despine()
 
     plt.subplot(212)
-    plt.plot(rev.diffs[col].values, label="abs(original - rolling)")
+    plt.plot(diff.values, label="abs(original - rolling)")
     plt.axhline(rev.thresh_high[col], ls="--", c="r")
     plt.axhline(rev.thresh_low[col], ls="--", c="r", label="thresholds")
     plt.legend(loc="best")
