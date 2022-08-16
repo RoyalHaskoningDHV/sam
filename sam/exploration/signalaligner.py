@@ -64,13 +64,13 @@ class SignalAligner(base.BaseEstimator, base.TransformerMixin):
         signal_one_pp : np.ndarray
         signal_two_pp : np.ndarray
         """
-        N1 = len(signal_one)
-        N2 = len(signal_two)
-        if N1 < N2:
-            signal_one = self._zeropad(signal_one, N2)
+        signal_one_len = len(signal_one)
+        signal_two_len = len(signal_two)
+        if signal_one_len < signal_two_len:
+            signal_one = self._zeropad(signal_one, signal_two_len)
             self.signal_one = signal_one
-        elif N2 < N1:
-            signal_two = self._zeropad(signal_two, N1)
+        elif signal_two_len < signal_one_len:
+            signal_two = self._zeropad(signal_two, signal_one_len)
             self.signal_two = signal_two
 
         # we cannot allow nans for alignment.
@@ -79,7 +79,7 @@ class SignalAligner(base.BaseEstimator, base.TransformerMixin):
 
         return signal_one, signal_two
 
-    def _zeropad(self, signal: np.ndarray, N: int):
+    def _zeropad(self, signal: np.ndarray, n_samples: int):
         """Zeropad signal to obtain N samples in total.
         We pad the signal at the beginning.
 
@@ -87,7 +87,7 @@ class SignalAligner(base.BaseEstimator, base.TransformerMixin):
         ----------
         signal : np.ndarray
             Input signals
-        N : int
+        n_samples : int
             Number of samples to pad to
 
         Returns
@@ -95,7 +95,7 @@ class SignalAligner(base.BaseEstimator, base.TransformerMixin):
         signal_pad : np.ndarray
             Zero-padded input signal
         """
-        signal_pad = np.concatenate([np.zeros((N - len(signal),)), signal])
+        signal_pad = np.concatenate([np.zeros((n_samples - len(signal),)), signal])
         return signal_pad
 
     def align_signals(self, signal_one: np.ndarray, signal_two: np.ndarray):
