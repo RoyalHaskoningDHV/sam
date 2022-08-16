@@ -142,9 +142,6 @@ class MADValidator(BaseValidator):
             columns=X.columns,
         )
 
-        # self.rollings, self.invalids, self.diffs = {}, {}, {}
-
-        data_r = X.copy()
         for c in self.cols:
 
             # get data
@@ -156,14 +153,6 @@ class MADValidator(BaseValidator):
 
             # as thresholds are computed in signed way, we can directly compare
             extreme_value = (diff > self.thresh_high[c]) | (diff < self.thresh_low[c])
-
-            # save some variables to self so they are available for plot
-            # self.diffs[c] = diff
-            # self.rollings[c] = rolling
-            # self.invalids[c] = extreme_value
-
-            # set false values to nan
-            # data_r.loc[invalids, c] = np.nan
 
             # log number of values removed and tresholds used
             logger.info(
