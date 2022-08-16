@@ -18,6 +18,24 @@ except ImportError:
     skipkeras = True
 
 
+@set_seed
+def train_mlp(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler):
+    fe = SimpleFeatureEngineer(keep_original=True)
+    model = MLPTimeseriesRegressor(
+        predict_ahead=predict_ahead,
+        quantiles=quantiles,
+        use_diff_of_y=use_diff_of_y,
+        y_scaler=y_scaler,
+        feature_engineer=fe,
+        average_type=average_type,
+        lr=0.01,
+        epochs=40,
+        verbose=0,
+    )
+    model.fit(X, y)
+    return model
+
+
 @pytest.mark.skipif(skipkeras, reason="Keras backend not found")
 @pytest.mark.parametrize(
     "predict_ahead,quantiles,average_type,use_diff_of_y,y_scaler,max_mae",
@@ -38,7 +56,6 @@ except ImportError:
         ((1, 2, 3), (0.1, 0.5, 0.9), "mean", True, StandardScaler(), 3.0),  # all options
     ],
 )
-@set_seed
 def test_mlp(
     predict_ahead,
     quantiles,
@@ -49,19 +66,7 @@ def test_mlp(
 ):
 
     X, y = get_dataset()
-    fe = SimpleFeatureEngineer(keep_original=True)
-    model = MLPTimeseriesRegressor(
-        predict_ahead=predict_ahead,
-        quantiles=quantiles,
-        use_diff_of_y=use_diff_of_y,
-        y_scaler=y_scaler,
-        feature_engineer=fe,
-        average_type=average_type,
-        lr=0.01,
-        epochs=40,
-        verbose=0,
-    )
-    model.fit(X, y)
+    model = train_mlp(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler)
     assert_get_actual(model, X, y, predict_ahead)
     assert_prediction(
         model=model,
