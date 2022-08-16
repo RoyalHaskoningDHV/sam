@@ -1,9 +1,21 @@
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=42", "wheel", "toml"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["sam"]
+packages = [
+    "sam",
+    "sam.data_sources",
+    "sam.exploration",
+    "sam.feature_engineering",
+    "sam.logging_functions",
+    "sam.metrics",
+    "sam.models",
+    "sam.preprocessing",
+    "sam.utils",
+    "sam.validation",
+    "sam.visualization"
+]
 
 [project]
 name = "sam"
