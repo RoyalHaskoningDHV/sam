@@ -1,7 +1,25 @@
+import os
+import random
+
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 from sklearn.metrics import mean_absolute_error
+
+
+def set_seed(func):
+    """Decorator to set seeds of multiple libraries for a test"""
+
+    def wrapper(*args, **kwargs):
+        import tensorflow as tf
+
+        random.seed(42)
+        np.random.seed(42)
+        tf.random.set_seed(42)
+        os.environ["PYTHONHASHSEED"] = "0"
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 def get_dataset():

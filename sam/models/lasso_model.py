@@ -151,12 +151,14 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     ):
         X, y, _, _ = self.preprocess_fit(X, y)
         self.model_ = [self.get_untrained_model(quantile) for quantile in self.quantiles]
+
         if self.average_type == "mean":
             self.model_.append(self.get_untrained_model())
         elif self.average_type == "median":
             self.model_.append(self.get_untrained_model(0.5))
         else:
             raise ValueError(f"Unknown average_type: {self.average_type}")
+
         for model in self.model_:
             model.fit(X, y, **fit_kwargs)
         return self

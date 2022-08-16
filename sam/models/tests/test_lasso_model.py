@@ -1,7 +1,3 @@
-import os
-import random
-
-import numpy as np
 import pytest
 from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
 from sam.models import LassoTimeseriesRegressor
@@ -10,6 +6,7 @@ from sam.models.tests.utils import (
     assert_performance,
     assert_prediction,
     get_dataset,
+    set_seed,
 )
 from sklearn.preprocessing import StandardScaler
 
@@ -41,6 +38,7 @@ except ImportError:
         ((1, 2, 3), (0.1, 0.5, 0.9), "mean", True, StandardScaler(), 3.0),  # all options
     ],
 )
+@set_seed
 def test_lasso(
     predict_ahead,
     quantiles,
@@ -50,14 +48,7 @@ def test_lasso(
     max_mae,
 ):
 
-    # Now start setting the RNG so we get reproducible results
-    random.seed(42)
-    np.random.seed(42)
-    tf.random.set_seed(42)
-    os.environ["PYTHONHASHSEED"] = "0"
-
     X, y = get_dataset()
-
     fe = SimpleFeatureEngineer(keep_original=True)
     model = LassoTimeseriesRegressor(
         predict_ahead=predict_ahead,
