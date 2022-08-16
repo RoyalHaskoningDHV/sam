@@ -30,7 +30,7 @@ def plot_feature_importances(importances: pd.DataFrame, feature_names: Iterable 
 
     Examples
     --------
-    >>> # One way to get to feature importances is to first fit a SamQauntileMLP.
+    >>> # One way to get to feature importances is to first fit a MLPTimeseriesRegressor.
     >>> # In this example, we assumed you did and refer to it as `model`.
     >>> from sam.visualization import plot_quantile_feature_importances
     >>> # note that we need a negative here, as default score function is a loss

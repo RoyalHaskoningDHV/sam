@@ -5,6 +5,7 @@ import re
 import warnings
 from os.path import isdir
 
+
 warnings.filterwarnings(
     "always", category=DeprecationWarning, module=r"^{0}\.".format(re.escape(__name__))
 )
@@ -22,11 +23,11 @@ if isdir("logs"):
 config = configparser.ConfigParser()
 config.read(".config")
 
-
 __all__ = [
     "data_sources",
     "exploration",
     "feature_engineering",
+    "logging_functions",
     "metrics",
     "models",
     "preprocessing",
