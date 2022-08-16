@@ -6,9 +6,16 @@ Data Validation
 
 This is the documentation for the validation functions.
 
+Base Validation class
+---------------------
+.. autoclass:: sam.validation.BaseValidator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Detect Extreme Values
 ---------------------------
-.. autoclass:: sam.validation.RemoveExtremeValues
+.. autoclass:: sam.validation.MADValidator
     :members:
     :undoc-members:
     :show-inheritance:
@@ -23,7 +30,7 @@ Testset image:
 
 Detect Flatlines
 ---------------------------
-.. autoclass:: sam.validation.RemoveFlatlines
+.. autoclass:: sam.validation.FlatlineValidator
     :members:
     :undoc-members:
     :show-inheritance:

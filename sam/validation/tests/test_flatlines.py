@@ -1,11 +1,11 @@
 import unittest
 
 import pandas as pd
-from sam.validation import RemoveFlatlines
+from sam.validation import FlatlineValidator
 from .numeric_assertions import NumericAssertions
 
 
-class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
+class TestFlatlineValidator(unittest.TestCase, NumericAssertions):
     def test_remove_flatlines(self):
 
         # create some random data
@@ -14,7 +14,7 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
         test_df["values"] = data
         # now detect flatlines
         cols_to_check = ["values"]
-        RF = RemoveFlatlines(cols=cols_to_check, window=3)
+        RF = FlatlineValidator(cols=cols_to_check, window=3)
         data_corrected = RF.fit_transform(test_df)
 
         self.assertAllNaN(data_corrected.iloc[[4, 5, 6]])
@@ -28,7 +28,7 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
         test_df["values"] = data
         # now detect flatlines with high tolerance (low pvalues)
         cols_to_check = ["values"]
-        RF = RemoveFlatlines(cols=cols_to_check, window="auto", pvalue=1e-100)
+        RF = FlatlineValidator(cols=cols_to_check, window="auto", pvalue=1e-100)
         data_corrected = RF.fit_transform(test_df)
 
         # no flatlines should be detected
@@ -43,7 +43,7 @@ class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
         test_df["values"] = data
         # now detect flatlines with low tolerance (high pvalues)
         cols_to_check = ["values"]
-        RF = RemoveFlatlines(cols=cols_to_check, window="auto", pvalue=1 - 1e-6)
+        RF = FlatlineValidator(cols=cols_to_check, window="auto", pvalue=0.99999)
         data_corrected = RF.fit_transform(test_df)
 
         print(data_corrected)

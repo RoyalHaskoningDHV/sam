@@ -1,15 +1,15 @@
 import pandas as pd
-from sam.validation import RemoveFlatlines
+from sam.validation import FlatlineValidator
 
 
-def diagnostic_flatline_removal(rf: RemoveFlatlines, raw_data: pd.DataFrame, col: str):
+def diagnostic_flatline_removal(fv: FlatlineValidator, raw_data: pd.DataFrame, col: str):
     """
     Creates a diagnostic plot for the extreme value removal procedure.
 
     Parameters:
     ----------
-    rf: sam.validation.RemoveFlatlines
-        fitted RemoveFlatlines object
+    fv: sam.validation.FlatlineValidator
+        fitted FlatlineValidator object
     raw_data: pd.DataFrame
         non-transformed data
     col: string
@@ -24,7 +24,7 @@ def diagnostic_flatline_removal(rf: RemoveFlatlines, raw_data: pd.DataFrame, col
 
     # get data
     x = raw_data[col].copy()
-    invalid_w = rf.validate(raw_data)[col]
+    invalid_w = fv.validate(raw_data)[col]
     invalid_values = x[invalid_w]
 
     # generate plot
