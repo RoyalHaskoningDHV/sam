@@ -2,7 +2,11 @@ import pandas as pd
 from sam.validation import FlatlineValidator
 
 
-def diagnostic_flatline_removal(fv: FlatlineValidator, raw_data: pd.DataFrame, col: str):
+def diagnostic_flatline_removal(
+    fv: FlatlineValidator,
+    raw_data: pd.DataFrame,
+    col: str,
+):
     """
     Creates a diagnostic plot for the extreme value removal procedure.
 

@@ -78,7 +78,12 @@ class MADValidator(BaseValidator):
     >>> fig = diagnostic_extreme_removal(REV, test_df, 'values')
     """
 
-    def __init__(self, rollingwindow: Union[int, str], cols: list = None, madthresh=15):
+    def __init__(
+        self,
+        rollingwindow: Union[int, str],
+        cols: list = None,
+        madthresh=15,
+    ):
 
         self.rollingwindow = rollingwindow
         self.cols = cols
