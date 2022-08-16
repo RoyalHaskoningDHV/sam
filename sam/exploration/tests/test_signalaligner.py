@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from ..signalaligner import SignalAligner
+from sam.exploration.signalaligner import SignalAligner
 
 
 @pytest.mark.parametrize("N_aligned", [40, 50])
@@ -30,7 +30,7 @@ def test_signalaligner(N_aligned, N1, N2, reference):
 
     sa = SignalAligner()
 
-    df, offset = sa.align_dataframes(df1, df2, col1, col2, reference=reference)
+    df, offset = sa.fit(df1, df2, col1, col2, reference=reference)
 
     N_equal = sum([1 if x1 == x2 else 0 for x1, x2 in zip(df["lat_x"].values, df["lat_y"].values)])
 

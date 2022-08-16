@@ -1,17 +1,16 @@
+from typing import Union
+
 import numpy as np
 import pandas as pd
 
+from sklearn import base
 
-class SignalAligner:
+
+class SignalAligner(base.BaseEstimator, base.TransformerMixin):
     """Allows temporal alignment of two signals or dataframes containing two signals
     to be aligned. We assume both signals have the same sampling frequency. For now
     there is no timestamp based alignment, we simply use the cross-correlation of the
     to be aligned signals (thereby assuming equal sampling frequencies).
-
-    Parameters
-    ----------
-    signal_one : np.ndarray (default=None)
-    signal_two : np.ndarray (default=None)
 
     Examples
     --------
@@ -21,7 +20,8 @@ class SignalAligner:
 
     >>> signal_one = np.array([0, 1, 2, 3, 4, 3, 2, 1, 0])
     >>> signal_two = np.array([0, 0, 0, 0, 0, 1, 2, 3, 4, 3, 2])
-    >>> offset, _ = SignalAligner.align_signals(signal_one, signal_two)
+    >>> sa = SignalAligner()
+    >>> offset, _ = sa.align_signals(signal_one, signal_two)
 
     >>> print('Offset =', offset)
 
@@ -46,17 +46,10 @@ class SignalAligner:
     >>> sa = SignalAligner()
     >>> df, offset = sa.align_dataframes(df1, df2, col1, col2, reference=0)
     """
+    def __init__(self):
+        pass
 
-    def __init__(self, signal_one=None, signal_two=None):
-
-        self.signal_one = signal_one
-        self.signal_two = signal_two
-
-        if (signal_one is not None) and (signal_two is not None):
-            signal_one, signal_two = self._preprocess_signals(signal_one, signal_two)
-            self.offset, self.aligned_signal = self.align_signals(signal_one, signal_two)
-
-    def _preprocess_signals(self, signal_one, signal_two):
+    def _preprocess_signals(self, signal_one: np.ndarray, signal_two: np.ndarray):
         """Pad signals to have equal length.
 
         NOTE: Assumes we have the same sampling frequency for both signals
@@ -86,7 +79,7 @@ class SignalAligner:
 
         return signal_one, signal_two
 
-    def _zeropad(self, signal, N):
+    def _zeropad(self, signal: np.ndarray, N: int):
         """Zeropad signal to obtain N samples in total.
         We pad the signal at the beginning.
 
@@ -105,8 +98,7 @@ class SignalAligner:
         signal_pad = np.concatenate([np.zeros((N - len(signal),)), signal])
         return signal_pad
 
-    @staticmethod
-    def align_signals(signal_one, signal_two):
+    def align_signals(self, signal_one: np.ndarray, signal_two: np.ndarray):
         """Assuming we have two signals that measure the same variable,
         are at the same sampling frequency, but are misaligned in time,
         return the aligned signal and fill non-overlapping entries with
@@ -126,6 +118,9 @@ class SignalAligner:
         aligned_signal : np.ndarray
             Aligned signal, non-overlapping values are filled with np.nan
         """
+        if signal_one is not None and signal_two is not None:
+            signal_one, signal_two = self._preprocess_signals(signal_one, signal_two)
+
         xcorr = np.correlate(signal_one, signal_two, mode="full")
         offset = len(xcorr) // 2 - np.where(xcorr == np.amax(xcorr))[0][0]
 
@@ -137,7 +132,7 @@ class SignalAligner:
 
         return offset, aligned_signal
 
-    def _pad_df_with_nans(self, df, offset):
+    def _pad_df_with_nans(self, df: pd.DataFrame, offset: int):
         """Pad a dataframe with nan-filled rows either at the
         beginning or the end (depending on the offset).
 
@@ -162,9 +157,14 @@ class SignalAligner:
         else:
             return pd.concat([df, df_nan], axis=0)
 
-    def _prune_combined_data(self, df_aligned, col1, col2, reference):
-        """Instead of just aligning two numpy array signals, we might want to
-        align two pandas data frames based on specific columns.
+    def _prune_combined_data(
+        self, 
+        df_aligned: pd.DataFrame, 
+        col1: str, 
+        col2: str, 
+        reference: int
+    ):
+        """Drop NaNs in columns used for alignment.
 
         Parameters
         ----------
@@ -194,7 +194,14 @@ class SignalAligner:
 
         return df_aligned
 
-    def align_dataframes(self, df1, df2, col1, col2, reference=None):
+    def align_dataframes(
+        self, 
+        df1: pd.DataFrame, 
+        df2: pd.DataFrame, 
+        col1: str, 
+        col2: str,
+        reference: int = None
+    ):
         """Instead of just aligning two numpy array signals, we might want to
         align two pandas data frames based on specific columns.
 
@@ -209,7 +216,7 @@ class SignalAligner:
         reference : int (default=None)
             When not None, we return the output relative to the first (reference=0) or
             second (reference=1) dataframe input, such that the shape is preserved and
-            data unchaged.
+            data unchanged.
 
         Returns
         -------
@@ -257,3 +264,18 @@ class SignalAligner:
         df_aligned = self._prune_combined_data(df_aligned, col1, col2, reference)
 
         return df_aligned, offset
+    
+    def fit(
+        self, 
+        X1: Union[pd.DataFrame, np.ndarray], 
+        X2: Union[pd.DataFrame, np.ndarray], 
+        col1: str = None, 
+        col2: str = None,
+        **kwargs,
+    ):
+        """Align and combine two signals or dataframes including the to be aligned signals
+        (when col1 and col2 are given uses `align_dataframes`, otherwise uses `align_signals`)
+        """
+        if (col1 is not None) & (col2 is not None):
+            return self.align_dataframes(X1, X2, col1, col2, **kwargs)
+        return self.align_signals(X1, X2)
