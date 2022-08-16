@@ -11,11 +11,15 @@ def set_seed(func):
     """Decorator to set seeds of multiple libraries for a test"""
 
     def wrapper(*args, **kwargs):
-        import tensorflow as tf
+        try:
+            import tensorflow as tf
+
+            tf.random.set_seed(42)
+        except ImportError:
+            pass
 
         random.seed(42)
         np.random.seed(42)
-        tf.random.set_seed(42)
         os.environ["PYTHONHASHSEED"] = "0"
         return func(*args, **kwargs)
 

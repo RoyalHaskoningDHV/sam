@@ -13,7 +13,7 @@ from sklearn.preprocessing import StandardScaler
 # If tensorflow is not available, skip these unittests
 skipkeras = False
 try:
-    import tensorflow as tf
+    import tensorflow as tf  # noqa: F401
 except ImportError:
     skipkeras = True
 

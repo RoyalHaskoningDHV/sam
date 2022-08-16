@@ -10,15 +10,7 @@ from sam.models.tests.utils import (
 )
 from sklearn.preprocessing import StandardScaler
 
-# If tensorflow is not available, skip these unittests
-skipkeras = False
-try:
-    import tensorflow as tf
-except ImportError:
-    skipkeras = True
 
-
-@pytest.mark.skipif(skipkeras, reason="Keras backend not found")
 @pytest.mark.parametrize(
     "predict_ahead,quantiles,average_type,use_diff_of_y,y_scaler,max_mae",
     [
