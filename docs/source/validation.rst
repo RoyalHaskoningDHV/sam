@@ -13,6 +13,13 @@ Base Validation class
     :undoc-members:
     :show-inheritance:
 
+Detect Outside Range
+--------------------
+.. autoclass:: sam.validation.OutsideRangeValidator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Detect Extreme Values
 ---------------------------
 .. autoclass:: sam.validation.MADValidator
