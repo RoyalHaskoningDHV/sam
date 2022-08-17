@@ -1,13 +1,6 @@
-"""
-Implementation of BaseValidator class, where the validation method labels data that is outside the provided range
-range is by variables cols, min_value, max_value.
-
-"""
-
 from typing import Union
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, TransformerMixin
 
 from sam.validation import BaseValidator
 
@@ -19,11 +12,14 @@ class OutsideRangeValidator(BaseValidator):
     Parameters
     ----------
     cols: list (optional)
-        Columns of input data to be checkout for being outside range. If None, all columns will be validated
+        Columns of input data to be checkout for being outside range. If None, all columns will be
+        validated
     min_value: float, dict or "auto" (optional)
-        Minimum value to check against. If None, no minimum will be checked. If "auto", the minimum value of the data will be used.
+        Minimum value to check against. If None, no minimum will be checked. If "auto", the minimum
+        value of the data will be used.
     max_value: float, dict or "auto" (optional)
-        Maximum value to check against. If None, no maximum will be checked. If "auto", the maximum value of the data will be used.
+        Maximum value to check against. If None, no maximum will be checked. If "auto", the maximum
+        value of the data will be used.
     """
 
     def __init__(
