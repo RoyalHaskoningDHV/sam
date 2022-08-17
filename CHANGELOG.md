@@ -12,7 +12,7 @@ Version X.Y.Z stands for:
 ## Version 3.1.0
 
 ### New features
-- New class `sam.feature_engineering.ClipTransformer` to clip input values to the range from the train set, making models more robust against outliers.
+- New class `sam.preprocessing.ClipTransformer` to clip input values to the range from the train set, making models more robust against outliers.
 
 ## Version 3.0.0
 
