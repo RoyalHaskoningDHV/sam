@@ -37,7 +37,7 @@ class ClipTransformer(BaseEstimator, TransformerMixin):
         X: pd.DataFrame
             Dataframe containing the features to be clipped.
         y: pd.Series or pd.DataFrame (optional)
-            Series or dataframe containing the target to be clipped.
+            Series or dataframe containing the target (ignored)
         """
 
         if self.cols is None:
