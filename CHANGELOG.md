@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.0
+
+### New features
+- New class `sam.validation.OutsideRangeValidator` for checking / removing data outside of a range. 
+
 ## Version 3.0.0
 
 ### New features
