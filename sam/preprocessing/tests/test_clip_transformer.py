@@ -40,7 +40,6 @@ class TestClipTransformer(unittest.TestCase):
     def test_fit_transform(self):
         clipper = ClipTransformer()
         output = clipper.fit_transform(self.train_data)
-        print("RUNNING FIT_TRANSFORM")
         assert_frame_equal(output, self.train_data)
 
     def test_transform(self):
