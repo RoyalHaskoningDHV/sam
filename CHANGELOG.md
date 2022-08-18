@@ -12,6 +12,9 @@ Version X.Y.Z stands for:
 ## Version 3.1.0
 
 ### New features
+- New abstract base class `sam.validation.BaseValidator` for all validators.
+- Renamed `sam.validation.RemoveFlatlines` to `sam.validation.FlatlineValidator`. `sam.validation.RemoveFlatlines` is still available, but removed in future versions.
+- Renamed `sam.validation.RemoveExtremeValues` to `sam.validation.MADValidator`. `sam.validation.RemoveExtremeValues` is still available, but removed in future versions.
 - New class `sam.validation.OutsideRangeValidator` for checking / removing data outside of a range. 
 - New function `datetime_train_test_split` to split pandas dataframes and series based on a datetime.
 - New `sam.datasets` module containing functions for loading read-to-use datasets: `sam.datasets.load_rainbow_beach` and `sam.datasets.load_sewage_data`.
