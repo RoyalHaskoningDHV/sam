@@ -65,7 +65,7 @@ model.fit(X, y)
 
 A configuration file can be created as `.config`. This configuration file only stores api credentials for now, but more options may be added in the future. The configuration file is parsed using the [Python3 configparser](https://docs.python.org/3/library/configparser.html), and an example configuration is shown below:
 
-```
+```ini
 [regenradar]
 url=https://rhdhv.lizard.net/api/v3/raster-aggregates/?
 user=user.name
