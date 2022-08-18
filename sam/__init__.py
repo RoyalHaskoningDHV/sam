@@ -25,6 +25,7 @@ config.read(".config")
 
 __all__ = [
     "data_sources",
+    "datasets",
     "exploration",
     "feature_engineering",
     "logging_functions",

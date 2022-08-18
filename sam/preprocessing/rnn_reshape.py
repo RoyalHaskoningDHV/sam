@@ -24,11 +24,9 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
     ----------
     window : integer
         Number of rows to look back
-
     lookback : integer (default=0)
         the features that are built will be shifted by this value.
         If target is in `X`, `lookback` should be greater than 0 to avoid leakage.
-
     remove_leading_nan : boolean
         Whether leading nans should be removed.
         Leading nans arise because there is no history for first samples
@@ -36,9 +34,9 @@ class RecurrentReshaper(BaseEstimator, TransformerMixin):
     Examples
     --------
     >>> from sam.data_sources import read_knmi
-    >>> from sam.preprocessing import ReshapeFeaturesRNN
+    >>> from sam.preprocessing import RecurrentReshaper
     >>> X = read_knmi('2018-01-01 00:00:00', '2018-01-08 00:00:00').set_index('TIME')
-    >>> reshaper = ReshapeFeaturesRNN(window=7)
+    >>> reshaper = RecurrentReshaper(window=7)
     >>> X3D = reshaper.fit_transform(X)
     """
 
