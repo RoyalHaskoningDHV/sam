@@ -145,4 +145,4 @@ venv.bak/
 
 # Exceptions
 !docs/requirements.txt
-!data/rainbow_beach.parquet
+!sam/datasets/data/*.parquet

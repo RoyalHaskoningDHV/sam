@@ -13,6 +13,8 @@ Version X.Y.Z stands for:
 
 ### New features
 - New class `sam.validation.OutsideRangeValidator` for checking / removing data outside of a range. 
+- New function `datetime_train_test_split` to split pandas dataframes and series based on a datetime.
+- New `sam.datasets` module containing functions for loading read-to-use datasets: `sam.datasets.load_rainbow_beach` and `sam.datasets.load_sewage_data`.
 
 ## Version 3.0.0
 

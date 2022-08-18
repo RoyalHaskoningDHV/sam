@@ -16,6 +16,7 @@ Welcome to SAM's documentation!
    data
    examples
    data_sources
+   datasets
    preprocessing
    exploration
    feature_engineering
