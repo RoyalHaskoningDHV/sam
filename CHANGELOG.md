@@ -9,6 +9,19 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.0.3
+
+### New features
+- Data collection function `sam.data_sources.read_regenradar` does now accept `batch_size` and collects data in batches to avoid timeouts.
+
+## Version 3.0.2
+
+No changes, version bump only.
+
+## Version 3.0.1
+
+No changes, version bump only.
+
 ## Version 3.0.0
 
 ### New features
