@@ -170,7 +170,12 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         return_data: bool = False,
         force_monotonic_quantiles: bool = False,
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
+
         self.validate_data(X)
+
+        if y is None and self.use_diff_of_y:
+            raise ValueError("You must provide y when using use_diff_of_y=True")
+
         X_transformed = self.preprocess_predict(X, y)
         prediction = [model.predict(X_transformed) for model in self.model_]
         prediction = np.concatenate(prediction, axis=1)

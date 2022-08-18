@@ -319,6 +319,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         """
         self.validate_data(X)
 
+        if y is None and self.use_diff_of_y:
+            raise ValueError("You must provide y when using use_diff_of_y=True")
+
         X_transformed = self.preprocess_predict(X, y)
         prediction = self.model_.predict(X_transformed)
 
