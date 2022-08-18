@@ -6,6 +6,13 @@ Preprocessing
 
 This is the documentation for preprocessing functions.
 
+Clipping data
+-------------
+.. autoclass:: sam.preprocessing.ClipTransformer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Normalize timestamps
 --------------------
 .. warning::

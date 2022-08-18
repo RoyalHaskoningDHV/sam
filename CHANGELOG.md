@@ -13,6 +13,7 @@ Version X.Y.Z stands for:
 
 ### New features
 - New class `sam.models.LassoTimeseriesRegressor` to create a Lasso regression model for time series data incl. quantile predictions.
+- New class `sam.preprocessing.ClipTransformer` to clip input values to the range from the train set, making models more robust against outliers.
 
 ## Version 3.0.1
 
