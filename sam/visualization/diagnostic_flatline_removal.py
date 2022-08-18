@@ -3,7 +3,7 @@ from sam.validation import FlatlineValidator
 
 
 def diagnostic_flatline_removal(
-    fv: FlatlineValidator,
+    flatline_validator: FlatlineValidator,
     raw_data: pd.DataFrame,
     col: str,
 ):
@@ -12,7 +12,7 @@ def diagnostic_flatline_removal(
 
     Parameters:
     ----------
-    fv: sam.validation.FlatlineValidator
+    flatline_validator: sam.validation.FlatlineValidator
         fitted FlatlineValidator object
     raw_data: pd.DataFrame
         non-transformed data
@@ -28,7 +28,7 @@ def diagnostic_flatline_removal(
 
     # get data
     x = raw_data[col].copy()
-    invalid_w = fv.validate(raw_data)[col]
+    invalid_w = flatline_validator.validate(raw_data)[col]
     invalid_values = x[invalid_w]
 
     # generate plot

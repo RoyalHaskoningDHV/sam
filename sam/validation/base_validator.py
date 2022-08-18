@@ -35,8 +35,8 @@ class BaseValidator(BaseEstimator, TransformerMixin, ABC):
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         """transform method"""
         X = X.copy()
-        invalids = self.validate(X)
-        X[invalids] = np.nan
+        invalid_data = self.validate(X)
+        X[invalid_data] = np.nan
         return X
 
     def get_feature_names_out(self, input_features=None) -> List[str]:

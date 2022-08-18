@@ -3,7 +3,7 @@ from sam.validation import MADValidator
 
 
 def diagnostic_extreme_removal(
-    madv: MADValidator,
+    mad_validator: MADValidator,
     raw_data: pd.DataFrame,
     col: str,
 ):
@@ -12,7 +12,7 @@ def diagnostic_extreme_removal(
 
     Parameters:
     ----------
-    rev: sam.validation.MADValidator
+    mad_validator: sam.validation.MADValidator
         fitted MADValidator object
     raw_data: pd.DataFrame
         non-transformed data data
@@ -29,9 +29,9 @@ def diagnostic_extreme_removal(
 
     # get data
     x = raw_data[col].copy()
-    invalid_w = madv.validate(raw_data)[col]
+    invalid_w = mad_validator.validate(raw_data)[col]
     invalid_values = x.loc[invalid_w]
-    rolling = madv._compute_rolling(x)
+    rolling = mad_validator._compute_rolling(x)
     diff = x.values - rolling
 
     # generate plot
@@ -65,8 +65,8 @@ def diagnostic_extreme_removal(
 
     plt.subplot(212)
     plt.plot(diff.values, label="abs(original - rolling)")
-    plt.axhline(madv.thresh_high[col], ls="--", c="r")
-    plt.axhline(madv.thresh_low[col], ls="--", c="r", label="thresholds")
+    plt.axhline(mad_validator.thresh_high[col], ls="--", c="r")
+    plt.axhline(mad_validator.thresh_low[col], ls="--", c="r", label="thresholds")
     plt.legend(loc="best")
     sns.despine()
     plt.tight_layout()

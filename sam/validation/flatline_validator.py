@@ -4,6 +4,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+from sam.utils import add_future_warning
 from sam.validation import BaseValidator
 
 logger = logging.getLogger(__name__)
@@ -138,7 +139,7 @@ class FlatlineValidator(BaseValidator):
         X: pd.DataFrame
             Input dataframe to validate
         """
-        invalids = pd.DataFrame(
+        invalid_data = pd.DataFrame(
             data=np.zeros_like(X.values).astype(bool),
             index=X.index,
             columns=X.columns,
@@ -146,21 +147,18 @@ class FlatlineValidator(BaseValidator):
 
         for col in self.cols:
             window = self.window_dict[col]
-            invalids[col] = self._validate_column(X[col], window)
+            invalid_data[col] = self._validate_column(X[col], window)
 
             logger.info(
-                f"detected {np.sum(invalids[col])} "
+                f"detected {np.sum(invalid_data[col])} "
                 f"flatline samples in {col} "
                 f"with window of {window} "
             )
 
-        return invalids
+        return invalid_data
 
 
 class RemoveFlatlines(FlatlineValidator):
+    @add_future_warning("RemoveFlatlines is deprecated, use FlatlineValidator instead")
     def __init__(self, *args, **kwargs):
-        warnings.warn(
-            "RemoveFlatlines is deprecated, use FlatlineValidator instead",
-            DeprecationWarning,
-        )
         super().__init__(*args, **kwargs)

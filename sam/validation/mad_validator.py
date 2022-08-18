@@ -5,6 +5,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from sam.validation import BaseValidator
+from sam.utils import add_future_warning
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +142,7 @@ class MADValidator(BaseValidator):
             input data with columns marked as nan
         """
 
-        invalids = pd.DataFrame(
+        invalid_data = pd.DataFrame(
             data=np.zeros_like(X.values).astype(bool),
             index=X.index,
             columns=X.columns,
@@ -161,23 +162,19 @@ class MADValidator(BaseValidator):
 
             # log number of values removed and tresholds used
             logger.info(
-                "detected %d " % np.sum(extreme_value)
-                + "extreme values from %s. " % c
-                + "using upper threshold of: %.2f " % self.thresh_high[c]
-                + "and lower threshold of: %.2f " % self.thresh_low[c]
-                + "using madthresh of %d " % self.madthresh
-                + "and rollingwindow of %s" % str(self.rollingwindow)
+                f"detected {np.sum(extreme_value)} extreme values from {c}. "
+                f"using upper threshold of: {round(self.thresh_high[c], 2)} "
+                f"and lower threshold of: {round(self.thresh_low[c])} "
+                f"using madthresh of {self.madthresh} "
+                f"and rollingwindow of {str(self.rollingwindow)}"
             )
 
-            invalids[c] = extreme_value
+            invalid_data[c] = extreme_value
 
-        return invalids
+        return invalid_data
 
 
 class RemoveExtremeValues(MADValidator):
+    @add_future_warning("RemoveExtremeValues is deprecated. Use MADValidator instead.")
     def __init__(self, *args, **kwargs):
-        warnings.warn(
-            "RemoveExtremeValues is deprecated. Use MADValidator instead.",
-            DeprecationWarning,
-        )
         super().__init__(*args, **kwargs)

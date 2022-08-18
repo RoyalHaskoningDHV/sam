@@ -79,12 +79,14 @@ class OutsideRangeValidator(BaseValidator):
             Dataframe containing the features to be checked.
         """
 
-        invalids = pd.DataFrame(
+        invalid_data = pd.DataFrame(
             data=np.zeros_like(X.values).astype(bool),
             index=X.index,
             columns=X.columns,
         )
 
-        invalids[self.cols] = X[self.cols].gt(self.max_value_) | X[self.cols].lt(self.min_value_)
+        invalid_data[self.cols] = X[self.cols].gt(self.max_value_) | X[self.cols].lt(
+            self.min_value_
+        )
 
-        return invalids
+        return invalid_data
