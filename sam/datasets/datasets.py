@@ -10,7 +10,8 @@ def load_rainbow_beach():
     """
     Loads the Rainbow Beach dataset (subset of the open Chicago Water dataset)
 
-    Source: https://data.cityofchicago.org/Parks-Recreation/Beach-Water-Quality-Automated-Sensors/qmqz-2xku
+    Source:
+    https://data.cityofchicago.org/Parks-Recreation/Beach-Water-Quality-Automated-Sensors/qmqz-2xku
     """
     file_path = PACKAGEDIR / "data/rainbow_beach.parquet"
     return pd.read_parquet(file_path)
