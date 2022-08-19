@@ -28,7 +28,7 @@ copyright = "2018-2022, Royal HaskoningDHV"
 author = "Royal HaskoningDHV"
 
 
-config = toml.load("../../pyproject.toml")
+config = toml.load("./pyproject.toml")
 
 # The short X.Y version
 version = config["project"]["version"]

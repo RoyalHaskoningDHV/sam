@@ -89,9 +89,9 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
     >>> # load some data
     >>> data = read_knmi(
-    >>>     '2018-01-01',
-    >>>     '2019-01-01',
-    >>>     variables = ['T', 'FH', 'FF', 'FX', 'SQ', 'Q', 'DR', 'RH']).set_index(['TIME'])
+    ...     '2018-01-01',
+    ...     '2019-01-01',
+    ...     variables = ['T', 'FH', 'FF', 'FX', 'SQ', 'Q', 'DR', 'RH']).set_index(['TIME'])
 
     >>> # let's predict temperature 12 hours into the future
     >>> target = 'T'
@@ -102,25 +102,26 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
 
     >>> # do the feature selection, first try without adding timefeatures
     >>> ARE = AutomaticRollingEngineering(
-    >>>     window_sizes=[randint(1,24)], rolling_types=['mean', 'lag'])
-    >>> ARE.fit(X_train, y_train)
+    ...     window_sizes=[randint(1,24)], rolling_types=['mean', 'lag'])
+    >>> ARE = ARE.fit(X_train, y_train)  # doctest: +ELLIPSIS
+    Fitting ...
 
     >>> # check some diagnostics, note: results may vary as it is a random search
     >>> r2_base, r2_rollings, yhat_base, yhat_roll = ARE.compute_diagnostics(
-    >>>     X_train, X_test, y_train, y_test)
+    ...     X_train, X_test, y_train, y_test)
     >>> print(r2_base, r2_rollings)
-    0.34353081601421975 0.7164710002213178
+    0.34353081601421964 0.7027068150592539
 
     >>> # you can also inspect feature importances:
-    >>> sns.barplot(data=ARE.feature_importances_, y='feature_name', x='coefficients')
+    >>> barplot = sns.barplot(data=ARE.feature_importances_, y='feature_name', x='coefficients')
 
     >>> # and make plot of the timeseries:
-    >>> plt.figure(figsize=(12, 6))
-    >>> plt.plot(X_test.index, y_test.ravel(), 'ok', label='data')
-    >>> plt.plot(X_test.index, yhat_base, lw=3, alpha=0.75, label='yhat_base (r2: %.2f)'%r2_base)
-    >>> plt.plot(
-    >>>     X_test.index, yhat_roll, lw=3, alpha=0.75, label='yhat_rolling (r2: %.2f)'%r2_rollings)
-    >>> plt.legend(loc='best')
+    >>> timeseries_fig = plt.figure(figsize=(12, 6))
+    >>> timeseries_fig = plt.plot(X_test.index, y_test.ravel(), 'ok', label='data')
+    >>> timeseries_fig = plt.plot(X_test.index, yhat_base, lw=3, alpha=0.75, label='yhat_base (r2: %.2f)'%r2_base)
+    >>> timeseries_fig = plt.plot(
+    ...     X_test.index, yhat_roll, lw=3, alpha=0.75, label='yhat_rolling (r2: %.2f)'%r2_rollings)
+    >>> timeseries_fig = plt.legend(loc='best')
     """
 
     def __init__(

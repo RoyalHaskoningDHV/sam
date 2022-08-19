@@ -131,7 +131,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     >>>     predict_ahead=(0,),
     >>>     feature_engineer=simple_features,
     >>> )
-    ....
+    ...
     >>> model.fit(X, y)
     """
 

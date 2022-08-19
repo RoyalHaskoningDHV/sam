@@ -37,14 +37,14 @@ def range_lag_column(
     >>> df = pd.DataFrame({"outcome" : [0, 0, 1, 0, 0, 0, 1]})
     >>> df['outcome_lag'] = range_lag_column(df['outcome'], (1, 2))
     >>> df
-        outcome outcome_lag
-    0   0       1
-    1   0       1
-    2   1       0
-    3   0       0
-    4   0       1
-    5   0       1
-    6   1       0
+       outcome  outcome_lag
+    0        0          1.0
+    1        0          1.0
+    2        1          0.0
+    3        0          0.0
+    4        0          1.0
+    5        0          1.0
+    6        1          0.0
     """
     original_column = pd.Series(original_column)
     # For loop will fail if not in order

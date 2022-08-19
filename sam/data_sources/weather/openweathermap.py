@@ -42,7 +42,7 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
 
     Examples
     --------
-    >>> read_openweathermap(52.11, 5.18)
+    >>> read_openweathermap(52.11, 5.18)  # doctest: +SKIP
         cloud_coverage	pressure_groundlevel	humidity	pressure	pressure_sealevel	temp	temp_max	\
             temp_min	rain_3h	wind_deg	wind_speed	TIME
     0	92	991.91	95	992.77	992.77	8.82	8.82	7.20	1.005	225.510	11.82	2019-03-07 15:00:00

@@ -208,24 +208,25 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
     >>> from sam.feature_engineering import BuildRollingFeatures
     >>> import pandas as pd
     >>> df = pd.DataFrame({'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    >>>                    'DEBIET': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3]})
+    ...                    'DEBIET': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3]})
     >>>
     >>> BuildRollingFeatures(rolling_type='lag', window_size = [0,1,4], \\
-    >>>                      lookback=0, keep_original=False).fit_transform(df)
-                RAIN#lag_0  DEBIET#lag_0    RAIN#lag_1  DEBIET#lag_1    RAIN#lag_4  DEBIET#lag_4
-    0           0.1         1               NaN         NaN             NaN         NaN
-    1           0.2         2               0.1         1.0             NaN         NaN
-    2           0.0         3               0.2         2.0             NaN         NaN
-    3           0.6         4               0.0         3.0             NaN         NaN
-    4           0.1         5               0.6         4.0             0.1         1.0
-    5           0.0         5               0.1         5.0             0.2         2.0
-    6           0.0         4               0.0         5.0             0.0         3.0
-    7           0.0         3               0.0         4.0             0.6         4.0
-    8           0.0         2               0.0         3.0             0.1         5.0
-    9           0.0         4               0.0         2.0             0.0         5.0
-    10          0.0         2               0.0         4.0             0.0         4.0
-    11          0.0         3               0.0         2.0             0.0         3.0
-
+    ...                      lookback=0, keep_original=False).fit_transform(df)
+        RAIN#lag_0  DEBIET#lag_0  ...  RAIN#lag_4  DEBIET#lag_4
+    0          0.1             1  ...         NaN           NaN
+    1          0.2             2  ...         NaN           NaN
+    2          0.0             3  ...         NaN           NaN
+    3          0.6             4  ...         NaN           NaN
+    4          0.1             5  ...         0.1           1.0
+    5          0.0             5  ...         0.2           2.0
+    6          0.0             4  ...         0.0           3.0
+    7          0.0             3  ...         0.6           4.0
+    8          0.0             2  ...         0.1           5.0
+    9          0.0             4  ...         0.0           5.0
+    10         0.0             2  ...         0.0           4.0
+    11         0.0             3  ...         0.0           3.0
+    <BLANKLINE>
+    [12 rows x 6 columns]
     """
 
     def __init__(

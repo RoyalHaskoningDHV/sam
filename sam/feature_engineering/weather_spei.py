@@ -63,11 +63,26 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
     >>> from sam.data_sources import read_knmi
     >>> from sam.feature_engineering import SPEITransformer
     >>> knmi_data = read_knmi(start_date='1960-01-01', end_date='2020-01-01',
-    >>>     variables=['RH', 'EV24'], freq='daily').set_index('TIME').dropna()
+    ...     variables=['RH', 'EV24'], freq='daily').set_index('TIME').dropna()
     >>> knmi_data['RH'] = knmi_data['RH'].divide(10).clip(0)
     >>> knmi_data['EV24'] = knmi_data['EV24'].divide(10)
     >>> spi = SPEITransformer().configure(knmi_data)
     >>> spi.transform(knmi_data)
+                SPEI_30D
+    TIME                
+    1960-01-01 -0.053981
+    1960-01-02 -0.737154
+    1960-01-03 -1.079390
+    1960-01-04 -1.097214
+    1960-01-05 -0.683532
+    ...              ...
+    2019-12-28 -0.210437
+    2019-12-29 -0.207953
+    2019-12-30 -0.210515
+    2019-12-31 -0.210595
+    2020-01-01 -0.292527
+    <BLANKLINE>
+    [21916 rows x 1 columns]
     """
 
     def __init__(
