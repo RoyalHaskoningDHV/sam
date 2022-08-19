@@ -25,6 +25,8 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         number of rows in the output.
     quantiles: Sequence of float, optional (default=())
         The quantiles that need to be present in the output.
+    average_type: str, optional (default="median")
+        The type of average that is used to calculate the median and quantiles.
 
     """
 
@@ -32,9 +34,11 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         self,
         predict_ahead: Sequence[int] = (0,),
         quantiles: Sequence[float] = (),
+        average_type: str = "median",
     ) -> None:
         self.predict_ahead = predict_ahead
         self.quantiles = quantiles
+        self.average_type = average_type
 
     def fit(self, X: Any, y: Any, **kwargs: dict):
         """Fit the model
@@ -59,7 +63,10 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         X, y = check_X_y(X, y, y_numeric=True)
         self.n_features_in_ = X.shape[1]
 
-        self.model_median_ = np.median(y)
+        if self.average_type == "median":
+            self.model_average_ = np.median(y)
+        else:
+            self.model_average_ = np.mean(y)
         self.model_quantiles_ = np.quantile(y[~np.isnan(y)], q=np.sort(self.quantiles))
         return self
 
@@ -80,7 +87,7 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         check_is_fitted(self)
         X = check_array(X)
 
-        prediction = np.append(self.model_quantiles_, self.model_median_)
+        prediction = np.append(self.model_quantiles_, self.model_average_)
         prediction = np.repeat(prediction, len(self.predict_ahead))
         if len(self.quantiles) > 1:
             return np.tile(prediction, (len(X), 1))
@@ -131,6 +138,9 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer().
+    average_type: str = "median",
+        The type of average that is used to calculate the median and quantiles.
+        FOR NOW ONLY "median" IS SUPPORTED.
     kwargs: dict, optional
         Not used. Just for compatibility with other SAM models.
 
@@ -169,6 +179,7 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
+        average_type: str = "median",
         **kwargs,
     ) -> None:
         super().__init__(
@@ -177,6 +188,7 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
             use_diff_of_y=use_diff_of_y,
             timecol=timecol,
             y_scaler=y_scaler,
+            average_type=average_type,
             **kwargs,
         )
 

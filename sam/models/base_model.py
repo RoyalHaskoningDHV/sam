@@ -51,6 +51,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer()
+    average_type: str (default='mean')
+        Determines what to fit as the average: 'mean', or 'median'. The average is the last
+        node in the output layer and does not reflect a quantile, but rather estimates the central
+        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
+        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
     kwargs: dict, optional
         Not used. Just for compatibility of models that inherit from this class.
 
@@ -71,6 +76,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
+        average_type: str = "mean",
         feature_engineer: BaseFeatureEngineer = None,
         **kwargs,
     ) -> None:
@@ -79,6 +85,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.use_diff_of_y = use_diff_of_y
         self.timecol = timecol
         self.y_scaler = y_scaler
+        self.average_type = average_type
         self.feature_engineer_ = (
             feature_engineer if feature_engineer else IdentityFeatureEngineer()
         )
