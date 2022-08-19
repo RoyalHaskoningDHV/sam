@@ -1,14 +1,22 @@
 # SAM
 
-SAM is a Python package for timeseries analysis, anomaly detection and forecasting.
+[![PyPI Latest Release](https://img.shields.io/pypi/v/sam.svg)](https://pypi.org/project/sam/)
+[![License](https://img.shields.io/pypi/l/sam.svg)](https://github.com/RoyalHaskoningDHV/sam/blob/main/LICENSE)
+[![Downloads](https://static.pepy.tech/personalized-badge/sam?period=month&units=international_system&left_color=black&right_color=orange&left_text=PyPI%20downloads%20per%20month)](https://pepy.tech/project/sam)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
-Author: [Royal HaskoningDHV](https://global.royalhaskoningdhv.com/digital)
+SAM (Smart Asset Management) is a Python package for *timeseries analysis*, *anomaly detection* and *forecasting*.
+
+The documentation is available on [ReadTheDocs](https://sam-rhdhv.readthedocs.io/en/latest/).
+
+Author: [Royal HaskoningDHV](https://global.royalhaskoningdhv.com/)
 
 Email: [ruben.peters@rhdhv.com](mailto:ruben.peters@rhdhv.com)
 
 ## Getting started
 
-The documentation is available [here.](https://sam-rhdhv.readthedocs.io/en/latest/).
+### Installation
 
 The easiest way to install is package is using pip:
 ```
@@ -19,17 +27,52 @@ There are different optional dependencies for SAM, if you are unsure use `pip in
 
 Keep in mind that the sam package is updated frequently, and after a while, your local version may be out of date with the online documentation. To be sure, run the `pip install -U sam` command to install the latest version.
 
-## Configuration
+### Simple example
 
-A configuration file can be created as `.config`. This configuration file only stores api credentials for now, but more options may be added in the future. The configuration file is parsed using the [Python3 configparser](https://docs.python.org/3/library/configparser.html), and an example configuration is shown below:
+Below you can find a simple example on how to use one of our timeseries models. For more examples, check our [example notebooks](https://github.com/RoyalHaskoningDHV/sam/tree/main/examples)
 
+```python
+import pandas as pd
+from sam.models import MLPTimeseriesRegressor
+from sam.feature_engineering import SimpleFeatureEngineer
+
+data = pd.read_parquet("../data/rainbow_beach.parquet") # Requires `pyarrow` package
+X, y = data, data["water_temperature"]
+
+# Easily create rolling and time features to be used by the model
+simple_features = SimpleFeatureEngineer(
+    rolling_features=[
+        ("wave_height", "mean", 24),
+        ("wave_height", "mean", 12),
+    ],
+    time_features=[
+        ("hour_of_day", "cyclical"),
+    ],
+    keep_original=False,
+)
+
+# Define your model, see the docs for all parameters
+model = MLPTimeseriesRegressor(
+    predict_ahead=(1, 2, 3), # Multiple predict aheads are possible
+    quantiles=(0.025, 0.975), # Predict quantile bounds for anomaly detection
+    feature_engineer=simple_features,
+    epochs=20,
+)
+model.fit(X, y)
 ```
+
+### Configuration
+
+A configuration file can be created as `.config` and should be located in your working directory. This configuration file only stores api credentials for now, but more options may be added in the future. The configuration file is parsed using the [Python3 configparser](https://docs.python.org/3/library/configparser.html), and an example configuration is shown below:
+
+```ini
 [regenradar]
-user=regenradar.username
-password=secret123
+url=https://rhdhv.lizard.net/api/v3/raster-aggregates/?
+user=user.name
+password=secret
 
 [openweathermap]
-apikey=secret456
+apikey=secret
 ```
 
 ## Issue tracking and Feature Requests
