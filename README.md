@@ -6,11 +6,11 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
-SAM is a Python package for timeseries analysis, anomaly detection and forecasting.
+SAM (Smart Asset Management) is a Python package for *timeseries analysis*, *anomaly detection* and *forecasting*.
 
 The documentation is available on [ReadTheDocs](https://sam-rhdhv.readthedocs.io/en/latest/).
 
-Author: [Royal HaskoningDHV](https://global.royalhaskoningdhv.com/digital)
+Author: [Royal HaskoningDHV](https://global.royalhaskoningdhv.com/)
 
 Email: [ruben.peters@rhdhv.com](mailto:ruben.peters@rhdhv.com)
 
@@ -36,7 +36,7 @@ import pandas as pd
 from sam.models import MLPTimeseriesRegressor
 from sam.feature_engineering import SimpleFeatureEngineer
 
-data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
+data = pd.read_parquet("../data/rainbow_beach.parquet") # Requires `pyarrow` package
 X, y = data, data["water_temperature"]
 
 # Easily create rolling and time features to be used by the model
@@ -63,7 +63,7 @@ model.fit(X, y)
 
 ### Configuration
 
-A configuration file can be created as `.config`. This configuration file only stores api credentials for now, but more options may be added in the future. The configuration file is parsed using the [Python3 configparser](https://docs.python.org/3/library/configparser.html), and an example configuration is shown below:
+A configuration file can be created as `.config` and should be located in your working directory. This configuration file only stores api credentials for now, but more options may be added in the future. The configuration file is parsed using the [Python3 configparser](https://docs.python.org/3/library/configparser.html), and an example configuration is shown below:
 
 ```ini
 [regenradar]
