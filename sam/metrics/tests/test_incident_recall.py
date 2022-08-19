@@ -75,9 +75,11 @@ class TestIncidentPrecisionRecallCurve(unittest.TestCase):
         y_incidents = [0, 0, 0, 1]
         y_pred = [0.1, 0.2, 0.3, 0.4]
         p, r, t = precision_incident_recall_curve(y_incidents, y_pred, range_pred=(0, 1))
-        assert_array_almost_equal(p, np.array([1, 1, 1]))
-        assert_array_equal(r, np.array([1, 1, 0]))
-        assert_array_equal(t, np.array([0.3, 0.4]))
+        # Note: Behaviour of sklearn precision recall curve changed in version 1.1.1
+        # Now the number of thresholds = number of unique predictions
+        assert_array_almost_equal(p, np.array([0.5, 0.6666666666666666, 1, 1, 1]))
+        assert_array_equal(r, np.array([1, 1, 1, 1, 0]))
+        assert_array_equal(t, np.array([0.1, 0.2, 0.3, 0.4]))
 
     def testCurveAgain(self):
         y_pred = np.array([0.4, 0.4, 0.1, 0.2, 0.6, 0.5, 0.1])

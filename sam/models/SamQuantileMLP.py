@@ -18,8 +18,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
 
-class SamShapExplainer(object):
-    def __init__(self, explainer: Callable, model: Callable) -> None:
+class SamShapExplainer:
+    def __init__(self, explainer, model: BaseTimeseriesRegressor) -> None:
         """
         An object that imitates a SHAP explainer object. (Sort of) implements the base Explainer
         interface which can be found here
@@ -41,17 +41,17 @@ class SamShapExplainer(object):
         # Create a proxy model that can call only 3 attributes we need
         class SamProxyModel:
             fit = None
+            feature_engineer_ = model.feature_engineer_
             use_y_as_feature = model.use_y_as_feature
             feature_names_ = model.get_feature_names()
-            preprocess_predict = SamQuantileMLP.preprocess_predict
+            preprocess_predict = BaseTimeseriesRegressor.preprocess_predict
 
         self.model = SamProxyModel()
-        # Trick sklearn into thinking this is a fitted variable
-        self.model.feature_engineer_ = model.feature_engineer_
+
         # Will likely be somewhere around 0
         self.expected_value = explainer.expected_value
 
-    def shap_values(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
+    def shap_values(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.ndarray:
         """
         Imitates explainer.shap_values, but combined with the preprocessing from the model.
         Returns a similar format as a regular shap explainer: a list of numpy arrays, one
@@ -67,7 +67,7 @@ class SamShapExplainer(object):
         X_transformed = self.model.preprocess_predict(X, y, dropna=False)
         return self.explainer.shap_values(X_transformed, *args, **kwargs)
 
-    def attributions(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
+    def attributions(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.ndarray:
         """
         Imitates explainer.attributions, which by default just mirrors shap_values
 
@@ -287,6 +287,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             time_onehots=time_onehots,
             rolling_features=rolling_features,
             rolling_window_size=rolling_window_size,
+            average_type=average_type,
         )
         self.n_neurons = n_neurons
         self.n_layers = n_layers
@@ -546,7 +547,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump(self, foldername: str, prefix: str = "model") -> None:
+    def dump(self, foldername: Union[str, Path], prefix: str = "model") -> None:
         """
         Writes the following files:
         * prefix.pkl
@@ -584,7 +585,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         self.model_ = backup
 
     @classmethod
-    def load(cls, foldername, prefix="model") -> Callable:
+    def load(cls, foldername: Union[str, Path], prefix="model"):
         """
         Reads the following files:
         * prefix.pkl
@@ -620,7 +621,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         saved in the .h5 file by default
         """
         if len(self.quantiles) == 0:
-            mse_tilted = "mse"
+            return "mse"
         else:
 
             def mse_tilted(y, f):
@@ -685,7 +686,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             removing this feature will increase the metric, which is a bad thing with MAE/MSE).
         n_iter: int, optional (default=5)
             Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
-            this parameter may provide more stablitity at the cost of a longer runtime
+            this parameter may provide more stability at the cost of a longer runtime
         sum_time_components: bool, optional (default=False)
             if set to true, sums feature importances of the different subfeatures of each time
             component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
@@ -693,7 +694,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         Returns
         -------
         score_decreases: Pandas dataframe,  shape (n_iter x n_features)
-            The score decreases when leaving out each feature per iteration. The larget the
+            The score decreases when leaving out each feature per iteration. The larger the
             magnitude, the more important each feature is considered by the model.
 
         Examples
@@ -788,7 +789,7 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
         y: pd.Series, optional (default=None)
             Target data used to 'train' the explainer. Only required when self.predict_ahead > 0.
         sample_n: integer, optional (default=None)
-            The number of samples to give to the explainer. It is reccommended that
+            The number of samples to give to the explainer. It is recommended that
             if your background set is greater than 5000, to sample for performance reasons.
 
         Returns
@@ -812,5 +813,5 @@ class SamQuantileMLP(BaseTimeseriesRegressor):
             # Sample some rows to increase performance later
             sampled = np.random.choice(X_transformed.shape[0], sample_n, replace=False)
             X_transformed = X_transformed[sampled, :]
-        explainer = shap.DeepExplainer(self.model_, X_transformed)
+        explainer = shap.KernelExplainer(self.model_.predict, X_transformed)
         return SamShapExplainer(explainer, self)

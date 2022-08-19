@@ -7,9 +7,9 @@ from sklearn.metrics import precision_recall_curve
 
 
 def incident_recall(
-    y_incidents: np.array,
-    y_pred: np.array,
-    range_pred: Tuple[int] = (0, 0),
+    y_incidents: np.ndarray,
+    y_pred: np.ndarray,
+    range_pred: Tuple[int, int] = (0, 0),
 ):
     """
     Given `y_pred`, `y_incidents` and a prediction range, see what percentage of incidents in
@@ -105,10 +105,10 @@ def make_incident_recall_scorer(
 
 
 def _merge_thresholds(
-    left_t: np.array,
-    right_t: np.array,
-    left_val: np.array,
-    right_val: np.array,
+    left_t: np.ndarray,
+    right_t: np.ndarray,
+    left_val: np.ndarray,
+    right_val: np.ndarray,
 ):
     """
     Helper function that merges two different thresholds. Does this by iterating over the
@@ -155,7 +155,7 @@ def _merge_thresholds(
 
 
 def precision_incident_recall_curve(
-    y_incidents: np.array, y_pred: np.array, range_pred: Tuple[int, int] = (0, 0)
+    y_incidents: np.ndarray, y_pred: np.ndarray, range_pred: Tuple[int, int] = (0, 0)
 ):
     """
     Analogous to `sklearn.metrics.precision_recall_curve

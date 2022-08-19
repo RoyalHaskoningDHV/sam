@@ -224,8 +224,8 @@ class TestSamQuantileMLP(unittest.TestCase):
 
         # Test that the lower/higher quantile predicts lower/higher than the mean
         # When there are 100 training rows, this corresponds to 16 out of 20 'successes'
-        # at least 16 successes out of 20 is pretty strict: if it was a coinflip, the probability
-        # of that happenening would be approx. 1 in 166
+        # at least 16 successes out of 20 is pretty strict: if it was a coin flip, the probability
+        # of that happening would be approx. 1 in 166
         self.assertGreaterEqual(
             (pred["predict_lead_0_q_0.05"] < pred["predict_lead_0_mean"]).sum(),
             self.train_size * 0.2,
@@ -234,6 +234,35 @@ class TestSamQuantileMLP(unittest.TestCase):
             (pred["predict_lead_0_mean"] < pred["predict_lead_0_q_0.95"]).sum(),
             self.train_size * 0.2,
         )
+
+    def test_predict_present_average_type(self):
+        y = self.y
+        y_train, y_test = y[: self.train_size], self.y[self.train_size :]
+        X = self.X
+        X_train, X_test = X[: self.train_size], X[self.train_size :]
+
+        model = SamQuantileMLP(
+            predict_ahead=0,
+            use_y_as_feature=False,
+            use_diff_of_y=False,
+            timecol="TIME",
+            quantiles=(0.05, 0.95),
+            epochs=20,
+            time_components=[],
+            time_cyclicals=[],
+            time_onehots=[],
+            rolling_window_size=[1],
+            n_neurons=8,
+            n_layers=1,
+            lr=0.2,
+            verbose=0,
+            average_type="median",
+        )
+
+        model.fit(X_train, y_train)
+
+        score = model.score(X_test, y_test)
+        self.assertTrue(np.isscalar(score))
 
     def test_multioutput(self):
         # Test multioutput. Same data as test_predict_future.
