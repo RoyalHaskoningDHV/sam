@@ -1,10 +1,25 @@
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=42", "wheel", "toml"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "sam",
+    "sam.data_sources",
+    "sam.exploration",
+    "sam.feature_engineering",
+    "sam.logging_functions",
+    "sam.metrics",
+    "sam.models",
+    "sam.preprocessing",
+    "sam.utils",
+    "sam.validation",
+    "sam.visualization"
+]
 
 [project]
 name = "sam"
-version = "2.11.1"
+version = "3.0.2"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -17,7 +32,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-dependencies = ["pandas~=1.3", "numpy>=1.18,<1.22", "scikit-learn>=0.23,<1.1"]
+dependencies = ["pandas~=1.3", "numpy>=1.18,<1.22", "scikit-learn>=1.1"]
 
 [project.optional-dependencies]
 all = [
@@ -49,6 +64,16 @@ data-science = [
     "statsmodels"
 ]
 test = ["pytest", "pytest-cov", "pytest-mpl<=0.15.0", "fastparquet"]
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    "numpydoc",
+    "recommonmark",
+    "readthedocs-sphinx-search",
+    "sphinx-markdown-tables",
+    "toml",
+    "tensorflow>=2.3.1,<2.9",
+]
 
 [project.urls]
 homepage = "https://github.com/RoyalHaskoningDHV/sam"

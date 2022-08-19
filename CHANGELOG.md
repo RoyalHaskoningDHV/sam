@@ -19,6 +19,24 @@ Version X.Y.Z stands for:
 - Updated package dependencies for scikit-learn
 - Changed the DeepExplainer to the model agnostic KernelExplainer, so we can remove all the v1 dependencies on tensorflow
 - Fixed pytest MPL bug by temporarily setting it to a previous version 
+## Version 3.0.0
+
+### New features
+- New class `sam.feature_engineering.BaseFeatureEngineer` to create a default interface for feature engineering transformers.
+- New class `sam.feature_engineering.FeatureEngineer` to make any feature engineering transformer from a function.
+- New class `sam.feature_engineering.IdentyEngineer` to make a transformer that only passes data (does nothing). Utility for other features.
+- New class `sam.feature_engineering.SimpleFeatureEngineer` for creating time series features: rolling features and time components (one-hot or cyclical)
+- Utility functions `sam.models.utils.remove_target_nan` and `sam.models.utils.remove_until_first_value` for removing missings values in training data.
+
+### Changes
+- Replaces `SamQuantileMLP` with new `MLPTimeseriesRegressor`, which has more general purpose. Allows to provide any feature engineering transformer / pipeline. Default parameters are changed as well.
+- New example notebooks and corresponding datasets for new feature engineering and model classes.
+- Renaming name of `SPCRegressor` to `ConstantTimeseriesRegressor` for consistency. Also `SPCTemplate` was renamed to `ConstantTemplate` accordingly.
+- Combination of `use_diff_of_y=True` and providing `y_scaler` did not work correctly. Fixed.
+- Changed deprecated `lr` to `learning_rate` in `tensorflow.keras.optimizers.Adam`.
+- All classes  now support `get_feature_names_out` instead of `get_feature_names`, which is consistent with `scikit-learn>=1.1`.
+- Updated documentation and new examples for new feature engineering and model classes. `data/rainbow_beach.parquet` provides a new example dataset.
+
 
 ## Version 2.11.1
 
@@ -79,7 +97,7 @@ Version X.Y.Z stands for:
 ## 2.8.4
 
 ### Changes
-- `predict` method from `sam.models.SPCRegressor` now accepts kwargs for compatibility. Now, swapping models with `SamQuantileMLP` with `force_monotonic_quantiles` doesn't cause a failure.
+- `predict` method from `sam.models.ConstantTimeseriesRegressor` now accepts kwargs for compatibility. Now, swapping models with `SamQuantileMLP` with `force_monotonic_quantiles` doesn't cause a failure.
 
 ## 2.8.3
 
@@ -105,7 +123,7 @@ Version X.Y.Z stands for:
 ## Version 2.7.0
 
 ### Changes
-- Added a SPC model to SAM called `SPCRegressor`, which uses the `SamQuantileRegressor` base class and can be used as a fall back or benchmark model
+- Added a SPC model to SAM called `ConstantTimeseriesRegressor`, which uses the `SamQuantileRegressor` base class and can be used as a fall back or benchmark model
 
 ### Fixes
 - `SamQuantileMLP` now accepts Sequence types for some of its init parameters (like quantiles, time_cyclicals etc.) and the default value is changed to tuples to prevent the infamous "Mutable default argument" issue.

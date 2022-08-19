@@ -48,7 +48,7 @@ Extreme value removal plot
 
 Quantile Regression plot
 ---------------------------
-.. autofunction:: sam.visualization.quantile_plot
+.. autofunction:: sam.visualization.sam_quantile_plot
 
 .. image:: general_documents/images/quantile_plot.png
 
@@ -56,5 +56,9 @@ Feature importances plot
 ---------------------------
 .. autofunction:: sam.visualization.plot_feature_importances
 
-.. image:: general_documents/images/importances_barplot.png
-.. image:: general_documents/images/importances_barplot_sum.png
+.. image:: general_documents/images/quantile_importances_barplot.png
+.. image:: general_documents/images/quantile_importances_barplot_sum.png
+
+Evaluate predict ahead
+---------------------------
+.. autofunction:: sam.visualization.performance_evaluation_fixed_predict_ahead

@@ -80,8 +80,8 @@ def make_shifted_target(
         series_output = False
 
     for lag in lags:
-        if lag < 1:
-            raise ValueError("All lags must be larger than 0")
+        if lag < 0:
+            raise ValueError("All lags must be greater or equal to 0")
         if lag % 1 != 0:
             raise ValueError("All lags must be integers")
 

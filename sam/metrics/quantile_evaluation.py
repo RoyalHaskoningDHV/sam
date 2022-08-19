@@ -20,7 +20,7 @@ def compute_quantile_ratios(
     y: pd.Series
         series of observed true values
     pred: pd.DataFrame
-        output of SamQuantileMLP.predict() function
+        output of MLPTimeseriesRegressor.predict() function
     predict_ahead: int (default=0)
         Number of timestep ahead to evaluate
     precision: int (default=3)
@@ -61,14 +61,14 @@ def compute_quantile_crossings(
     below the 0.1 predictions.
     In addition, this function calculates in what proportion of cases the mean prediction falls
     outside of the closest quantile border below and above 0.5.
-    NOTE: this function operates on the output of SamQuantileMLP.predict()
+    NOTE: this function operates on the output of MLPTimeseriesRegressor.predict()
     NOTE-2: this function expects that either 0.5 or 'mean' is in the qs, or in the columns of pred
     when qs=None.
 
     Parameters
     ---------
     pred: pd.DataFrame
-        Output of SamQuantileMLP.predict() function
+        Output of MLPTimeseriesRegressor.predict() function
     predict_ahead: int (default=0)
         Number of timestep ahead to evaluate
     qs: list (default=None)

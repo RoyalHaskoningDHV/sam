@@ -3,6 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
 Welcome to SAM's documentation!
 ===============================
 
@@ -12,7 +13,7 @@ Welcome to SAM's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   general_documents
+   data
    examples
    data_sources
    preprocessing

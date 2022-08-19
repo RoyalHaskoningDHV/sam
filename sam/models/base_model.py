@@ -1,28 +1,31 @@
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Any, Callable, List, Sequence, Tuple, Union
+from typing import Callable, List, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from sam.feature_engineering import BaseFeatureEngineer, IdentityFeatureEngineer
+from sam.models.utils import remove_target_nan, remove_until_first_value
 from sam.metrics import joint_mae_tilted_loss, joint_mse_tilted_loss
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
-from sklearn.pipeline import Pipeline
 from sklearn.utils.validation import check_is_fitted
+from sklearn.pipeline import Pipeline
 
 
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     """
     This is an abstract class for all SAM models.
-    Every SAM model (including the most used SamQuantileMLP)
-    needs to inherit this class and implement the abstract methods.
+    Every SAM model (including the most used MLPTimeseriesRegressor) needs to inherit this class
+    and implement the abstract methods.
 
     There are some notes:
     - There is no validation yet. Therefore, the input data must already be sorted and monospaced
-    - The feature engineering is very simple, we just calculate lag/max/min/mean for a given window
-      size, as well as minute/hour/month/weekday if there is a time column
+    - The feature engineering should be provided as a any transformer. If the feature engineering
+      is not provided, the identity transformer will be used. Good practice is for example to use
+      the SimpleFeatureEngineer
     - The prediction requires y as input. The reason for this is described in the predict function.
       Keep in mind that this is not directly 'cheating', since we are predicting a future value of
       y, and giving the present value of y as input to the predict.
@@ -33,19 +36,13 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     Parameters
     ----------
-    predict_ahead: integer or list of integers, optional (default=1)
-        how many steps to predict ahead. For example, if [1, 2], the model will predict both 1 and
-        2 timesteps into the future. If [0], predict the present. If not equal to 0 or [0],
-        predict the future, with differencing.
-        A single integer is also allowed, in which case the value is converted to a singleton list.
-    quantiles: array-like, optional (default=())
-        The quantiles to predict. Between 0 and 1. Keep in mind that the mean will be predicted
-        regardless of this parameter
-    use_y_as_feature: boolean, optional (default=True)
-        Whether or not to use y as a feature for predicting. If predict_ahead=0, this must be False
-        Due to time limitations, for now, this option has to be True, unless predict_ahead is 0.
-        Potentially in the future, this option can also be False when predict_ahead is not 0.s
-    use_diff_of_y: bool, optional (default=True)
+    predict_ahead: tuple of integers, optional (default=(0,))
+        how many steps to predict ahead. For example, if (1, 2), the model will predict both 1 and
+        2 timesteps into the future. If (0,), predict the present.
+    quantiles: tuple of floats, optional (default=())
+        The quantiles to predict. Values between 0 and 1. Keep in mind that the mean will be
+        predicted regardless of this parameter
+    use_diff_of_y: bool, optional (default=False)
         If True differencing is used (the difference between y now and shifted y),
         else differencing is not used (shifted y is used).
     timecol: string, optional (default=None)
@@ -54,22 +51,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer()
-    time_components: array-like, optional (default=('minute', 'hour', 'day', 'weekday'))
-        The timefeatures to create. See :ref:`decompose_datetime`.
-    time_cyclicals: array-like, optional (default=('minute', 'hour', 'day'))
-        The cyclical timefeatures to create. See :ref:`decompose    _datetime`.
-    time_onehots: array-like, optional (default=('weekday'))
-        The onehot timefeatures to create. See :ref:`decompose_datetime`.
-    rolling_window_size: array-like, optional (default=(5,))
-        The window size to use for `BuildRollingFeatures`
-    rolling_features: array-like, optional (default=('mean'))
-        The rolling functions to generate in the default feature engineering function.
-        Values should be interpretable by BuildRollingFeatures.
-    average_type: str (default='mean')
-        Determines what to fit as the average: 'mean', or 'median'. The average is the last
-        node in the output layer and does not reflect a quantile, but rather estimates the central
-        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
-        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
+    kwargs: dict, optional
+        Not used. Just for compatibility of models that inherit from this class.
 
     Attributes
     ----------
@@ -83,45 +66,22 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def __init__(
         self,
-        predict_ahead: Union[int, Sequence[int]] = 1,
+        predict_ahead: Sequence[int] = (0,),
         quantiles: Sequence[float] = (),
-        use_y_as_feature: bool = True,
-        use_diff_of_y: bool = True,
+        use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        time_components: Sequence[str] = ("minute", "hour", "day", "weekday"),
-        time_cyclicals: Sequence[str] = ("minute", "hour", "day"),
-        time_onehots: Sequence[str] = ("weekday",),
-        rolling_window_size: Sequence[int] = (12,),
-        rolling_features: Sequence[str] = ("mean",),
-        average_type: str = "mean",
+        feature_engineer: BaseFeatureEngineer = None,
+        **kwargs,
     ) -> None:
-        self.predict_ahead = predict_ahead if isinstance(predict_ahead, List) else [predict_ahead]
+        self.predict_ahead = predict_ahead
         self.quantiles = quantiles
-        self.use_y_as_feature = use_y_as_feature
         self.use_diff_of_y = use_diff_of_y
         self.timecol = timecol
         self.y_scaler = y_scaler
-        self.time_components = time_components
-        self.time_cyclicals = time_cyclicals
-        self.time_onehots = time_onehots
-        self.rolling_features = rolling_features
-        self.rolling_window_size = rolling_window_size
-        self.average_type = average_type
-
-    @abstractmethod
-    def get_feature_engineer(self) -> Pipeline:
-        """
-        This abstract method needs to be implemented by any class that inherits from
-        SamQuantileRegressor. It returns a feature building pipeline, usually with steps
-        like adding time features, apply rolling features, imputing and scaling.
-
-        Returns
-        -------
-        sklearn.pipeline.Pipeline:
-            The feature building pipeline
-        """
-        return NotImplemented
+        self.feature_engineer_ = (
+            feature_engineer if feature_engineer else IdentityFeatureEngineer()
+        )
 
     @abstractmethod
     def get_untrained_model(self) -> Callable:
@@ -135,7 +95,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         -------
         A trainable model class
         """
-        return NotImplemented
+        raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     def validate_predict_ahead(self):
         """
@@ -147,11 +107,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if not all([p >= 0 for p in self.predict_ahead]):
             raise ValueError("All values of predict_ahead must be 0 or larger!")
 
-        if self.predict_ahead == [0] and self.use_diff_of_y:
+        if 0 in self.predict_ahead and self.use_diff_of_y:
             raise ValueError("use_diff_of_y must be false when predict_ahead is 0")
-
-        if self.predict_ahead == [0] and self.use_y_as_feature:
-            raise ValueError("use_y_as_feature must be false when predict_ahead is 0")
 
         if len(np.unique(self.predict_ahead)) != len(self.predict_ahead):
             raise ValueError("predict_ahead contains double values")
@@ -161,7 +118,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         Validates the data and raises an exception if:
         - There is no time columns
         - The data is not monospaced
-        - There is not enough data
 
         Parameters
         ----------
@@ -169,72 +125,24 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             The dataframe to validate
         """
         if self.timecol is None:
-            warnings.warn(
-                (
-                    "No timecolumn given. Make sure the data is"
-                    "monospaced when given to this model!"
-                ),
-                UserWarning,
-            )
+            if isinstance(X.index, pd.DatetimeIndex):
+                monospaced = X.index.to_series().diff().dropna().unique().size == 1
+            else:
+                warnings.warn(
+                    (
+                        "No timecolumn given. Make sure the data is"
+                        "monospaced when given to this model!"
+                    ),
+                    UserWarning,
+                )
+                monospaced = True
         else:
             monospaced = X[self.timecol].diff()[1:].unique().size == 1
-            if not monospaced:
-                raise ValueError(
-                    "Data is not monospaced, which is required for"
-                    "this model. fit/predict is not possible"
-                )
-
-        enough_data = len(self.rolling_window_size) == 0 or X.shape[0] > max(
-            self.rolling_window_size
-        )
-        if not enough_data:
-            warnings.warn(
-                "Not enough data given to calculate rolling features. "
-                "Output will be entirely missing values.",
-                UserWarning,
+        if not monospaced:
+            raise ValueError(
+                "Data is not monospaced, which is required for"
+                "this model. fit/predict is not possible"
             )
-
-    def prepare_input_and_target(
-        self, X: pd.DataFrame, y: pd.Series
-    ) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Prepares the input dataframe X and target series y by:
-        - Scaling y
-        - Adding target as feature to input
-        - Transforming the target
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            The independent variables used to 'train' the model
-        y: pd.Series
-            Target data (dependent variable) used to 'train' the model
-
-        Returns
-        -------
-        X: pd.DataFrame:
-            The (enriched) training input dataframe
-        y_transformed: pd.Series
-            The transformed target series
-        """
-        if self.y_scaler is not None:
-            y = pd.Series(
-                self.y_scaler.fit_transform(y.values.reshape(-1, 1)).ravel(),
-                index=y.index,
-                name=y.name,
-            )
-
-        if self.use_y_as_feature:
-            X = X.assign(y_=y.copy())
-
-        # Create the actual target
-        if self.predict_ahead != [0]:
-            y_transformed = make_shifted_target(y, self.use_diff_of_y, self.predict_ahead)
-        else:
-            # Dataframe with 1 column. Will use y's index and name
-            y_transformed = pd.DataFrame(y.copy()).astype(float)
-
-        return X, y_transformed
 
     @staticmethod
     def verify_same_indexes(X: pd.DataFrame, y: pd.Series, y_can_be_none=True):
@@ -243,6 +151,44 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         if not y.index.equals(X.index):
             raise ValueError("For training, X and y must have an identical index")
+
+    def preprocess(self, X: pd.DataFrame, y: pd.DataFrame, train: bool = False):
+        """
+        Preprocess the data. This is the first step in the pipeline.
+        """
+        X, y = X.copy(), y.copy()
+        y = make_shifted_target(y=y, use_diff_of_y=self.use_diff_of_y, lags=self.predict_ahead)
+        if train:
+            if self.y_scaler is not None:
+                y = pd.DataFrame(
+                    self.y_scaler.fit_transform(y),
+                    index=X.index,
+                    columns=y.columns,
+                )
+            self._set_input_cols(X)
+            X = pd.DataFrame(
+                self.feature_engineer_.fit_transform(X),
+                index=X.index,
+                columns=self.get_feature_names_out(),
+            )
+            self.n_inputs_ = len(self.get_feature_names_out())
+        else:
+            if self.y_scaler is not None:
+                y = pd.DataFrame(
+                    self.y_scaler.transform(y),
+                    index=X.index,
+                    columns=y.columns,
+                )
+            X = pd.DataFrame(
+                self.feature_engineer_.transform(X),
+                index=X.index,
+                columns=self.get_feature_names_out(),
+            )
+
+        X, y = remove_until_first_value(X, y)
+        X, y = remove_target_nan(X, y, use_x=False)
+
+        return X, y
 
     def preprocess_fit(
         self,
@@ -254,7 +200,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         This function does the following:
         - Validate that the input is monospaced and has enough rows
         - Perform differencing on the target
-        - Create feature engineer by calling `self.get_feature_engineer()`
         - Fitting/applying the feature engineer
         - Bookkeeping to create the output columns
         - Remove rows with nan that can't be used for fitting
@@ -286,32 +231,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.validate_predict_ahead()
         self.validate_data(X)
 
-        # Update the input and target depending on settings
-        X, y_transformed = self.prepare_input_and_target(X, y)
-
-        # Index where target is nan, cannot be trained on.
-        targetnanrows = y_transformed.isna().any(axis=1)
-
-        # Save input columns names
-        self._set_input_cols(X)
-
-        # buildrollingfeatures
-        self.rolling_cols_ = [col for col in X if col != self.timecol]
-        self.feature_engineer_ = self.get_feature_engineer()
-
-        # Apply feature engineering
-        X_transformed = self.feature_engineer_.fit_transform(X)
-
-        # Now we have fitted the feature engineer, we can set the feature names
-        self.set_feature_names(X, X_transformed)
-
-        # Now feature names are set, we can start using self.get_feature_names()
-        X_transformed = pd.DataFrame(
-            X_transformed, columns=self.get_feature_names(), index=X.index
-        )
-
-        self.n_inputs_ = len(self.get_feature_names())
-
         # Create output column names. In this model, our outputs are assumed to have the
         # form: [quantile_1_output_1, quantile_1_output_2, ... ,
         # quantile_n_output_1, quantile_n_output_2, ..., mean_output_1, mean_output_2]
@@ -322,13 +241,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.prediction_cols_ += ["predict_lead_{}_mean".format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
-        # Remove the first n rows because they are nan anyway because of rolling features
-        if len(self.rolling_window_size) > 0:
-            X_transformed = X_transformed.iloc[max(self.rolling_window_size) :]
-            y_transformed = y_transformed.iloc[max(self.rolling_window_size) :]
-        # Filter rows where the target is unknown
-        X_transformed = X_transformed.loc[~targetnanrows]
-        y_transformed = y_transformed.loc[~targetnanrows]
+        X_transformed, y_transformed = self.preprocess(X, y, train=True)
 
         assert_contains_nans(
             X_transformed, "Data cannot contain nans. Imputation not supported for now"
@@ -337,45 +250,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # Apply transformations to validation data if provided:
         if validation_data is not None:
             X_val, y_val = validation_data
-
             self.validate_data(X_val)
-
-            if self.y_scaler is not None:
-                y_val = pd.Series(
-                    self.y_scaler.transform(y_val.values.reshape(-1, 1)).ravel(),
-                    index=y_val.index,
-                    name=y_val.name,
-                )
-
-            # This does not affect training: it only calls transform, not fit
-            X_val_transformed = self.preprocess_predict(X_val, y_val)
-            X_val_transformed = pd.DataFrame(
-                X_val_transformed, columns=self.get_feature_names(), index=X_val.index
-            )
-            if self.predict_ahead != [0]:
-                y_val_transformed = make_shifted_target(
-                    y_val, self.use_diff_of_y, self.predict_ahead
-                )
-            else:
-                # Dataframe with 1 column. Will use y's index and name
-                y_val_transformed = pd.DataFrame(y_val.copy()).astype(float)
-
-            # Remove the first n rows because they are nan anyway because of rolling features
-            if len(self.rolling_window_size) > 0:
-                X_val_transformed = X_val_transformed.iloc[max(self.rolling_window_size) :]
-                y_val_transformed = y_val_transformed.iloc[max(self.rolling_window_size) :]
-            # The lines below are only to deal with nans in the validation set
-            # These should eventually be replaced by Arjans/Fennos function for removing nan rows
-            # So that this code will be much more readable
-            targetnanrows = y_val_transformed.isna().any(axis=1)
-
-            # Filter rows where the target is unknown
-            X_val_transformed = X_val_transformed.loc[~targetnanrows]
-            y_val_transformed = y_val_transformed.loc[~targetnanrows]
-            # Until here
-            validation_data = (X_val_transformed, y_val_transformed)
+            X_val_transformed, y_val_transformed = self.preprocess(X_val, y_val, train=False)
         else:
-            X_val_transformed, y_val_transformed = (None, None)
+            X_val_transformed, y_val_transformed = None, None
 
         return X_transformed, y_transformed, X_val_transformed, y_val_transformed
 
@@ -409,7 +287,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         Callable
             Usually this returns the history of the fit (when using keras)
         """
-        return NotImplemented
+        raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     @abstractmethod
     def predict(
@@ -450,7 +328,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         X_transformed: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
-        return NotImplemented
+        raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     def preprocess_predict(
         self, X: pd.DataFrame, y: pd.Series, dropna: bool = False
@@ -476,10 +354,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if y is not None:
             BaseTimeseriesRegressor.verify_same_indexes(X, y)
 
-        if self.use_y_as_feature:
-            X = X.assign(y_=y.copy())
+        X_transformed = pd.DataFrame(
+            self.feature_engineer_.transform(X),
+            index=X.index,
+            columns=self.get_feature_names_out(),
+        )
 
-        X_transformed = self.feature_engineer_.transform(X)
         if dropna:
             X_transformed = X_transformed[~np.isnan(X_transformed).any(axis=1)]
         return X_transformed
@@ -517,35 +397,28 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         # Put the predictions in a dataframe so we can undo the differencing
         prediction = pd.DataFrame(prediction, columns=self.prediction_cols_, index=X.index)
-        # If we performed differencing, we undo it here
+
+        # Undo the scaling per quantile
+        if self.y_scaler is not None:
+            for output_col in [f"q_{q}" for q in self.quantiles] + ["mean"]:
+                mask = prediction.columns.str.contains(output_col)
+                sub_prediction = prediction.loc[:, mask]
+                sub_prediction = pd.DataFrame(
+                    self.y_scaler.inverse_transform(sub_prediction.values),
+                    index=sub_prediction.index,
+                    columns=sub_prediction.columns,
+                )
+                prediction.loc[:, mask] = sub_prediction
+
+        # Undo the differencing
         if self.use_diff_of_y:
             prediction = inverse_differenced_target(prediction, y)
 
+        if force_monotonic_quantiles:
+            prediction = self.make_prediction_monotonic(prediction)
+
         if prediction.shape[1] == 1:
-            # If you just wanted to predict a single value without quantiles,
-            # just return a series. Easier to work with.
             prediction = prediction.iloc[:, 0]
-
-            if self.y_scaler is not None:
-                prediction = pd.Series(
-                    self.y_scaler.inverse_transform(prediction.values.reshape(-1, 1)).ravel(),
-                    index=prediction.index,
-                    name=prediction.name,
-                )
-
-        else:
-            if self.y_scaler is not None:
-                inv_pred = np.zeros_like(prediction)
-                for i in range(prediction.shape[1]):
-                    inv_pred[:, i] = self.y_scaler.inverse_transform(
-                        prediction.iloc[:, i].values.reshape(-1, 1)
-                    ).ravel()
-                prediction = pd.DataFrame(
-                    inv_pred, columns=prediction.columns, index=prediction.index
-                )
-
-            if force_monotonic_quantiles:
-                prediction = self.make_prediction_monotonic(prediction)
 
         return prediction
 
@@ -598,23 +471,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         return prediction
 
-    def set_feature_names(self, X: Any, X_transformed: Any) -> None:
-        """
-        Default function for setting self._feature_names
-
-        For the default feature engineer, it outputs features like 'mean__Q#mean_1'
-        Which is much easier to interpret if we remove the 'mean__'
-
-        Parameters
-        ----------
-        X: Unused
-        X_transformed: Unused
-        """
-        names = self.feature_engineer_.named_steps["columns"].get_feature_names()
-        names = [colname.split("__")[1] for colname in names]
-        self._feature_names = names
-
-    def get_feature_names(self) -> list:
+    def get_feature_names_out(self, input_features=None) -> List[str]:
         """
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
@@ -624,8 +481,25 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         list:
             list of feature names
         """
-        check_is_fitted(self, "_feature_names")
-        return self._feature_names
+
+        if hasattr(self.feature_engineer_, "feature_engineer_"):
+            return self.feature_engineer_.get_feature_names_out()
+        elif isinstance(self.feature_engineer_, Pipeline):
+            # select last step that has get_feature_names method
+            feature_steps = [
+                step[-1]
+                for step in self.feature_engineer_.steps
+                if hasattr(step[-1], "get_feature_names_out")
+            ]
+            if len(feature_steps) > 0:
+                return feature_steps[-1].get_feature_names_out()
+            else:
+                raise ValueError(
+                    "Feature engineering pipelines require at least one step "
+                    "with get_feature_names method"
+                )
+        else:
+            raise ValueError("Feature engineering must be a Pipeline or a BaseFeatureEngineer")
 
     def _set_input_cols(self, X: pd.DataFrame) -> None:
         """
@@ -681,17 +555,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
-        if len(self.predict_ahead) == 1:
-            pred = self.predict_ahead[0]
-        else:
-            pred = self.predict_ahead
 
-        if self.predict_ahead != [0]:
-            actual = make_shifted_target(y, self.use_diff_of_y, pred)
-            if self.use_diff_of_y:
-                actual = inverse_differenced_target(actual, y)
-        else:
-            actual = y.copy().astype(float)
+        # No scaling or differencing applied, because the predict() method already reversed this
+        actual = make_shifted_target(y=y, use_diff_of_y=False, lags=self.predict_ahead)
+
+        if actual.shape[1] == 1:
+            actual = actual.iloc[:, 0]
 
         return actual
 
@@ -735,11 +604,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 columns=actual.columns,
             )
 
-        # Actual usually has some missings at the end, while predictions usually have some missings
-        # at the beginning. We just ignore the rows with missings.
-        missings = actual.isna().any(axis=1) | prediction.isna().any(axis=1)
-        actual = actual.loc[~missings]
-        prediction = prediction.loc[~missings]
+        # actual usually has some missings at the end
+        # prediction usually has some missings at the beginning
+        # We ignore the rows with missings
+        prediction, actual = remove_target_nan(prediction, actual, use_x=True)
 
         # Calculate the joint tilted loss of all the average and quantile predictions
         if self.average_type == "median":
