@@ -23,9 +23,18 @@ Version X.Y.Z stands for:
 - New `sam.datasets` module containing functions for loading read-to-use datasets: `sam.datasets.load_rainbow_beach` and `sam.datasets.load_sewage_data`.
 st outliers.
 
+## Version 3.0.3
+
+### New features
+- Data collection function `sam.data_sources.read_regenradar` does now accept `batch_size` and collects data in batches to avoid timeouts.
+
+## Version 3.0.2
+
+No changes, version bump only.
+
 ## Version 3.0.1
 
-No changes, bumped number for release.
+No changes, version bump only.
 
 ## Version 3.0.0
 
