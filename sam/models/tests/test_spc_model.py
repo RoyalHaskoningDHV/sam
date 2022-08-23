@@ -57,7 +57,7 @@ class TestConstantTimeseriesRegressor(unittest.TestCase):
 
         # Loss score should be equal to the MSE, since there are no quantiles
         exp_y = model.get_actual(self.y_test)
-        exp_score = (exp_y - preds).pow(2).mean().sum()
+        exp_score = -(exp_y - preds).abs().mean().mean()
         self.assertEqual(score, exp_score)
 
     def test_normal_use(self):

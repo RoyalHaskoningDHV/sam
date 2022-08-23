@@ -350,7 +350,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump(self, foldername: str, prefix: str = "model") -> None:
+    def dump(self, foldername: Union[str, Path], prefix: str = "model") -> None:
         """
         Writes the following files:
         * prefix.pkl
@@ -388,7 +388,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         self.model_ = backup
 
     @classmethod
-    def load(cls, foldername, prefix="model") -> Callable:
+    def load(cls, foldername: Union[str, Path], prefix="model"):
         """
         Reads the following files:
         * prefix.pkl
@@ -424,7 +424,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         saved in the .h5 file by default
         """
         if len(self.quantiles) == 0:
-            mse_tilted = "mse"
+            return "mse"
         else:
 
             def mse_tilted(y, f):
@@ -489,7 +489,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             removing this feature will increase the metric, which is a bad thing with MAE/MSE).
         n_iter: int, optional (default=5)
             Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
-            this parameter may provide more stablitity at the cost of a longer runtime
+            this parameter may provide more stability at the cost of a longer runtime
         sum_time_components: bool, optional (default=False)
             if set to true, sums feature importances of the different subfeatures of each time
             component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
@@ -497,7 +497,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         Returns
         -------
         score_decreases: Pandas dataframe,  shape (n_iter x n_features)
-            The score decreases when leaving out each feature per iteration. The larget the
+            The score decreases when leaving out each feature per iteration. The larger the
             magnitude, the more important each feature is considered by the model.
 
         Examples
@@ -591,7 +591,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         y: pd.Series, optional (default=None)
             Target data used to 'train' the explainer. Only required when self.predict_ahead > 0.
         sample_n: integer, optional (default=None)
-            The number of samples to give to the explainer. It is reccommended that
+            The number of samples to give to the explainer. It is recommended that
             if your background set is greater than 5000, to sample for performance reasons.
 
         Returns

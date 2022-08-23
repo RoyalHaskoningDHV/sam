@@ -14,13 +14,19 @@ from .keras_metrics import (  # noqa: F401
 from .mase import mean_absolute_scaled_error
 from .quantile_evaluation import compute_quantile_crossings, compute_quantile_ratios
 from .r2_calculation import train_mean_r2, train_r2
-from .tilted_loss import tilted_loss
+from .tilted_loss_metrics import (
+    joint_mae_tilted_loss,
+    joint_mse_tilted_loss,
+    tilted_loss,
+)
 
 __all__ = [
     "incident_recall",
     "make_incident_recall_scorer",
     "precision_incident_recall_curve",
     "mean_absolute_scaled_error",
+    "joint_mae_tilted_loss",
+    "joint_mse_tilted_loss",
     "tilted_loss",
     "keras_tilted_loss",
     "keras_rmse",
