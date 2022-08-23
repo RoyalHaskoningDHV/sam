@@ -13,7 +13,7 @@ Version X.Y.Z stands for:
 
 ### Changes
 - Added `average_type` to `BaseTimeseriesRegressor.__init__()`.
-- `SamQuantileMLP.__init__()` now passes `average_type` to `BaseTimeseriesRegressor.__init__()`.
+- `MLPTimeseriesRegressor.__init__()` now passes `average_type` to `BaseTimeseriesRegressor.__init__()`.
 - Update `BaseTimeseriesRegressor.score()` to account for the `self.average_type`: in case of "mean" take the MSE of the average predictions and in case of "median" take the MAE of the average predictions.
 - Fixed various spelling errors in `CHANGELOG.MD` and `models`.
 - Updated package dependencies for scikit-learn
