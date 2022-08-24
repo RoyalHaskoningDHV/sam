@@ -32,7 +32,6 @@ Keep in mind that the sam package is updated frequently, and after a while, your
 Below you can find a simple example on how to use one of our timeseries models. For more examples, check our [example notebooks](https://github.com/RoyalHaskoningDHV/sam/tree/main/examples)
 
 ```python
-import pandas as pd
 from sam.datasets import load_rainbow_beach
 from sam.models import MLPTimeseriesRegressor
 from sam.feature_engineering import SimpleFeatureEngineer
