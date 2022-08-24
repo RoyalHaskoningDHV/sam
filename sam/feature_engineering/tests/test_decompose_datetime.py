@@ -410,7 +410,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
                 components=["day", "hour", "week", "secondofday"],
                 timezone="UTC",
             )
-        self.assertEquals(
+        self.assertEqual(
             str(exc.exception),
             "Data should either be in UTC timezone or it should have no"
             " timezone information (assumed to be in UTC)",
