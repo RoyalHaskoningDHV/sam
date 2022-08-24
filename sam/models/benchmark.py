@@ -109,7 +109,7 @@ def benchmark_model(
     **modeldict,
 ):
     """
-    Benchamarks a dictionary of sam models on train/test data, and returns a dictionary with scores
+    Benchmarks a dictionary of sam models on train/test data, and returns a dictionary with scores
     The models are assumed to be SAM models in 2 ways:
 
         - `predict` is called as `predict(X_test, y_test)`
@@ -135,7 +135,7 @@ def benchmark_model(
     Returns
     -------
     dict:
-        Dctionary of form: ``{modelname_1: score, ..., modelname_n: score,
+        Dictionary of form: ``{modelname_1: score, ..., modelname_n: score,
         persistence_benchmark: score, mean_benchmark: score}``
         where all scores are scalars.
     dict (optional):

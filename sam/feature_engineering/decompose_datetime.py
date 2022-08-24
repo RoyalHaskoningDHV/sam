@@ -57,10 +57,10 @@ class CyclicalMaxes:
 
 def decompose_datetime(
     df: pd.DataFrame,
-    column: str = "TIME",
-    components: Optional[List[str]] = None,
-    cyclicals: Optional[List[str]] = None,
-    onehots: Optional[List[str]] = None,
+    column: Optional[str] = "TIME",
+    components: Optional[Sequence[str]] = None,
+    cyclicals: Optional[Sequence[str]] = None,
+    onehots: Optional[Sequence[str]] = None,
     remove_categorical: bool = True,
     keep_original: bool = True,
     cyclical_maxes: Optional[Sequence[int]] = None,

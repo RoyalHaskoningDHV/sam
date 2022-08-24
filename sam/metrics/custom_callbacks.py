@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Sequence
 
 import numpy as np
 import pandas as pd
@@ -9,9 +9,9 @@ from tensorflow.keras.callbacks import Callback
 class R2Evaluation(Callback):
     def __init__(
         self,
-        all_data: Dict[str, np.array],
+        all_data: Dict[str, np.ndarray],
         prediction_cols: list,
-        predict_ahead: int,
+        predict_ahead: Sequence[int],
     ):
         """
         Custom keras callback that computes r2 compared to the training mean.

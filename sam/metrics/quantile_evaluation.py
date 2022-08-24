@@ -36,7 +36,7 @@ def compute_quantile_ratios(
     qs = [float(c.split("_")[-1]) for c in pred.columns if "mean" not in c]
 
     quantile_ratios = {
-        # mean here computes ratio (mean of True/Falses - 0/1s)
+        # mean here computes ratio (mean of True/False - 0/1s)
         q: (y < pred["predict_lead_%d_q_" % predict_ahead + str(q)]).mean()
         for q in qs
     }
@@ -96,7 +96,7 @@ def compute_quantile_crossings(
     # now replace the 'mean' part with 0.5 in the predictions
     pred.columns = [c.replace("mean", "q_0.5") for c in pred.columns]
 
-    # make sure quantiles are sorted if they arent already:
+    # make sure quantiles are sorted if they aren't already:
     qs = np.sort(qs)[::-1]
 
     # now compute the quantile crossings
