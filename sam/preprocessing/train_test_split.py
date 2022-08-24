@@ -1,11 +1,12 @@
-from typing import Union
+from lib2to3.pgen2.token import OP
+from typing import Union, Optional
 import pandas as pd
 
 
 def datetime_train_test_split(
     *arrays: Union[pd.DataFrame, pd.Series],
     datetime: str,
-    datecol: str = None,
+    datecol: Optional[str] = None,
 ):
     """
     Split the dataframe into train and test sets based on datetime index values
