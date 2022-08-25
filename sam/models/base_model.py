@@ -56,6 +56,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         node in the output layer and does not reflect a quantile, but rather estimates the central
         tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
         setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
+    feature_engineering: object, optional (default=None)
+        Should be an sklearn-type transformer that has a transform method, e.g.
+        `sam.feature_engineering.SimpleFeatureEngineer`.
     kwargs: dict, optional
         Not used. Just for compatibility of models that inherit from this class.
 
@@ -591,7 +594,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
         # We need a dataframe, regardless of if these functions outputs a series or dataframe
-        prediction = pd.DataFrame(self.predict(X, y))
+        prediction = pd.DataFrame(self.predict(X, y), columns=self.prediction_cols_)
         actual = pd.DataFrame(self.get_actual(y))
 
         # scale these predictions back to get a score that is in same units as keras loss

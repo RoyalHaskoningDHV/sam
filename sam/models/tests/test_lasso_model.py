@@ -1,6 +1,6 @@
 import pytest
 from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
-from sam.models import MLPTimeseriesRegressor
+from sam.models import LassoTimeseriesRegressor
 from sam.models.tests.utils import (
     assert_get_actual,
     assert_performance,
@@ -10,33 +10,23 @@ from sam.models.tests.utils import (
 )
 from sklearn.preprocessing import StandardScaler
 
-# If tensorflow is not available, skip these unittests
-skipkeras = False
-try:
-    import tensorflow as tf  # noqa: F401
-except ImportError:
-    skipkeras = True
-
 
 @set_seed
-def train_mlp(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler):
+def train_lasso(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler):
     fe = SimpleFeatureEngineer(keep_original=True)
-    model = MLPTimeseriesRegressor(
+    model = LassoTimeseriesRegressor(
         predict_ahead=predict_ahead,
         quantiles=quantiles,
         use_diff_of_y=use_diff_of_y,
         y_scaler=y_scaler,
         feature_engineer=fe,
         average_type=average_type,
-        lr=0.01,
-        epochs=40,
-        verbose=0,
+        alpha=1e-6,  # make sure it can overfit for testing
     )
     model.fit(X, y)
     return model
 
 
-@pytest.mark.skipif(skipkeras, reason="Keras backend not found")
 @pytest.mark.parametrize(
     "predict_ahead,quantiles,average_type,use_diff_of_y,y_scaler,max_mae",
     [
@@ -56,7 +46,7 @@ def train_mlp(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_sca
         ((1, 2, 3), (0.1, 0.5, 0.9), "mean", True, StandardScaler(), 3.0),  # all options
     ],
 )
-def test_mlp(
+def test_lasso(
     predict_ahead,
     quantiles,
     average_type,
@@ -66,7 +56,7 @@ def test_mlp(
 ):
 
     X, y = get_dataset()
-    model = train_mlp(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler)
+    model = train_lasso(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler)
     assert_get_actual(model, X, y, predict_ahead)
     assert_prediction(
         model=model,

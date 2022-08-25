@@ -15,30 +15,15 @@ from sam.models.sam_shap_explainer import SamShapExplainer
 
 
 class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
-    """
-    This is an example class for how the SAM skeleton can work. This is not the final/only model,
-    there are some notes:
-    - There is no validation yet. Therefore, the input data must already be sorted and monospaced
-    - The feature engineering is very simple, we just calculate lag/max/min/mean for a given window
-      size, as well as minute/hour/month/weekday if there is a time column
-    - The prediction requires y as input. The reason for this is described in the predict function.
-      Keep in mind that this is not directly 'cheating', since we are predicting a future value of
-      y, and giving the present value of y as input to the predict.
-      When predicting the present, this y is not needed and can be None
+    """Multi-layer Perceptron Regressor for time series
 
-    It is possible to subclass this class and overwrite functions. For now, the most obvious case
-    is overwriting the `get_feature_engineer(self)` function. This function must return a
-    transformer, with attributes: `fit`, `transform`, `fit_transform`, and `get_feature_names`.
-    The output of `transform` must be a numpy array or pandas dataframe with the same number of
-    rows as the input array. The output of `get_feature_names` must be an array or list of
-    strings, the same length as the number of columns in the output of `transform`.
+    This model combines several approaches to time series data:
+    Multiple outputs for forecasting, quantile regression, and feature engineering.
+    This class is an implementation of an MLP to estimate multiple quantiles for all
+    forecasting horizons at once.
 
-    Another possibility would be overwriting the `get_untrained_model(self)` function.
-    This function must return a keras model, with `fit`, `predict`, `save` and `summary`
-    attributes, where fit/predict will accept a regular (2d) dataframe or numpy array as input.
-
-    Note that the below parameters are just for the default model, and subclasses can have
-    different `__init__` parameters.
+    This is a wrapper for a keras MLP model. For more information on the model parameters,
+    see the keras documentation.
 
     Parameters
     ----------
@@ -112,26 +97,25 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     >>> import pandas as pd
     >>> from sam.models import MLPTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
-    ...
+
     >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
     >>> X, y = data, data["water_temperature"]
-    ...
+
     >>> simple_features = SimpleFeatureEngineer(
-    >>>     rolling_features=[
-    >>>         ("wave_height", "mean", 24),
-    >>>         ("wave_height", "mean", 12),
-    >>>     ],
-    >>>     time_features=[
-    >>>         ("hour_of_day", "cyclical"),
-    >>>     ],
-    >>>     keep_original=False,
-    >>> )
-    ...
+    ...     rolling_features=[
+    ...         ("wave_height", "mean", 24),
+    ...         ("wave_height", "mean", 12),
+    ...     ],
+    ...     time_features=[
+    ...         ("hour_of_day", "cyclical"),
+    ...     ],
+    ...     keep_original=False,
+    ... )
+
     >>> model = MLPTimeseriesRegressor(
-    >>>     predict_ahead=(0,),
-    >>>     feature_engineer=simple_features,
-    >>> )
-    ....
+    ...     predict_ahead=(0,),
+    ...     feature_engineer=simple_features,
+    ... )
     >>> model.fit(X, y)
     """
 
@@ -333,10 +317,10 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         X_transformed: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
-        if max(self.predict_ahead) > 0 and y is None:
-            raise ValueError("When predict_ahead > 0, y is needed for prediction")
-
         self.validate_data(X)
+
+        if y is None and self.use_diff_of_y:
+            raise ValueError("You must provide y when using use_diff_of_y=True")
 
         X_transformed = self.preprocess_predict(X, y)
         prediction = self.model_.predict(X_transformed)

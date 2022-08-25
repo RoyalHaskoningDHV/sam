@@ -32,11 +32,11 @@ Keep in mind that the sam package is updated frequently, and after a while, your
 Below you can find a simple example on how to use one of our timeseries models. For more examples, check our [example notebooks](https://github.com/RoyalHaskoningDHV/sam/tree/main/examples)
 
 ```python
-import pandas as pd
+from sam.datasets import load_rainbow_beach
 from sam.models import MLPTimeseriesRegressor
 from sam.feature_engineering import SimpleFeatureEngineer
 
-data = pd.read_parquet("../data/rainbow_beach.parquet") # Requires `pyarrow` package
+data = load_rainbow_beach()
 X, y = data, data["water_temperature"]
 
 # Easily create rolling and time features to be used by the model

@@ -6,6 +6,7 @@ from .dataframe_functions import (
     sum_grouped_columns,
 )
 from .sklearnhelpers import FunctionTransformerWithNames
+from .warnings import add_future_warning, parametrized
 
 __all__ = [
     "assert_contains_nans",
@@ -14,4 +15,6 @@ __all__ = [
     "make_df_monotonic",
     "sum_grouped_columns",
     "FunctionTransformerWithNames",
+    "add_future_warning",
+    "parametrized",
 ]

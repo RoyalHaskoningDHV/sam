@@ -3,12 +3,13 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, TransformerMixin
+from sam.utils import add_future_warning
+from sam.validation import BaseValidator
 
 logger = logging.getLogger(__name__)
 
 
-class RemoveFlatlines(BaseEstimator, TransformerMixin):
+class FlatlineValidator(BaseValidator):
     """
     Detect flatlines and set to nan. Note that you have to check whether
     signals can contain natural flatliners (such as machines turned off),
@@ -32,11 +33,12 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
     pvalue: float or None (default=None)
         Threshold for likelihood of multiple consecutive flatline samples
         Only used if ``window="auto"``
-        Small pvalues lead to a larger threshold, hence less flatlines will be removed
+        Small pvalues lead to a larger threshold, hence less flatlines will be
+        removed
     margin: int (default = 0)
-        Maximum absolute difference between consecutive samples to consider them equal.
-        Default is 0, which means that consecutive samples must be exactly equal
-        to form a flatline.
+        Maximum absolute difference within window to consider them equal.
+        Default is 0, which means that all samples within used window must be
+        exactly equal to form a flatline.
     backfill: bool (default = True)
         whether to label all within the window, even before the first detected
         data point. This is useful if you want to remove flatlines from the
@@ -45,7 +47,8 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
 
     Examples
     --------
-    >>> from sam.validation import RemoveFlatlines
+    >>> import pandas as pd
+    >>> from sam.validation import FlatlineValidator
     >>> # create some data
     >>> data = [1, 2, 6, 3, 4, 4, 4, 3, 6, 7, 7, 2, 2]
     >>> # with one clear outlier
@@ -53,7 +56,7 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
     >>> test_df['values'] = data
     >>> # now detect flatlines
     >>> cols_to_check = ['values']
-    >>> RF = RemoveFlatlines(
+    >>> RF = FlatlineValidator(
     ...     cols=cols_to_check,
     ...     window=3)
     >>> data_corrected = RF.fit_transform(test_df)
@@ -67,7 +70,7 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
         margin: float = 0,
         backfill: bool = True,
     ):
-
+        super().__init__()
         self.cols = cols
         self.window = window
         self.pvalue = pvalue
@@ -97,57 +100,64 @@ class RemoveFlatlines(BaseEstimator, TransformerMixin):
             self.window_dict[col] = threshold
         return self
 
-    def transform(self, data: pd.DataFrame) -> pd.DataFrame:
+    def _validate_column(
+        self,
+        data: pd.Series,
+        window: Union[int, str],
+    ) -> pd.Series:
         """
-        Transforms the data
+        Validates a single column against the fitted dataframe
+        """
+        data = data.copy()
+
+        # check if values within range are within margin
+        flatliners = (
+            ((data.rolling(window).max() - data.rolling(window).min()) <= self.margin)
+            .astype(int)
+            .fillna(0)
+        )
+
+        # apply backfill if needed: label all points within flatline window
+        # as invalid. This requires a forward looking window
+        if self.backfill:
+            inv_flatliners = flatliners.iloc[::-1]
+            inv_flatliners = inv_flatliners.rolling(window, min_periods=1).max()
+            flatliners = inv_flatliners.iloc[::-1]
+
+        flatliners = flatliners.astype(bool)
+
+        return flatliners
+
+    def validate(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Validates the dataframe against the fitted dataframe. Returns a boolean
+        dataframe where True indicates an invalid value.
 
         Parameters
         ----------
-        data: pd.DataFrame
-            with index as increasing time and columns as features
-
-        Returns
-        -------
-        data_r: pd.DataFrame
-            with flatlines replaced by nans
+        X: pd.DataFrame
+            Input dataframe to validate
         """
-
-        self.invalids = {}
-        data_r = data.copy()
-
-        if self.cols is None:
-            self.cols = data.columns
+        invalid_data = pd.DataFrame(
+            data=np.zeros_like(X.values).astype(bool),
+            index=X.index,
+            columns=X.columns,
+        )
 
         for col in self.cols:
-
-            these_data = data.loc[:, col]
-
-            # check if sequential values are equal
-            no_change = (these_data.diff().abs() <= self.margin).astype(int)
-
-            # check if all sequential values are equal within window
             window = self.window_dict[col]
-            flatliners = no_change.rolling(window).min().fillna(0)
-
-            # apply backfill if needed: label all points within flatline window
-            # as invalid. This requires a forward looking window
-            if self.backfill:
-                inv_flatliners = flatliners.iloc[::-1]
-                inv_flatliners = inv_flatliners.rolling(window + 1, min_periods=1).max()
-                flatliners = inv_flatliners.iloc[::-1]
-
-            flatliners = flatliners.astype(bool)
-
-            # save to self for later plot
-            self.invalids[col] = flatliners
+            invalid_data[col] = self._validate_column(X[col], window)
 
             logger.info(
-                f"detected {np.sum(flatliners)} "
+                f"detected {np.sum(invalid_data[col])} "
                 f"flatline samples in {col} "
                 f"with window of {window} "
             )
 
-            # now replace with nans
-            data_r.loc[flatliners, col] = np.nan
+        return invalid_data
 
-        return data_r
+
+class RemoveFlatlines(FlatlineValidator):
+    @add_future_warning("RemoveFlatlines is deprecated, use FlatlineValidator instead")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

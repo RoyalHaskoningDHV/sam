@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 packages = [
     "sam",
     "sam.data_sources",
+    "sam.datasets",
     "sam.exploration",
     "sam.feature_engineering",
     "sam.logging_functions",
@@ -19,7 +20,7 @@ packages = [
 
 [project]
 name = "sam"
-version = "3.0.3"
+version = "3.1.0"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.8"
