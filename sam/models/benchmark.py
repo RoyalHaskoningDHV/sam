@@ -234,24 +234,19 @@ def benchmark_wrapper(
 
     Examples
     --------
+    >>> from sam.datasets import load_rainbow_beach, load_sewage_data
+    >>> from sam.models import MLPTimeseriesRegressor, benchmark_wrapper
     >>> datasets = {
-    ...     'chicago': pd.read_feather('data/ChicagoWater.feather'),
-    ...     'beijing': pd.read_feather('data/CitiesPM.feather'),
-    ...     'detectronic': (pd.read_feather('data/detec_data.feather')
-    ...                     .rename({'timestamp': 'TIME', 'type': 'TYPE',
-    ...                              'location': 'ID', 'value': 'VALUE'}, axis=1)
-    ...                     .drop('index', axis=1)
-    ...                     .astype({'TYPE': str}))
+    ...     'rainbow': load_rainbow_beach(),
+    ...     'sewage': load_sewage_data(),
     ... }
     >>> column_filters = {
-    ...     'chicago': lambda x: x.startswith('63rd Street'),
-    ...     'beijing': lambda x: x.startswith('Beijing),
-    ...     'detectronic': lambda x: x.startswith('7167')
+    ...     'rainbow': lambda x: x.startswith('63rd Street'),
+    ...     'sewage': lambda x: x.startswith('Beijing'),
     ... }
     >>> targetcols = {
-    ...     'chicago': '63rd Street Beach_Turbidity',
-    ...     'beijing: 'Beijing_US Post_PM'
-    ...     'detectronic': '7167_6'
+    ...     'rainbow': 'wave_height',
+    ...     'sewage': 'Discharge_Hoofdgemaal',
     ... }
     >>> models = {
     ...     'mymodel': MLPTimeseriesRegressor(predict_ahead=[3], timecol='TIME',

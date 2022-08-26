@@ -39,8 +39,9 @@ def plot_feature_importances(importances: pd.DataFrame, feature_names: Iterable 
     >>> import seaborn
     >>> from sam.models import MLPTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
+    >>> from sam.datasets import load_rainbow_beach
     ...
-    >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
+    >>> data = load_rainbow_beach()
     >>> X, y = data, data["water_temperature"]
     >>> test_size = int(X.shape[0] * 0.33)
     >>> train_size = X.shape[0] - test_size
@@ -61,10 +62,11 @@ def plot_feature_importances(importances: pd.DataFrame, feature_names: Iterable 
     >>> model = MLPTimeseriesRegressor(
     ...     predict_ahead=(0,),
     ...     feature_engineer=simple_features,
+    ...     verbose=0,
     ... )
     ...
     >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
-    Train ...
+    <keras.callbacks.History ...
     >>> score_decreases = model.quantile_feature_importances(
     ...     X_test[:100], y_test[:100], n_iter=3, random_state=42)
     >>> importances = -model.quantile_feature_importances(X, y, random_state=42)

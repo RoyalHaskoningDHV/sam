@@ -97,8 +97,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     >>> import pandas as pd
     >>> from sam.models import MLPTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
+    >>> from sam.datasets import load_rainbow_beach
     ...
-    >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
+    >>> data = load_rainbow_beach()
     >>> X, y = data, data["water_temperature"]
 
     >>> simple_features = SimpleFeatureEngineer(
@@ -114,10 +115,10 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     >>> model = MLPTimeseriesRegressor(
     ...     predict_ahead=(0,),
     ...     feature_engineer=simple_features,
+    ...     verbose=0,
     ... )
     >>> model.fit(X, y)  # doctest: +ELLIPSIS
-    Train ...
-    >>> model.fit(X, y)
+    <keras.callbacks.History ...
     """
 
     def __init__(
@@ -495,8 +496,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         >>> import seaborn
         >>> from sam.models import MLPTimeseriesRegressor
         >>> from sam.feature_engineering import SimpleFeatureEngineer
+        >>> from sam.datasets import load_rainbow_beach
         ...
-        >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
+        >>> data = load_rainbow_beach()
         >>> X, y = data, data["water_temperature"]
         >>> test_size = int(X.shape[0] * 0.33)
         >>> train_size = X.shape[0] - test_size
@@ -517,10 +519,11 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         >>> model = MLPTimeseriesRegressor(
         ...     predict_ahead=(0,),
         ...     feature_engineer=simple_features,
+        ...     verbose=0,
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
-        Train ...
+        <keras.callbacks.History ...
         >>> score_decreases = model.quantile_feature_importances(
         ...     X_test[:100], y_test[:100], n_iter=3, random_state=42)
         >>> # The score decreases of each feature in each iteration
@@ -614,8 +617,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         >>> import shap
         >>> from sam.models import MLPTimeseriesRegressor
         >>> from sam.feature_engineering import SimpleFeatureEngineer
+        >>> from sam.datasets import load_rainbow_beach
         ...
-        >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
+        >>> data = load_rainbow_beach()
         >>> X, y = data, data["water_temperature"]
         >>> test_size = int(X.shape[0] * 0.33)
         >>> train_size = X.shape[0] - test_size
@@ -636,16 +640,17 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         >>> model = MLPTimeseriesRegressor(
         ...     predict_ahead=(0,),
         ...     feature_engineer=simple_features,
+        ...     verbose=0,
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
-        Train ...
+        <keras.callbacks.History ...
         >>> explainer = model.get_explainer(X_test, y_test, sample_n=10)
         >>> shap_values = explainer.shap_values(X_test[0:10], y_test[0:10])
         >>> test_values = explainer.test_values(X_test[0:10], y_test[0:10])
 
         >>> shap.force_plot(explainer.expected_value[0], shap_values[0][-1,:],
-        ...                 test_values.iloc[-1,:], matplotlib=True)
+        ...                 test_values.iloc[-1,:], matplotlib=True, fig_size=10)
         """
         import shap
 

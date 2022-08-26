@@ -76,17 +76,19 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     >>> import pandas as pd
     >>> from sam.models import MLPTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
-
-    >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
+    >>> from sam.datasets import load_rainbow_beach
+    ...
+    >>> data = load_rainbow_beach()
     >>> X, y = data, data["water_temperature"]
 
     >>> simple_features = SimpleFeatureEngineer(keep_original=False)
     >>> model = MLPTimeseriesRegressor(
     ...     predict_ahead=(0,),
     ...     feature_engineer=simple_features,
+    ...     verbose=0,
     ... )
-    >>> model.fit(X, y)
-
+    >>> model.fit(X, y)  # doctest: +ELLIPSIS
+    <keras.callbacks.History ...
     """
 
     def __init__(

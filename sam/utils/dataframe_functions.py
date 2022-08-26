@@ -56,8 +56,40 @@ def sum_grouped_columns(df: pd.DataFrame, sep: str = "#", skipna: bool = True) -
     2  6  5
 
     >>> # In this example, we use the new shapley values to make a shapley visualization
+    >>> import pandas as pd
+    >>> import shap
+    >>> from sam.models import MLPTimeseriesRegressor
+    >>> from sam.feature_engineering import SimpleFeatureEngineer
+    >>> from sam.datasets import load_rainbow_beach
+    ...
+    >>> data = load_rainbow_beach()
+    >>> X, y = data, data["water_temperature"]
+    >>> test_size = int(X.shape[0] * 0.33)
+    >>> train_size = X.shape[0] - test_size
+    >>> X_train, y_train = X.iloc[:train_size, :], y[:train_size]
+    >>> X_test, y_test = X.iloc[train_size:, :], y[train_size:]
+    ...
+    >>> simple_features = SimpleFeatureEngineer(
+    ...     rolling_features=[
+    ...         ("wave_height", "mean", 24),
+    ...         ("wave_height", "mean", 12),
+    ...     ],
+    ...     time_features=[
+    ...         ("hour_of_day", "cyclical"),
+    ...     ],
+    ...     keep_original=False,
+    ... )
+    ...
+    >>> model = MLPTimeseriesRegressor(
+    ...     predict_ahead=(0,),
+    ...     feature_engineer=simple_features,
+    ...     verbose=0,
+    ... )
+    ...
+    >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
+    <keras.callbacks.History ...
+    >>> explainer = model.get_explainer(X_test, y_test, sample_n=10)
     >>> shaps = explainer.shap_values(X)
-    >>> summed_shaps = sum_grouped_columns(shaps)
     >>> # Shapley plots often use the original feature values, but there is no single value
     >>> # To describe an entire group, so we have to use empty strings instead.
     >>> empty_X = pd.DataFrame(np.full_like(summed_shaps, "", dtype=str),
