@@ -68,17 +68,10 @@ class MADValidator(BaseValidator):
     >>>
     >>> # now detect extremes
     >>> cols_to_check = ['values']
-<<<<<<< HEAD:sam/validation/find_extremes.py
-    >>> REV = RemoveExtremeValues(
-    ...     cols=cols_to_check,
-    ...     rollingwindow=10,
-    ...     madthresh=10)
-=======
     >>> REV = MADValidator(
     >>>     rollingwindow=10,
     >>>     cols=cols_to_check,
     >>>     madthresh=10)
->>>>>>> main:sam/validation/mad_validator.py
     >>> train_corrected = REV.fit_transform(train_df)
     >>> fig = diagnostic_extreme_removal(REV, train_df, 'values')
     >>> test_corrected = REV.transform(test_df)
