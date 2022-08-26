@@ -47,27 +47,27 @@ def make_shifted_target(
     Examples
     --------
     >>> df = pd.DataFrame({
-    >>>     'X': [18, 19, 20, 21],
-    >>>     'y': [10, 20, 50, 100]
-    >>> })
+    ...     'X': [18, 19, 20, 21],
+    ...     'y': [10, 20, 50, 100]
+    ... })
     >>> make_shifted_target(df['y'], use_diff_of_y = False, lags=1)
-        y_lead_1
-    0 	20.0
-    1 	50.0
-    2 	100.0
-    3 	NaN
+    0     20.0
+    1     50.0
+    2    100.0
+    3      NaN
+    Name: y_lead_1, dtype: float64
 
     --------
     >>> df = pd.DataFrame({
-    >>>     'X': [18, 19, 20, 21],
-    >>>     'y': [10, 20, 50, 100]
-    >>> })
+    ...     'X': [18, 19, 20, 21],
+    ...     'y': [10, 20, 50, 100]
+    ... })
     >>> make_shifted_target(df['y'], use_diff_of_y = True, lags=1)
-        y_diff_1
-    0 	10.0
-    1 	30.0
-    2 	50.0
-    3 	NaN
+    0    10.0
+    1    30.0
+    2    50.0
+    3     NaN
+    Name: y_diff_1, dtype: float64
     """
 
     if newcol_prefix is None:
@@ -138,15 +138,15 @@ def make_differenced_target(
     Examples
     --------
     >>> df = pd.DataFrame({
-    >>>     'X': [18, 19, 20, 21],
-    >>>     'y': [10, 20, 50, 100]
-    >>> })
+    ...     'X': [18, 19, 20, 21],
+    ...     'y': [10, 20, 50, 100]
+    ... })
     >>> make_differenced_target(df['y'], lags=1)
-        y_diff_1
-    0 	10.0
-    1 	30.0
-    2 	50.0
-    3 	NaN
+    0    10.0
+    1    30.0
+    2    50.0
+    3     NaN
+    Name: y_diff_1, dtype: float64
     """
     warnings.warn(
         "make_differenced_target will be deprecated and replaced by make_shifted_target",
@@ -188,27 +188,27 @@ def inverse_differenced_target(predictions: pd.DataFrame, y: pd.Series):
     Examples
     --------
     >>> df = pd.DataFrame({
-    >>>     'X': [18, 19, 20, 21],
-    >>>     'y': [10, 20, 50, 100]
-    >>> })
+    ...     'X': [18, 19, 20, 21],
+    ...     'y': [10, 20, 50, 100]
+    ... })
     >>> target = make_differenced_target(df['y'], lags=1)
     >>> inverse_differenced_target(target, df['y'])
-      y_diff_1
-    0 20.0
-    1 50.0
-    2 100.0
-    3 NaN
+    0     20.0
+    1     50.0
+    2    100.0
+    3      NaN
+    Name: y_diff_1, dtype: float64
 
     >>> prediction = pd.DataFrame({
-        'pred_diff_1': [15, 25, 34, np.nan],
-        'pred_diff_2': [40, 55, np.nan, np.nan]
-    })
+    ...    'pred_diff_1': [15, 25, 34, np.nan],
+    ...    'pred_diff_2': [40, 55, np.nan, np.nan]
+    ... })
     >>> inverse_differenced_target(prediction, df['y'])
-      pred_diff_1   pred_diff_2
-    0 25.0          60.0
-    1 45.0          105.0
-    2 84.0          NaN
-    3 NaN           NaN
+       pred_diff_1  pred_diff_2
+    0         25.0         50.0
+    1         45.0         75.0
+    2         84.0          NaN
+    3          NaN          NaN
     >>> # This means that at timestep 0, we predict that the next two values will be 25 and 60
     >>> # At timestep 1, we predict the next two values will be 45 and 105
     >>> # At timestep 2, we predict the next two values will be 84 and unknown, etcetera.

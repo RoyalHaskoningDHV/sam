@@ -52,11 +52,12 @@ class FunctionTransformerWithNames(FunctionTransformer):
 
     Examples
     --------
+    >>> import pandas as pd
     >>> from sam.utils import FunctionTransformerWithNames
     >>> from sam.feature_engineering import decompose_datetime
     >>> data = pd.DataFrame({'TIME': [1, 2, 3], 'VALUE': [4,5,6]})
     >>> transformer = FunctionTransformerWithNames(decompose_datetime,
-    >>>                                            kw_args={'components': ['hour', 'minute']})
+    ...                                            kw_args={'components': ['hour', 'minute']})
     >>> transformer.fit_transform(data)
     >>> transformer.get_feature_names_out()
     ['TIME', 'VALUE', 'TIME_hour', 'TIME_minute']

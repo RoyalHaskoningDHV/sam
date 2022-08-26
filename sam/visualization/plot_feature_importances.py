@@ -32,11 +32,44 @@ def plot_feature_importances(importances: pd.DataFrame, feature_names: Iterable 
     --------
     >>> # One way to get to feature importances is to first fit a MLPTimeseriesRegressor.
     >>> # In this example, we assumed you did and refer to it as `model`.
-    >>> from sam.visualization import plot_quantile_feature_importances
+    >>> from sam.visualization import plot_feature_importances
     >>> # note that we need a negative here, as default score function is a loss
-    >>> importances = -model.quantile_feature_importances(X, y, sum_time_components=True)
-    >>> fig, fig_sum = plot_quantile_feature_importances(importances,
-    >>>     list(model.get_input_cols()) + model.time_components)
+    >>> # Example with a fictional dataset with only 2 features
+    >>> import pandas as pd
+    >>> import seaborn
+    >>> from sam.models import MLPTimeseriesRegressor
+    >>> from sam.feature_engineering import SimpleFeatureEngineer
+    ...
+    >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
+    >>> X, y = data, data["water_temperature"]
+    >>> test_size = int(X.shape[0] * 0.33)
+    >>> train_size = X.shape[0] - test_size
+    >>> X_train, y_train = X.iloc[:train_size, :], y[:train_size]
+    >>> X_test, y_test = X.iloc[train_size:, :], y[train_size:]
+    ...
+    >>> simple_features = SimpleFeatureEngineer(
+    ...     rolling_features=[
+    ...         ("wave_height", "mean", 24),
+    ...         ("wave_height", "mean", 12),
+    ...     ],
+    ...     time_features=[
+    ...         ("hour_of_day", "cyclical"),
+    ...     ],
+    ...     keep_original=False,
+    ... )
+    ...
+    >>> model = MLPTimeseriesRegressor(
+    ...     predict_ahead=(0,),
+    ...     feature_engineer=simple_features,
+    ... )
+    ...
+    >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
+    Train ...
+    >>> score_decreases = model.quantile_feature_importances(
+    ...     X_test[:100], y_test[:100], n_iter=3, random_state=42)
+    >>> importances = -model.quantile_feature_importances(X, y, random_state=42)
+    >>> fig, fig_sum = plot_feature_importances(importances,
+    ...     list(model.get_input_cols()) + model.get_feature_names_out())
     """
     import matplotlib.pyplot as plt
     import seaborn as sns

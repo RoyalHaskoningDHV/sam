@@ -72,8 +72,9 @@ def create_keras_quantile_mlp(
     >>> n_neurons = 64
     >>> n_layers = 3
     >>> quantiles = [0.1, 0.5, 0.9]
-    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles)
-    >>> model.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=16, epochs=20)
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
+    >>> model.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=16, epochs=20)  # doctest: +ELLIPSIS
+    Train ...
     """
     from tensorflow.keras.layers import (
         Activation,
@@ -181,6 +182,7 @@ def create_keras_quantile_rnn(
     Examples
     --------
     >>> import pandas as pd
+    >>> import numpy as np
     >>> from sam.data_sources import synthetic_date_range, synthetic_timeseries
     >>> from sam.preprocessing import RecurrentReshaper
     >>> from sam.models import create_keras_quantile_rnn
@@ -193,7 +195,8 @@ def create_keras_quantile_rnn(
     >>> y = y[24:]
     >>> input_shape = X_3d.shape[1:]
     >>> model = create_keras_quantile_rnn(input_shape, quantiles=[0.01, 0.99])
-    >>> model.fit(X_3d, y, batch_size=32, epochs=5)
+    >>> model.fit(X_3d, y, batch_size=32, epochs=5)  # doctest: +ELLIPSIS
+    Train ...
     """
     from tensorflow.keras.layers import GRU, LSTM, Dense, Input
     from tensorflow.keras.models import Model
@@ -318,7 +321,7 @@ def create_keras_autoencoder_mlp(
     h = input_layer
     # For each n_neuron value, add a dense layer to the model
     n_neurons = encoder_neurons + encoder_neurons[:-1][::-1]
-    for n in range(n_neurons):
+    for n in n_neurons:
         h = Dense(n)(h)
         if momentum < 1:
             h = BatchNormalization(momentum=momentum)(h)
@@ -396,7 +399,8 @@ def create_keras_autoencoder_rnn(
     >>> X_3d = X_3d[24:]
     >>> input_shape = X_3d.shape[1:]
     >>> model = create_keras_autoencoder_rnn(input_shape)
-    >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5)
+    >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5)  # doctest: +ELLIPSIS
+    Train ...
     """
     from tensorflow.keras.layers import (
         GRU,

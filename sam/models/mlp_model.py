@@ -28,9 +28,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
     It is possible to subclass this class and overwrite functions. For now, the most obvious case
     is overwriting the `get_feature_engineer(self)` function. This function must return a
-    transformer, with attributes: `fit`, `transform`, `fit_transform`, and `get_feature_names`.
+    transformer, with attributes: `fit`, `transform`, `fit_transform`, and `get_feature_names_out`.
     The output of `transform` must be a numpy array or pandas dataframe with the same number of
-    rows as the input array. The output of `get_feature_names` must be an array or list of
+    rows as the input array. The output of `get_feature_names_out` must be an array or list of
     strings, the same length as the number of columns in the output of `transform`.
 
     Another possibility would be overwriting the `get_untrained_model(self)` function.
@@ -113,26 +113,25 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     >>> from sam.models import MLPTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
     ...
-    >>> data = pd.read_parquet("../data/rainbow_beach.parquet").set_index("TIME")
+    >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
     >>> X, y = data, data["water_temperature"]
     ...
     >>> simple_features = SimpleFeatureEngineer(
-    >>>     rolling_features=[
-    >>>         ("wave_height", "mean", 24),
-    >>>         ("wave_height", "mean", 12),
-    >>>     ],
-    >>>     time_features=[
-    >>>         ("hour_of_day", "cyclical"),
-    >>>     ],
-    >>>     keep_original=False,
-    >>> )
-    ...
+    ...     rolling_features=[
+    ...         ("wave_height", "mean", 24),
+    ...         ("wave_height", "mean", 12),
+    ...     ],
+    ...     time_features=[
+    ...         ("hour_of_day", "cyclical"),
+    ...     ],
+    ...     keep_original=False,
+    ... )
     >>> model = MLPTimeseriesRegressor(
-    >>>     predict_ahead=(0,),
-    >>>     feature_engineer=simple_features,
-    >>> )
-    ...
-    >>> model.fit(X, y)
+    ...     predict_ahead=(0,),
+    ...     feature_engineer=simple_features,
+    ... )
+    >>> model.fit(X, y)  # doctest: +ELLIPSIS
+    Train ...
     """
 
     def __init__(
@@ -186,7 +185,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         Returns a simple 2d keras model.
         This is just a wrapper for sam.models.create_keras_quantile_mlp
 
-        Overwrites the abstract method from SamQuantileRegressor
+        Overwrites the abstract method from BaseTimeseriesRegressor
         """
 
         return create_keras_quantile_mlp(
@@ -221,7 +220,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         - Optionally, preprocess validation data to give to the fit
         - Pass through any other fit_kwargs to the fit function
 
-        Overwrites the abstract method from SamQuantileRegressor
+        Overwrites the abstract method from BaseTimeseriesRegressor
 
         Parameters
         ----------
@@ -307,7 +306,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         data from 00:00-12:00, and are predicting 4 hours into the future, it will predict what
         the value will be at 4:00-16:00
 
-        Overwrites the abstract method from SamQuantileRegressor
+        Overwrites the abstract method from BaseTimeseriesRegressor
 
         Parameters
         ----------
@@ -359,7 +358,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         to the folder given by foldername. prefix is configurable, and is
         'model' by default
 
-        Overwrites the abstract method from SamQuantileRegressor
+        Overwrites the abstract method from BaseTimeseriesRegressor
 
         Parameters
         ----------
@@ -398,7 +397,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         'model' by default
         Output is an entire instance of the fitted model that was saved
 
-        Overwrites the abstract method from SamQuantileRegressor
+        Overwrites the abstract method from BaseTimeseriesRegressor
 
         Returns
         -------
@@ -455,6 +454,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         score: Union[str, Callable] = None,
         n_iter: int = 5,
         sum_time_components: bool = False,
+        random_state: int = None,
     ) -> pd.DataFrame:
         """
         Computes feature importances based on the loss function used to estimate the average.
@@ -493,6 +493,8 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         sum_time_components: bool, optional (default=False)
             if set to true, sums feature importances of the different subfeatures of each time
             component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
+        random_state: int, optional (default=None)
+            Used for shuffling columns of matrix columns.
 
         Returns
         -------
@@ -503,22 +505,42 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         Examples
         --------
         >>> # Example with a fictional dataset with only 2 features
-        >>> score_decreases = \
-        >>>     model.quantile_feature_importances(X_test[:100], y_test[:100], n_iter=3)
+        >>> import pandas as pd
+        >>> import seaborn
+        >>> from sam.models import MLPTimeseriesRegressor
+        >>> from sam.feature_engineering import SimpleFeatureEngineer
+        ...
+        >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
+        >>> X, y = data, data["water_temperature"]
+        >>> test_size = int(X.shape[0] * 0.33)
+        >>> train_size = X.shape[0] - test_size
+        >>> X_train, y_train = X.iloc[:train_size, :], y[:train_size]
+        >>> X_test, y_test = X.iloc[train_size:, :], y[train_size:]
+        ...
+        >>> simple_features = SimpleFeatureEngineer(
+        ...     rolling_features=[
+        ...         ("wave_height", "mean", 24),
+        ...         ("wave_height", "mean", 12),
+        ...     ],
+        ...     time_features=[
+        ...         ("hour_of_day", "cyclical"),
+        ...     ],
+        ...     keep_original=False,
+        ... )
+        ...
+        >>> model = MLPTimeseriesRegressor(
+        ...     predict_ahead=(0,),
+        ...     feature_engineer=simple_features,
+        ... )
+        ...
+        >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
+        Train ...
+        >>> score_decreases = model.quantile_feature_importances(
+        ...     X_test[:100], y_test[:100], n_iter=3, random_state=42)
         >>> # The score decreases of each feature in each iteration
-        >>> score_decreases
-            feature_1 feature_2
-        0   5.5       4.3
-        1   5.1       2.3
-        2   5.0       2.4
-
         >>> feature_importances = score_decreases.mean()
-        feature_1    5.2
-        feature_2    3.0
-        dtype: float64
-
         >>> # This will show a barplot of all the score importances, with error bars
-        >>> seaborn.barplot(data=score_decreases)
+        >>> seaborn.barplot(data=score_decreases)  # doctest: +SKIP
         """
         # Model must be fitted for this method
         check_is_fitted(self, "model_")
@@ -527,9 +549,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             raise NotImplementedError(
                 "This method is currently not implemented " "for multiple targets"
             )
-
-        if int(skversion.split(".")[1]) >= 24:
-            raise Exception("This feature requires sklearn version < 0.24.0!")
 
         from eli5.permutation_importance import get_score_importances
 
@@ -550,12 +569,16 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
         # Remove rows with missings in either of the two arrays
         missings = np.isnan(y_target) | np.isnan(X_transformed).any(axis=1)
-        X_transformed = X_transformed[~missings, :]
+        X_transformed = X_transformed.loc[~missings, :]
         y_target = y_target[~missings]
 
         # use eli5 to compute feature importances:
         base_scores, score_decreases = get_score_importances(
-            score, X_transformed, y_target, n_iter=n_iter
+            score,
+            X_transformed.to_numpy(),
+            y_target.to_numpy(),
+            n_iter=n_iter,
+            random_state=random_state,
         )
 
         decreases_df = pd.DataFrame(score_decreases, columns=self.get_feature_names_out())
@@ -601,12 +624,42 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
         Examples
         --------
-        >>> explainer = model.get_explainer(X_test, y_test, sample_n=1000)
+        >>> import pandas as pd
+        >>> import shap
+        >>> from sam.models import MLPTimeseriesRegressor
+        >>> from sam.feature_engineering import SimpleFeatureEngineer
+        ...
+        >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
+        >>> X, y = data, data["water_temperature"]
+        >>> test_size = int(X.shape[0] * 0.33)
+        >>> train_size = X.shape[0] - test_size
+        >>> X_train, y_train = X.iloc[:train_size, :], y[:train_size]
+        >>> X_test, y_test = X.iloc[train_size:, :], y[train_size:]
+        ...
+        >>> simple_features = SimpleFeatureEngineer(
+        ...     rolling_features=[
+        ...         ("wave_height", "mean", 24),
+        ...         ("wave_height", "mean", 12),
+        ...     ],
+        ...     time_features=[
+        ...         ("hour_of_day", "cyclical"),
+        ...     ],
+        ...     keep_original=False,
+        ... )
+        ...
+        >>> model = MLPTimeseriesRegressor(
+        ...     predict_ahead=(0,),
+        ...     feature_engineer=simple_features,
+        ... )
+        ...
+        >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
+        Train ...
+        >>> explainer = model.get_explainer(X_test, y_test, sample_n=10)
         >>> shap_values = explainer.shap_values(X_test[0:10], y_test[0:10])
         >>> test_values = explainer.test_values(X_test[0:10], y_test[0:10])
 
         >>> shap.force_plot(explainer.expected_value[0], shap_values[0][-1,:],
-        >>>                 test_values.iloc[-1,:], matplotlib=True)
+        ...                 test_values.iloc[-1,:], matplotlib=True)
         """
         import shap
 
@@ -614,6 +667,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         if sample_n is not None:
             # Sample some rows to increase performance later
             sampled = np.random.choice(X_transformed.shape[0], sample_n, replace=False)
-            X_transformed = X_transformed[sampled, :]
-        explainer = shap.DeepExplainer(self.model_, X_transformed)
+            X_transformed = X_transformed.iloc[sampled, :]
+        explainer = shap.KernelExplainer(self.model_.predict, X_transformed.to_numpy())
         return SamShapExplainer(explainer, self, preprocess_predict=self.preprocess_predict)

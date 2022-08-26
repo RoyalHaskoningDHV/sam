@@ -68,9 +68,9 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
     >>> # now detect extremes
     >>> cols_to_check = ['values']
     >>> REV = RemoveExtremeValues(
-    >>>     cols=cols_to_check,
-    >>>     rollingwindow=10,
-    >>>     madthresh=10)
+    ...     cols=cols_to_check,
+    ...     rollingwindow=10,
+    ...     madthresh=10)
     >>> train_corrected = REV.fit_transform(train_df)
     >>> fig = diagnostic_extreme_removal(REV, train_df, 'values')
     >>> test_corrected = REV.transform(test_df)

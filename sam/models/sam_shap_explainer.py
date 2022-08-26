@@ -3,6 +3,8 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 
+from sam.models.base_model import BaseTimeseriesRegressor
+
 
 class SamShapExplainer(object):
     """
@@ -22,16 +24,15 @@ class SamShapExplainer(object):
         This will be used to do the preprocessing before calling explainer.shap_values
     """
 
-    def __init__(self, explainer: Callable, model: Callable, preprocess_predict: Callable) -> None:
+    def __init__(self, explainer: Callable, model: BaseTimeseriesRegressor, preprocess_predict: Callable) -> None:
         self.explainer = explainer
         self.preprocess_predict = preprocess_predict
 
         # Create a proxy model that can call only 3 attributes we need
         class SamProxyModel:
             fit = None
-            use_y_as_feature = model.use_y_as_feature
             feature_names_ = model.get_feature_names_out()
-            preprocess_predict = self.preprocess_predict
+            preprocess_predict = model.preprocess_predict
 
         self.model = SamProxyModel()
         # Trick sklearn into thinking this is a fitted variable
@@ -39,7 +40,7 @@ class SamShapExplainer(object):
         # Will likely be somewhere around 0
         self.expected_value = explainer.expected_value
 
-    def shap_values(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
+    def shap_values(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.ndarray:
         """
         Imitates explainer.shap_values, but combined with the preprocessing from the model.
         Returns a similar format as a regular shap explainer: a list of numpy arrays, one
@@ -55,7 +56,7 @@ class SamShapExplainer(object):
         X_transformed = self.model.preprocess_predict(X, y, dropna=False)
         return self.explainer.shap_values(X_transformed, *args, **kwargs)
 
-    def attributions(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.array:
+    def attributions(self, X: pd.DataFrame, y: pd.Series = None, *args, **kwargs) -> np.ndarray:
         """
         Imitates explainer.attributions, which by default just mirrors shap_values
 

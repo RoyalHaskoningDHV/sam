@@ -74,11 +74,11 @@ def performance_evaluation_fixed_predict_ahead(
     # assuming you have some y_true_train, y_true_test and predictions y_hat_train and y_hat_test:
     from sam.visualization import performance_evaluation_fixed_predict_ahead
     >>> r2_df, bar_fig, scatter_fig, best_res = performance_evaluation_fixed_predict_ahead(
-    >>>     y_true_train,
-    >>>     y_hat_train,
-    >>>     y_true_test,
-    >>>     y_hat_test,
-    >>>     resolutions=[None, '15min', '1H', '3H', '6H', '1D'])
+    ...     y_true_train,
+    ...     y_hat_train,
+    ...     y_true_test,
+    ...     y_hat_test,
+    ...     resolutions=[None, '15min', '1H', '3H', '6H', '1D'])
 
     >>> # display the results
     >>> bar_fig.show()
@@ -88,11 +88,11 @@ def performance_evaluation_fixed_predict_ahead(
 
     >>> # print some results
     >>> best_res_r2 = r2_df.loc[(r2_df['dataset']=='train') &
-    >>>                         (r2_df['resolution'] == best_res), 'R2'].values[0]
+    ...                         (r2_df['resolution'] == best_res), 'R2'].values[0]
     >>> native_r2 = r2_df.loc[(r2_df['dataset']=='train') &
-    >>>                       (r2_df['resolution'] == 'native'), 'R2'].values[0]
+    ...                       (r2_df['resolution'] == 'native'), 'R2'].values[0]
     >>> print('best resolution found at %s (%.3f vs %.3f native)'%(
-    >>>         best_res, best_res_r2, native_r2))
+    ...         best_res, best_res_r2, native_r2))
     """
     import matplotlib.pyplot as plt
     import seaborn as sns

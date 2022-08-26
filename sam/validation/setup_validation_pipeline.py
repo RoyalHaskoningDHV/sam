@@ -68,7 +68,9 @@ def create_validation_pipe(
 
     Examples
     --------
-    >>> from sam.validation import create_validation_pipe, validate_and_impute
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from sam.validation import create_validation_pipe
     >>> from sam.visualization import diagnostic_extreme_removal, diagnostic_flatline_removal
     >>>
     >>> # create some data
@@ -87,7 +89,7 @@ def create_validation_pipe(
     >>>
     >>> # setup pipeline
     >>> pipe = create_validation_pipe(cols=list(X_train.columns) + ['target'], rollingwindow=5,
-    >>>                              impute_method='iterative')
+    ...                              impute_method='iterative')
     >>>
     >>> # put data together
     >>> train_data = X_train.join(y_train)
@@ -95,16 +97,16 @@ def create_validation_pipe(
     >>>
     >>> # now fit the pipeline on the train data and transform both train and test
     >>> train_data = pd.DataFrame(pipe.fit_transform(train_data), columns=train_data.columns,
-    >>>                           index=train_data.index)
+    ...                           index=train_data.index)
     >>> test_data = pd.DataFrame(pipe.transform(test_data), columns=test_data.columns,
-    >>>                          index=test_data.index)
+    ...                          index=test_data.index)
     >>>
     >>> # the fitted pipeline can now be passed to diagnostic plot functions:
     >>> # create validation visualizations
     >>> f_ext = diagnostic_extreme_removal(
-    >>>     pipe['extreme'], pd.DataFrame(test_data['target'], columns=['target']), 'target')
+    ...     pipe['extreme'], pd.DataFrame(test_data['target'], columns=['target']), 'target')
     >>> f_ext = diagnostic_flatline_removal(
-    >>>     pipe['flat'], pd.DataFrame(test_data['target'], columns=['target']), 'target')
+    ...     pipe['flat'], pd.DataFrame(test_data['target'], columns=['target']), 'target')
     """
     methods = ["iterative", "mean", "median", "most_frequent", "constant"]
     if impute_method not in methods:

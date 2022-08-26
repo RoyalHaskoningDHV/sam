@@ -32,6 +32,7 @@ def tilted_loss(y_true: np.array, y_pred: np.array, quantile: float = 0.5):
     >>> actual = np.array([1, 2, 3, 4])
     >>> pred = np.array([0.9, 2.1, 2.9, 3.1])
     >>> tilted_loss(actual, pred, quantile=0.5)
+    0.15000000000000002
     """
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     e = y_true - y_pred
