@@ -9,6 +9,31 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.0
+
+### New features
+
+- New class `sam.models.LassoTimeseriesRegressor` to create a Lasso regression model for time series data incl. quantile predictions.
+- New class `sam.preprocessing.ClipTransformer` to clip input values to the range from the train set, making models more robust again
+- New abstract base class `sam.validation.BaseValidator` for all validators.
+- Renamed `sam.validation.RemoveFlatlines` to `sam.validation.FlatlineValidator`. `sam.validation.RemoveFlatlines` is still available, but removed in future versions.
+- Renamed `sam.validation.RemoveExtremeValues` to `sam.validation.MADValidator`. `sam.validation.RemoveExtremeValues` is still available, but removed in future versions.
+- New class `sam.validation.OutsideRangeValidator` for checking / removing data outside of a range. 
+- New function `datetime_train_test_split` to split pandas dataframes and series based on a datetime.
+- New `sam.datasets` module containing functions for loading read-to-use datasets: `sam.datasets.load_rainbow_beach` and `sam.datasets.load_sewage_data`.
+st outliers.
+
+## Version 3.0.4
+
+### Changes
+- Added `average_type` to `BaseTimeseriesRegressor.__init__()`.
+- `MLPTimeseriesRegressor.__init__()` now passes `average_type` to `BaseTimeseriesRegressor.__init__()`.
+- Update `BaseTimeseriesRegressor.score()` to account for the `self.average_type`: in case of "mean" take the MSE of the average predictions and in case of "median" take the MAE of the average predictions.
+- Fixed various spelling errors in `CHANGELOG.MD` and `models`.
+- Updated package dependencies for scikit-learn
+- Changed the DeepExplainer to the model agnostic KernelExplainer, so we can remove all the v1 dependencies on tensorflow
+- Fixed pytest MPL bug by temporarily setting it to a previous version 
+
 ## Version 3.0.3
 
 ### New features
@@ -57,6 +82,7 @@ No changes, version bump only.
 ### Changes
 - Added `.readthedocs.yml` and `docs/requirements.txt` to include requirements for readthedocs build.
 
+
 ## Version 2.10.2
 
 ### Changes
@@ -67,7 +93,7 @@ No changes, version bump only.
 ## Version 2.10.1
 
 ### Changes
-- Revert version changes in `scikit-learn` and `tenforflow` due to compatibility issues
+- Revert version changes in `scikit-learn` and `tensorflow` due to compatibility issues
 
 ## 2.10.0
 
@@ -296,7 +322,7 @@ the class. This was unwanted.
 - Fixed failing unit tests by removing tensorflow v1 code
 - Fixed QuantileMLP, where the target would stay an integer, which fails with our custom loss functions
 - Updated optional dependencies to everything we use
-- With the latest pandas version a UTC to string conversio has been fixed. Removed our fix, upped the pandas version
+- With the latest pandas version a UTC to string conversion has been fixed. Removed our fix, upped the pandas version
 - Updated scikit-learn to at least 0.21, which is required for the iterative imputer
 
 ### Development changes
@@ -324,10 +350,10 @@ the class. This was unwanted.
 - `sam.models.SamQuantileMLP.quantile_feature_importances`: now has argument sum_time_components that summarizes feature importances for different features generated for a single component (i.e. in onehot encoding).
 
 ### Changes
-- `sam.featurew_engineering.automatic_rolling_engineering`: `estimator_type` argument can now also be 'bayeslin', which should be used if one hot components are used
+- `sam.feature_engineering.automatic_rolling_engineering`: `estimator_type` argument can now also be 'bayeslin', which should be used if one hot components are used
 
 ### Bugfixes
-- `sam.featurew_engineering.automatic_rolling_engineering`: constant features are no longer deleted (broke one hot features)
+- `sam.feature_engineering.automatic_rolling_engineering`: constant features are no longer deleted (broke one hot features)
 
 ## Version 2.0.9
 

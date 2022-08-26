@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from sam.feature_engineering import BaseFeatureEngineer, IdentityFeatureEngineer
 from sam.models.utils import remove_target_nan, remove_until_first_value
+from sam.metrics import joint_mae_tilted_loss, joint_mse_tilted_loss
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
@@ -50,6 +51,14 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     y_scaler: object, optional (default=None)
         Should be an sklearn-type transformer that has a transform and inverse_transform method.
         E.g.: StandardScaler() or PowerTransformer()
+    average_type: str (default='mean')
+        Determines what to fit as the average: 'mean', or 'median'. The average is the last
+        node in the output layer and does not reflect a quantile, but rather estimates the central
+        tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
+        setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
+    feature_engineering: object, optional (default=None)
+        Should be an sklearn-type transformer that has a transform method, e.g.
+        `sam.feature_engineering.SimpleFeatureEngineer`.
     kwargs: dict, optional
         Not used. Just for compatibility of models that inherit from this class.
 
@@ -70,6 +79,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
+        average_type: str = "mean",
         feature_engineer: BaseFeatureEngineer = None,
         **kwargs,
     ) -> None:
@@ -78,6 +88,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.use_diff_of_y = use_diff_of_y
         self.timecol = timecol
         self.y_scaler = y_scaler
+        self.average_type = average_type
         self.feature_engineer_ = (
             feature_engineer if feature_engineer else IdentityFeatureEngineer()
         )
@@ -215,14 +226,14 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
         Returns
         -------
-        X_transformed: pd.DataDrame
-            The transformed featuretable, ready to be used in fitting the model
+        X_transformed: pd.DataFrame
+            The transformed feature table, ready to be used in fitting the model
         y_transformed: pd.Series
             The transformed target, ready to be used in fitting the model
         X_val_transformed: pd.DataFrame
-            The transformed featuretable, ready to be used for validating the model
+            The transformed feature table, ready to be used for validating the model
             If no validation data is provided, this returns None
-        y_val_tranformed: pd.Series
+        y_val_transformed: pd.Series
             The transformed target, ready to be used for validating the model
             If no validation data is provided, this returns None
         """
@@ -516,7 +527,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         col_names = col_names[col_names != self.timecol]
         self._input_cols = col_names
 
-    def get_input_cols(self) -> np.array:
+    def get_input_cols(self) -> np.ndarray:
         """
         Function to obtain the input column names.
         This can be used to determine model dependencies
@@ -565,7 +576,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
         """
-        Default score function. Uses sum of mse and tilted loss
+        Default score function. Uses sum of tilted loss of quantile predictions plus the mse
+        of the mean predictions or mae of the median predictions.
 
         Parameters
         ----------
@@ -582,7 +594,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
         # We need a dataframe, regardless of if these functions outputs a series or dataframe
-        prediction = pd.DataFrame(self.predict(X, y))
+        prediction = pd.DataFrame(self.predict(X, y), columns=self.prediction_cols_)
         actual = pd.DataFrame(self.get_actual(y))
 
         # scale these predictions back to get a score that is in same units as keras loss
@@ -607,20 +619,18 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # We ignore the rows with missings
         prediction, actual = remove_target_nan(prediction, actual, use_x=True)
 
-        # self.prediction_cols_[-1] defines the mean prediction
-        # For n outputs, we need the last n columns instead
-        # Therefore, this line calculates the mse of the mean prediction
-        mean_prediction = prediction[self.prediction_cols_[-1 * len(self.predict_ahead) :]].values
-        # Calculate the MSE of all the predictions, and tilted loss of quantile predictions,
-        # then sum them at the end
-        loss = np.sum(np.mean((actual - mean_prediction) ** 2, axis=0))
-        for i, q in enumerate(self.quantiles):
-            startcol = len(self.predict_ahead) * i
-            endcol = startcol + len(self.predict_ahead)
-            e = np.array(actual - prediction[self.prediction_cols_[startcol:endcol]].values)
-            # Calculate all the quantile losses, and sum them at the end
-            loss += np.sum(np.mean(np.max([q * e, (q - 1) * e], axis=0), axis=0))
-        return loss
+        # Calculate the joint tilted loss of all the average and quantile predictions
+        if self.average_type == "median":
+            loss = joint_mae_tilted_loss(
+                actual, prediction, quantiles=self.quantiles, n_targets=len(self.predict_ahead)
+            )
+        elif self.average_type == "mean":
+            loss = joint_mse_tilted_loss(
+                actual, prediction, quantiles=self.quantiles, n_targets=len(self.predict_ahead)
+            )
+
+        score = -1 * loss
+        return score
 
     @abstractmethod
     def dump(self, foldername: str, prefix: str = "model") -> None:
@@ -640,7 +650,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, foldername, prefix="model") -> Callable:
+    def load(cls, foldername, prefix="model"):
         """Load a model from disk
 
         This abstract method needs to be implemented by any class inheriting from

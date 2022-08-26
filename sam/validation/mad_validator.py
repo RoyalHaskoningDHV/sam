@@ -3,12 +3,13 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, TransformerMixin
+from sam.validation import BaseValidator
+from sam.utils import add_future_warning
 
 logger = logging.getLogger(__name__)
 
 
-class RemoveExtremeValues(BaseEstimator, TransformerMixin):
+class MADValidator(BaseValidator):
     """
     This transformer finds extreme values and sets them to nan in a few steps:
 
@@ -35,19 +36,19 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
 
     Parameters
     ---------
-    cols: list of strings
-        columns to detect extreme values for
     rollingwindow: int or string
         if number, this amount of values will be used for the rolling window
         if string, should be in pandas timedelta format ('1D'), and data should
         have a datetime index. A sensible value for this depends on your time
         resolution, but you could try values between 200-400.
+    cols: list of strings (optional)
+        columns to detect extreme values for. If None, all columns will be used.
     madthresh: float
         number of median absolute deviations to use as threshold.
 
     Examples
     --------
-    >>> from sam.validation import RemoveExtremeValues
+    >>> from sam.validation import MADValidator
     >>> from sam.visualization import diagnostic_extreme_removal
     >>> import numpy as np
     >>> import pandas as pd
@@ -67,20 +68,32 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
     >>>
     >>> # now detect extremes
     >>> cols_to_check = ['values']
+<<<<<<< HEAD:sam/validation/find_extremes.py
     >>> REV = RemoveExtremeValues(
     ...     cols=cols_to_check,
     ...     rollingwindow=10,
     ...     madthresh=10)
+=======
+    >>> REV = MADValidator(
+    >>>     rollingwindow=10,
+    >>>     cols=cols_to_check,
+    >>>     madthresh=10)
+>>>>>>> main:sam/validation/mad_validator.py
     >>> train_corrected = REV.fit_transform(train_df)
     >>> fig = diagnostic_extreme_removal(REV, train_df, 'values')
     >>> test_corrected = REV.transform(test_df)
     >>> fig = diagnostic_extreme_removal(REV, test_df, 'values')
     """
 
-    def __init__(self, cols: list, rollingwindow: Union[int, str], madthresh=15):
+    def __init__(
+        self,
+        rollingwindow: Union[int, str],
+        cols: list = None,
+        madthresh=15,
+    ):
 
-        self.cols = cols
         self.rollingwindow = rollingwindow
+        self.cols = cols
         self.madthresh = madthresh
 
     def _compute_rolling(self, x: pd.Series):
@@ -102,6 +115,7 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
 
         self.thresh_high = {}
         self.thresh_low = {}
+        self.cols_ = self.cols if self.cols else data.columns.to_list()
         for c in self.cols:
 
             # get data
@@ -119,7 +133,7 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, data: pd.DataFrame):
+    def validate(self, X: pd.DataFrame):
         """
         Sets values that fall outside bounds set in the fit method to nan
 
@@ -134,37 +148,39 @@ class RemoveExtremeValues(BaseEstimator, TransformerMixin):
             input data with columns marked as nan
         """
 
-        self.rollings, self.invalids, self.diffs = {}, {}, {}
-        data_r = data.copy()
+        invalid_data = pd.DataFrame(
+            data=np.zeros_like(X.values).astype(bool),
+            index=X.index,
+            columns=X.columns,
+        )
+
         for c in self.cols:
 
             # get data
-            x = data.loc[:, c]
+            x = X.loc[:, c]
 
             # determine rolling and diff
             rolling = self._compute_rolling(x)
             diff = x.values - rolling
 
             # as thresholds are computed in signed way, we can directly compare
-            invalids = diff > self.thresh_high[c]
-            invalids |= diff < self.thresh_low[c]
-
-            # save some variables to self so they are available for plot
-            self.diffs[c] = diff
-            self.rollings[c] = rolling
-            self.invalids[c] = invalids
-
-            # set false values to nan
-            data_r.loc[invalids, c] = np.nan
+            extreme_value = (diff > self.thresh_high[c]) | (diff < self.thresh_low[c])
 
             # log number of values removed and tresholds used
             logger.info(
-                "detected %d " % np.sum(invalids)
-                + "extreme values from %s. " % c
-                + "using upper threshold of: %.2f " % self.thresh_high[c]
-                + "and lower threshold of: %.2f " % self.thresh_low[c]
-                + "using madthresh of %d " % self.madthresh
-                + "and rollingwindow of %s" % str(self.rollingwindow)
+                f"detected {np.sum(extreme_value)} extreme values from {c}. "
+                f"using upper threshold of: {round(self.thresh_high[c], 2)} "
+                f"and lower threshold of: {round(self.thresh_low[c])} "
+                f"using madthresh of {self.madthresh} "
+                f"and rollingwindow of {str(self.rollingwindow)}"
             )
 
-        return data_r
+            invalid_data[c] = extreme_value
+
+        return invalid_data
+
+
+class RemoveExtremeValues(MADValidator):
+    @add_future_warning("RemoveExtremeValues is deprecated. Use MADValidator instead.")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

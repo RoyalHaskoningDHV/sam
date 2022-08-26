@@ -19,7 +19,7 @@ def create_keras_quantile_mlp(
     """
     Creates a multilayer perceptron in keras.
     Optimizes the keras_joint_mse_tilted_loss to do multiple quantile and
-    mean regression with a single model.
+    mean/median regression with a single model.
 
     Parameters
     ----------
@@ -253,7 +253,7 @@ def create_keras_autoencoder_mlp(
     lr: float = 0.001,
 ) -> Callable:
     """
-    Function to create a mlp autoencoder in keras
+    Function to create an MLP auto-encoder in keras
     Optimizes the mean squared error to reconstruct input,
     after passing input through bottleneck neural network.
 
@@ -346,7 +346,7 @@ def create_keras_autoencoder_rnn(
     lr: float = 0.001,
 ) -> Callable:
     """
-    Function to create a recurrent autoencoder in keras
+    Function to create a recurrent auto-encoder in keras
     Optimizes the mean squared error to reconstruct input,
     after passing input through bottleneck neural network.
     Reference:

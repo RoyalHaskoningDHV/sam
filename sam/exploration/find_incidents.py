@@ -308,7 +308,7 @@ def incident_curves_information(
             "OUTLIER_TYPE": lambda x: x.iloc[0],
         }
     )
-    streaks.columns = ["_".join(x) for x in streaks.columns.ravel()]
+    streaks.columns = ["_".join(x) for x in streaks.columns]
     streaks = streaks.rename(
         columns={
             "OUTLIER_CURVE_count": "OUTLIER_DURATION",

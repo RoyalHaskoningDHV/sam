@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sam.metrics import tilted_loss
 from sklearn.base import BaseEstimator, RegressorMixin
+from sam.utils.warnings import add_future_warning
 
 # Keep package independent of statsmodels
 try:
@@ -55,6 +56,11 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     LinearQuantileRegression()
     """
 
+    @add_future_warning(
+        "This class is deprecated and will be removed in a future version. "
+        "Please use the LassoTimeseriesRegressor class from the sam.models "
+        "or the QuantileRegressor class from sklearn.linear_model instead."
+    )
     def __init__(
         self,
         quantiles: list = [0.05, 0.95],

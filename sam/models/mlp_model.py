@@ -15,30 +15,15 @@ from sam.models.sam_shap_explainer import SamShapExplainer
 
 
 class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
-    """
-    This is an example class for how the SAM skeleton can work. This is not the final/only model,
-    there are some notes:
-    - There is no validation yet. Therefore, the input data must already be sorted and monospaced
-    - The feature engineering is very simple, we just calculate lag/max/min/mean for a given window
-      size, as well as minute/hour/month/weekday if there is a time column
-    - The prediction requires y as input. The reason for this is described in the predict function.
-      Keep in mind that this is not directly 'cheating', since we are predicting a future value of
-      y, and giving the present value of y as input to the predict.
-      When predicting the present, this y is not needed and can be None
+    """Multi-layer Perceptron Regressor for time series
 
-    It is possible to subclass this class and overwrite functions. For now, the most obvious case
-    is overwriting the `get_feature_engineer(self)` function. This function must return a
-    transformer, with attributes: `fit`, `transform`, `fit_transform`, and `get_feature_names_out`.
-    The output of `transform` must be a numpy array or pandas dataframe with the same number of
-    rows as the input array. The output of `get_feature_names_out` must be an array or list of
-    strings, the same length as the number of columns in the output of `transform`.
+    This model combines several approaches to time series data:
+    Multiple outputs for forecasting, quantile regression, and feature engineering.
+    This class is an implementation of an MLP to estimate multiple quantiles for all
+    forecasting horizons at once.
 
-    Another possibility would be overwriting the `get_untrained_model(self)` function.
-    This function must return a keras model, with `fit`, `predict`, `save` and `summary`
-    attributes, where fit/predict will accept a regular (2d) dataframe or numpy array as input.
-
-    Note that the below parameters are just for the default model, and subclasses can have
-    different `__init__` parameters.
+    This is a wrapper for a keras MLP model. For more information on the model parameters,
+    see the keras documentation.
 
     Parameters
     ----------
@@ -115,7 +100,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     ...
     >>> data = pd.read_parquet("./data/rainbow_beach.parquet")
     >>> X, y = data, data["water_temperature"]
-    ...
+
     >>> simple_features = SimpleFeatureEngineer(
     ...     rolling_features=[
     ...         ("wave_height", "mean", 24),
@@ -132,6 +117,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     ... )
     >>> model.fit(X, y)  # doctest: +ELLIPSIS
     Train ...
+    >>> model.fit(X, y)
     """
 
     def __init__(
@@ -332,10 +318,10 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         X_transformed: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
-        if max(self.predict_ahead) > 0 and y is None:
-            raise ValueError("When predict_ahead > 0, y is needed for prediction")
-
         self.validate_data(X)
+
+        if y is None and self.use_diff_of_y:
+            raise ValueError("You must provide y when using use_diff_of_y=True")
 
         X_transformed = self.preprocess_predict(X, y)
         prediction = self.model_.predict(X_transformed)
@@ -349,7 +335,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump(self, foldername: str, prefix: str = "model") -> None:
+    def dump(self, foldername: Union[str, Path], prefix: str = "model") -> None:
         """
         Writes the following files:
         * prefix.pkl
@@ -387,7 +373,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         self.model_ = backup
 
     @classmethod
-    def load(cls, foldername, prefix="model") -> Callable:
+    def load(cls, foldername: Union[str, Path], prefix="model"):
         """
         Reads the following files:
         * prefix.pkl
@@ -423,7 +409,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         saved in the .h5 file by default
         """
         if len(self.quantiles) == 0:
-            mse_tilted = "mse"
+            return "mse"
         else:
 
             def mse_tilted(y, f):
@@ -489,7 +475,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             removing this feature will increase the metric, which is a bad thing with MAE/MSE).
         n_iter: int, optional (default=5)
             Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
-            this parameter may provide more stablitity at the cost of a longer runtime
+            this parameter may provide more stability at the cost of a longer runtime
         sum_time_components: bool, optional (default=False)
             if set to true, sums feature importances of the different subfeatures of each time
             component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
@@ -499,7 +485,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         Returns
         -------
         score_decreases: Pandas dataframe,  shape (n_iter x n_features)
-            The score decreases when leaving out each feature per iteration. The larget the
+            The score decreases when leaving out each feature per iteration. The larger the
             magnitude, the more important each feature is considered by the model.
 
         Examples
@@ -614,7 +600,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         y: pd.Series, optional (default=None)
             Target data used to 'train' the explainer. Only required when self.predict_ahead > 0.
         sample_n: integer, optional (default=None)
-            The number of samples to give to the explainer. It is reccommended that
+            The number of samples to give to the explainer. It is recommended that
             if your background set is greater than 5000, to sample for performance reasons.
 
         Returns
