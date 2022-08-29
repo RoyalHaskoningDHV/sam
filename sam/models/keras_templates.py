@@ -297,7 +297,7 @@ def create_keras_autoencoder_mlp(
     >>> from sam.models import create_keras_autoencoder_mlp
     >>> dates = pd.Series(synthetic_date_range().to_pydatetime())
     >>> X = [synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=i) \
-             for i in range(100)]
+    ...     for i in range(100)]
     >>> X = pd.DataFrame(X)
     >>> model = create_keras_autoencoder_mlp(n_input=100)
     >>> model.fit(X.T, X.T, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
