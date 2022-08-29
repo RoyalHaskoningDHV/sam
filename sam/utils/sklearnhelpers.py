@@ -56,9 +56,14 @@ class FunctionTransformerWithNames(FunctionTransformer):
     >>> from sam.utils import FunctionTransformerWithNames
     >>> from sam.feature_engineering import decompose_datetime
     >>> data = pd.DataFrame({'TIME': [1, 2, 3], 'VALUE': [4,5,6]})
+    >>> data['TIME'] = pd.to_datetime(data['TIME'])
     >>> transformer = FunctionTransformerWithNames(decompose_datetime,
     ...                                            kw_args={'components': ['hour', 'minute']})
     >>> transformer.fit_transform(data)
+                               TIME  VALUE  TIME_hour  TIME_minute
+    0 1970-01-01 00:00:00.000000001      4          0            0
+    1 1970-01-01 00:00:00.000000002      5          0            0
+    2 1970-01-01 00:00:00.000000003      6          0            0
     >>> transformer.get_feature_names_out()
     ['TIME', 'VALUE', 'TIME_hour', 'TIME_minute']
     """

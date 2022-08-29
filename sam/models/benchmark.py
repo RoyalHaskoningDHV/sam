@@ -236,23 +236,28 @@ def benchmark_wrapper(
     --------
     >>> from sam.datasets import load_rainbow_beach, load_sewage_data
     >>> from sam.models import MLPTimeseriesRegressor, benchmark_wrapper
+    >>> from sam.preprocessing import wide_to_sam_format
+    >>>
+    >>> sewage = load_sewage_data()
+    >>> sewage = sewage.drop(['Precipitation', 'Temperature'], axis=1)
+    >>> sewage = sewage.iloc[0:200, :]
+    >>> sewage['TIME'] = sewage.index
+    >>> sewage = wide_to_sam_format(sewage)
     >>> datasets = {
-    ...     'rainbow': load_rainbow_beach(),
-    ...     'sewage': load_sewage_data(),
+    ...     'sewage': sewage,
     ... }
     >>> column_filters = {
-    ...     'rainbow': lambda x: x.startswith('63rd Street'),
-    ...     'sewage': lambda x: x.startswith('Beijing'),
+    ...     'sewage': lambda x: x,
     ... }
     >>> targetcols = {
-    ...     'rainbow': 'wave_height',
     ...     'sewage': 'Discharge_Hoofdgemaal',
     ... }
     >>> models = {
     ...     'mymodel': MLPTimeseriesRegressor(predict_ahead=[3], timecol='TIME',
     ...                               dropout=0.5, verbose=True)  # some non-default params
     ... }
-    >>> benchmark_wrapper(models, datasets, column_filters, targetcols)
+    >>> benchmark_wrapper(models, datasets, column_filters, targetcols)  # doctest: +ELLIPSIS
+    Epoch ...
     """
     data_names = datasets.keys()
     traintest_dict = dict(

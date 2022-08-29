@@ -648,9 +648,8 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         >>> explainer = model.get_explainer(X_test, y_test, sample_n=10)
         >>> shap_values = explainer.shap_values(X_test[0:10], y_test[0:10])
         >>> test_values = explainer.test_values(X_test[0:10], y_test[0:10])
-
         >>> shap.force_plot(explainer.expected_value[0], shap_values[0][-1,:],
-        ...                 test_values.iloc[-1,:], matplotlib=True, fig_size=10)
+        ...                 test_values.iloc[-1,:], matplotlib=True)
         """
         import shap
 

@@ -52,8 +52,7 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     >>> X = data.drop('T', axis=1)
     >>> # Fit model
     >>> model = LinearQuantileRegression()
-    >>> model.fit(X, y)  # doctest: +ELLIPSIS
-    LinearQuantileRegression()
+    >>> model.fit(X, y)  # doctest: +SKIP
     """
 
     @add_future_warning(
