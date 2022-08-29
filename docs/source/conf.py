@@ -17,8 +17,10 @@ from recommonmark.parser import CommonMarkParser
 #
 import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.abspath("../.."))
+
+root_folder = Path(__file__).parent.parent
 
 
 # -- Project information -----------------------------------------------------
@@ -28,7 +30,7 @@ copyright = "2018-2022, Royal HaskoningDHV"
 author = "Royal HaskoningDHV"
 
 
-config = toml.load("./pyproject.toml")
+config = toml.load(root_folder / "pyproject.toml")
 
 # The short X.Y version
 version = config["project"]["version"]
