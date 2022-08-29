@@ -36,3 +36,6 @@ jobs:
         flags: unittests # optional
         name: codecov-umbrella # optional
         verbose: true # optional (default = false)
+    - name: checking docstring examples
+      run: |
+        pytest --doctest-modules ./sam/*
