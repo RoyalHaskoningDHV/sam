@@ -71,7 +71,9 @@ def plot_incident_heatmap(
     >>> ts.loc[ts['values'] > .5, 'incident'] = 1
     >>>
     >>> # Create the heatmap
-    >>> fig = plot_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds', datefmt="%Y, week %W")
+    >>> fig = plot_incident_heatmap(
+    ...     ts, resolution='W', annot=True, cmap='Reds', datefmt="%Y, week %W"
+    ... )
     """
     import matplotlib.pyplot as plt
     import seaborn as sns

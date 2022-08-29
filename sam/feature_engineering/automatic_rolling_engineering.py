@@ -118,7 +118,9 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
     >>> # and make plot of the timeseries:
     >>> timeseries_fig = plt.figure(figsize=(12, 6))
     >>> timeseries_fig = plt.plot(X_test.index, y_test.ravel(), 'ok', label='data')
-    >>> timeseries_fig = plt.plot(X_test.index, yhat_base, lw=3, alpha=0.75, label='yhat_base (r2: %.2f)'%r2_base)
+    >>> timeseries_fig = plt.plot(
+    ...     X_test.index, yhat_base, lw=3, alpha=0.75, label='yhat_base (r2: %.2f)'%r2_base
+    ... )
     >>> timeseries_fig = plt.plot(
     ...     X_test.index, yhat_roll, lw=3, alpha=0.75, label='yhat_rolling (r2: %.2f)'%r2_rollings)
     >>> timeseries_fig = plt.legend(loc='best')

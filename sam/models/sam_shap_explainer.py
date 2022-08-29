@@ -24,7 +24,12 @@ class SamShapExplainer(object):
         This will be used to do the preprocessing before calling explainer.shap_values
     """
 
-    def __init__(self, explainer: Callable, model: BaseTimeseriesRegressor, preprocess_predict: Callable) -> None:
+    def __init__(
+        self,
+        explainer: Callable,
+        model: BaseTimeseriesRegressor,
+        preprocess_predict: Callable
+    ) -> None:
         self.explainer = explainer
         self.preprocess_predict = preprocess_predict
 

@@ -8,7 +8,6 @@ from sam.metrics import R2Evaluation, keras_joint_mse_tilted_loss
 from sam.models import create_keras_quantile_mlp
 from sam.models.base_model import BaseTimeseriesRegressor
 from sam.preprocessing import make_shifted_target
-from sklearn import __version__ as skversion
 from sklearn.base import TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sam.models.sam_shap_explainer import SamShapExplainer

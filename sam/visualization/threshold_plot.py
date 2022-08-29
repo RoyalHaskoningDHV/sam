@@ -32,7 +32,9 @@ def plot_threshold_curve(y_true: np.array, y_score: np.array, range_pred: tuple 
     >>> plot_threshold_curve([0, 1, 0, 1, 1, 0], [.2, .3, .4, .5, .9, .1])  # doctest: +SKIP
 
     >>> # Incident recall threshold plot
-    >>> plot_threshold_curve([0, 0, 0, 0, 1, 0], [.2, .3, .4, .5, .9, .1], (0, 1))  # doctest: +SKIP
+    >>> plot_threshold_curve(
+    ... [0, 0, 0, 0, 1, 0], [.2, .3, .4, .5, .9, .1], (0, 1)
+    ... )  # doctest: +SKIP
     """
     import matplotlib.pyplot as plt
 

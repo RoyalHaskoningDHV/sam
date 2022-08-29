@@ -241,13 +241,8 @@ def incident_curves_information(
     >>> data = pd.DataFrame({'TIME': range(1547477436, 1547477436+3),  # unix timestamps
     ...                     'ACTUAL': [0.3, 0.5, 0.7],
     ...                     'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
-    >>> incident_curves_information(data)
-                   OUTLIER_DURATION  ... OUTLIER_DIST_MAX
-    OUTLIER_CURVE                    ...                 
-    1                             1  ...              0.1
-    2                             1  ...              0.1
-    <BLANKLINE>
-    [2 rows x 7 columns]
+    >>> incident_curves_information(data)  # doctest: +ELLIPSIS
+                   OUTLIER_DURATION  ...
     >>> incident_curves_information(data, return_aggregated=False)
              TIME  ACTUAL  PREDICT_HIGH  ...  OUTLIER_DIST  OUTLIER_SCORE  OUTLIER_TYPE
     0  1547477436     0.3           0.6  ...           0.1       0.090909      negative
