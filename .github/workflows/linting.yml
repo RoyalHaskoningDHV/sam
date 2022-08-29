@@ -28,3 +28,6 @@ jobs:
     - name: checking for black compatibility
       run: |
         black --check --verbose ./sam
+    - name: checking docstring examples
+      run: |
+        pytest --doctest-modules ./sam/*
