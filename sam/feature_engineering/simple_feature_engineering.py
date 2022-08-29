@@ -50,6 +50,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     >>> X_fe = fe.fit_transform(X, y)
     >>> X_fe.head()  # doctest: +SKIP
     """
+
     component_range = {
         "second_of_minute": (0, 59),
         "second_of_hour": (0, 3599),

@@ -25,10 +25,7 @@ class SamShapExplainer(object):
     """
 
     def __init__(
-        self,
-        explainer: Callable,
-        model: BaseTimeseriesRegressor,
-        preprocess_predict: Callable
+        self, explainer: Callable, model: BaseTimeseriesRegressor, preprocess_predict: Callable
     ) -> None:
         self.explainer = explainer
         self.preprocess_predict = preprocess_predict
