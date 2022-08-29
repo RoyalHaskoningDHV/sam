@@ -67,7 +67,7 @@ def create_keras_quantile_mlp(
     --------
     >>> from sam.models import create_keras_quantile_mlp
     >>> from keras.datasets import boston_housing
-    >>> (x_train, y_train), (x_test, y_test) = boston_housing.load_data()
+    >>> (x_train, y_train), (x_test, y_test) = boston_housing.load_data()  # doctest: +SKIP
     >>> n_input = x_train.shape[1]
     >>> n_neurons = 64
     >>> n_layers = 3
