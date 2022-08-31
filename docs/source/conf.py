@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import toml
 from recommonmark.parser import CommonMarkParser
 
@@ -15,12 +17,9 @@ from recommonmark.parser import CommonMarkParser
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-from pathlib import Path
 
 
-root_folder = Path(__file__).parent.parent
+root_folder = Path(__file__).parents[2]
 
 
 # -- Project information -----------------------------------------------------

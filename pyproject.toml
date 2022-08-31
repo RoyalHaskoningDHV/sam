@@ -20,7 +20,7 @@ packages = [
 
 [project]
 name = "sam"
-version = "3.1.0"
+version = "3.1.1"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -85,3 +85,6 @@ documentation = "https://sam-rhdhv.readthedocs.io/en/latest/"
 [tool.black]
 line-length = 99
 target-version = ['py38', 'py39', 'py310']
+
+[tool.isort]
+profile = "black"

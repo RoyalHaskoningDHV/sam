@@ -66,15 +66,15 @@ def create_keras_quantile_mlp(
     Examples
     --------
     >>> from sam.models import create_keras_quantile_mlp
-    >>> from keras.datasets import boston_housing
-    >>> (x_train, y_train), (x_test, y_test) = boston_housing.load_data()  # doctest: +SKIP
-    >>> n_input = x_train.shape[1]
+    >>> from sam.datasets import load_rainbow_beach
+    >>> data = load_rainbow_beach()
+    >>> X, y = data, data["water_temperature"]
+    >>> n_input = X.shape[1]
     >>> n_neurons = 64
     >>> n_layers = 3
     >>> quantiles = [0.1, 0.5, 0.9]
     >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
-    >>> model.fit(x_train, y_train, validation_data=(x_test, y_test),
-    ...    batch_size=16, epochs=20, verbose=0)  # doctest: +ELLIPSIS
+    >>> model.fit(X, y, batch_size=16, epochs=20, verbose=0)  # doctest: +ELLIPSIS
     <keras.callbacks.History ...
     """
     from tensorflow.keras.layers import (
@@ -296,8 +296,8 @@ def create_keras_autoencoder_mlp(
     >>> from sam.preprocessing import RecurrentReshaper
     >>> from sam.models import create_keras_autoencoder_mlp
     >>> dates = pd.Series(synthetic_date_range().to_pydatetime())
-    >>> X = [synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=i) \
-    ...     for i in range(100)]
+    >>> X = [synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=i)
+    ...      for i in range(100)]
     >>> X = pd.DataFrame(X)
     >>> model = create_keras_autoencoder_mlp(n_input=100)
     >>> model.fit(X.T, X.T, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
