@@ -39,16 +39,16 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
     Example
     -------
     >>> from sam.feature_engineering import SimpleFeatureEngineer
-    >>> from sam.data_source import read_knmi
+    >>> from sam.data_sources import read_knmi
     >>> data = read_knmi('2018-02-01', '2019-10-01', latitude=52.11, longitude=5.18, freq='hourly',
     ...                  variables=['FH', 'FF', 'FX', 'T', 'TD', 'SQ', 'Q', 'DR', 'RH', 'P',
     ...                             'VV', 'N', 'U', 'IX', 'M', 'R', 'S', 'O', 'Y'])
     >>> y = data['T'].shift(-1)
-    >>> X = data.drop('T', axis=1)
-    >>> fe = SimpleFeatureEngineer(rolling_features=[('T', 'mean', 12), ('T', 'mean', '24')],
-    ...                            time_features=[('hour_of_week', 'onehot')])
+    >>> X = data.copy()
+    >>> fe = SimpleFeatureEngineer(rolling_features=[('T', 'mean', 12), ('T', 'mean', 24)],
+    ...                            time_features=[('hour_of_week', 'onehot')], time_col="TIME")
     >>> X_fe = fe.fit_transform(X, y)
-    >>> X_fe.head()
+    >>> X_fe.head()  # doctest: +SKIP
     """
 
     component_range = {

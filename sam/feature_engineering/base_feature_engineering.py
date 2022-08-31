@@ -64,10 +64,10 @@ class FeatureEngineer(BaseFeatureEngineer):
     -------
     >>> from sam.feature_engineering.base_feature_engineering import FeatureEngineer
     >>> def feature_engineer(X, y=None):
-    >>>     X['C'] = X['A'] + X['B']
-    >>>     return X
+    ...     X['C'] = X['A'] + X['B']
+    ...     return X
     >>> df = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]})
-    >>> fe = FeatureEngineer(feature_engineering)
+    >>> fe = FeatureEngineer(feature_engineer)
     >>> df_out = fe.fit_transform(df)
     """
 

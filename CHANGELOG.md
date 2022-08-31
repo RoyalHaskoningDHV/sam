@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.1
+
+### Changes
+- Fixed all docstring examples (using `pytest --doctest-modules ./sam*`).
+- Some bugfixes for SHAP and feature importance
+- Updated index page of the documentation
+
 ## Version 3.1.0
 
 ### New features

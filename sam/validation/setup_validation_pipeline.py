@@ -68,14 +68,16 @@ def create_validation_pipe(
 
     Examples
     --------
-    >>> from sam.validation import create_validation_pipe, validate_and_impute
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from sam.validation import create_validation_pipe
     >>> from sam.visualization import diagnostic_extreme_removal, diagnostic_flatline_removal
     >>>
     >>> # create some data
     >>> np.random.seed(10)
     >>> base = np.random.randn(100)
-    >>> X_train = pd.DataFrame(np.tile(base, (3, 3)).T)
-    >>> X_test = pd.DataFrame(np.tile(base, (3, 1)).T)
+    >>> X_train = pd.DataFrame(np.tile(base, (3, 3)).T, columns=['1', '2', '3'])
+    >>> X_test = pd.DataFrame(np.tile(base, (3, 1)).T, columns=['1', '2', '3'])
     >>> y_test = pd.Series(base, name='target')
     >>> y_train = pd.Series(np.tile(base, 3).T, name='target')
     >>>
@@ -87,7 +89,7 @@ def create_validation_pipe(
     >>>
     >>> # setup pipeline
     >>> pipe = create_validation_pipe(cols=list(X_train.columns) + ['target'], rollingwindow=5,
-    >>>                              impute_method='iterative')
+    ...                              impute_method='iterative')
     >>>
     >>> # put data together
     >>> train_data = X_train.join(y_train)
@@ -95,20 +97,22 @@ def create_validation_pipe(
     >>>
     >>> # now fit the pipeline on the train data and transform both train and test
     >>> train_data = pd.DataFrame(pipe.fit_transform(train_data), columns=train_data.columns,
-    >>>                           index=train_data.index)
+    ...                           index=train_data.index)  # doctest: +ELLIPSIS
+    [IterativeImputer] ...
     >>> test_data = pd.DataFrame(pipe.transform(test_data), columns=test_data.columns,
-    >>>                          index=test_data.index)
+    ...                          index=test_data.index)  # doctest: +ELLIPSIS
+    [IterativeImputer] ...
     >>>
     >>> # the fitted pipeline can now be passed to diagnostic plot functions:
     >>> # create validation visualizations
     >>> f_ext = diagnostic_extreme_removal(
-    >>>     pipe['extreme'], pd.DataFrame(test_data['target'], columns=['target']), 'target')
+    ...     pipe['extreme'], test_data, 'target')
     >>> f_ext = diagnostic_flatline_removal(
-    >>>     pipe['flat'], pd.DataFrame(test_data['target'], columns=['target']), 'target')
+    ...     pipe['flat'], test_data, 'target')
     """
     methods = ["iterative", "mean", "median", "most_frequent", "constant"]
     if impute_method not in methods:
-        raise ValueError("impute method not in %s" % methods)
+        raise ValueError(f"impute method not in {methods}")
     if impute_method == "iterative" and sklearn_version < "0.21":
         raise EnvironmentError(
             "For iterative impute method, " "sklearn version at least 0.21 is required."

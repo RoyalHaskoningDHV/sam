@@ -98,7 +98,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """Returns an underlying model that can be trained
 
         This abstract method needs to be implemented by any class that inherits from
-        SamQuantileRegressor. It returns a trainable model like Sklearn, keras or
+        BaseTimeseriesRegressor. It returns a trainable model like Sklearn, keras or
         anything you can think of
 
         Returns
@@ -278,7 +278,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """Fit the underlying model
 
         This abstract method needs to be implemented by any class inheriting from
-        SamQuantileRegressor. This function receives preprocessed input data and
+        BaseTimeseriesRegressor. This function receives preprocessed input data and
         applies feature building and trains the underlying model.
 
         It is advised to use the `preprocess_fit()` function in any implementation.
@@ -306,7 +306,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """Predict on new data using a trained model
 
         This abstract method needs to be implemented by any class inheriting from
-        SamQuantileRegressor. This function receives preprocessed input data and
+        BaseTimeseriesRegressor. This function receives preprocessed input data and
         applies feature building and predicts the target using a trained model.
 
         Important! This is different from sklearn/tensorflow API...
@@ -637,7 +637,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """Save a model to disk
 
         This abstract method needs to be implemented by any class inheriting from
-        SamQuantileRegressor. This function dumps the SAM model to disk.
+        BaseTimeseriesRegressor. This function dumps the SAM model to disk.
 
         Parameters
         ----------
@@ -654,7 +654,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """Load a model from disk
 
         This abstract method needs to be implemented by any class inheriting from
-        SamQuantileRegressor. This function loads a SAM model from disk.
+        BaseTimeseriesRegressor. This function loads a SAM model from disk.
 
         Parameters
         ----------

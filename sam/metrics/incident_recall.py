@@ -89,12 +89,12 @@ def make_incident_recall_scorer(
     >>> import numpy as np
     >>>
     >>> op = type("MyClassifier", (BaseEstimator, object),
-    >>>          {"predict": lambda self, X: np.array([0, 1, 0, 0, 0, 0, 0, 0])})
+    ...          {"predict": lambda self, X: np.array([0, 1, 0, 0, 0, 0, 0, 0])})
     >>> data = pd.DataFrame({"incident": [0, 0, 0, 1, 1, 0, 1, 0], "other": 1})
     >>>
     >>> scorer = make_incident_recall_scorer((1, 3), "incident")
     >>> scorer(op(), data)
-    0.66666
+    0.6666666666666666
     """
 
     def incident_recall_scorer(clf, X):
@@ -195,9 +195,10 @@ def precision_incident_recall_curve(
     >>> range_pred = (0, 2)
     >>> p, r, t = precision_incident_recall_curve(y_incidents, y_pred, range_pred)
     >>> p
-    array([0.71428571, 0.8, 1., 1., 1., 1.])
+    array([0.71428571, 0.8       , 1.        , 1.        , 1.        ,
+           1.        ])
     >>> r
-    array([1., 1., 1., 0.5, 0.5, 0.])
+    array([1. , 1. , 1. , 0.5, 0.5, 0. ])
     >>> t
     array([0.1, 0.2, 0.4, 0.5, 0.6])
     """

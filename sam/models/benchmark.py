@@ -202,10 +202,10 @@ def plot_score_dicts(**score_dicts):
 
     Examples
     --------
-    >>> plot_score_dicts(
-    >>>     chicago={'model_a': 0.5, 'persistence_benchmark': 0.6, 'mean_benchmark': 0.4},
-    >>>     china={'model_a': 0.1, 'mean_benchmark': 0.3, 'persistence_benchmark': 0.4}
-    >>>     )
+    >>> fig = plot_score_dicts(
+    ...     chicago={'model_a': 0.5, 'persistence_benchmark': 0.6, 'mean_benchmark': 0.4},
+    ...     china={'model_a': 0.1, 'mean_benchmark': 0.3, 'persistence_benchmark': 0.4}
+    ... )
     """
     return pd.DataFrame(score_dicts).transpose().plot(kind="bar")
 
@@ -234,30 +234,30 @@ def benchmark_wrapper(
 
     Examples
     --------
+    >>> from sam.datasets import load_rainbow_beach, load_sewage_data
+    >>> from sam.models import MLPTimeseriesRegressor, benchmark_wrapper
+    >>> from sam.preprocessing import wide_to_sam_format
+    >>>
+    >>> sewage = load_sewage_data()
+    >>> sewage = sewage.drop(['Precipitation', 'Temperature'], axis=1)
+    >>> sewage = sewage.iloc[0:200, :]
+    >>> sewage['TIME'] = sewage.index
+    >>> sewage = wide_to_sam_format(sewage)
     >>> datasets = {
-    >>>     'chicago': pd.read_feather('data/ChicagoWater.feather'),
-    >>>     'beijing': pd.read_feather('data/CitiesPM.feather'),
-    >>>     'detectronic': (pd.read_feather('data/detec_data.feather')
-    >>>                     .rename({'timestamp': 'TIME', 'type': 'TYPE',
-    >>>                              'location': 'ID', 'value': 'VALUE'}, axis=1)
-    >>>                     .drop('index', axis=1)
-    >>>                     .astype({'TYPE': str}))
-    >>> }
+    ...     'sewage': sewage,
+    ... }
     >>> column_filters = {
-    >>>     'chicago': lambda x: x.startswith('63rd Street'),
-    >>>     'beijing': lambda x: x.startswith('Beijing),
-    >>>     'detectronic': lambda x: x.startswith('7167')
-    >>> }
+    ...     'sewage': lambda x: x,
+    ... }
     >>> targetcols = {
-    >>>     'chicago': '63rd Street Beach_Turbidity',
-    >>>     'beijing: 'Beijing_US Post_PM'
-    >>>     'detectronic': '7167_6'
-    >>> }
+    ...     'sewage': 'Discharge_Hoofdgemaal',
+    ... }
     >>> models = {
-    >>>     'mymodel': MLPTimeseriesRegressor(predict_ahead=[3], timecol='TIME',
-    >>>                               dropout=0.5, verbose=True)  # some non-default params
-    >>> }
-    >>> benchmark_wrapper(models, datasets, column_filters, targetcols)
+    ...     'mymodel': MLPTimeseriesRegressor(predict_ahead=[3], timecol='TIME',
+    ...                               dropout=0.5, verbose=True)  # some non-default params
+    ... }
+    >>> benchmark_wrapper(models, datasets, column_filters, targetcols)  # doctest: +ELLIPSIS
+    Epoch ...
     """
     data_names = datasets.keys()
     traintest_dict = dict(

@@ -119,36 +119,36 @@ def normalize_timestamps(
     >>> from datetime import datetime
     >>> import pandas as pd
     >>> df = pd.DataFrame({'TIME': [datetime(2018, 6, 9, 11, 13), datetime(2018, 6, 9, 11, 34),
-    >>>                             datetime(2018, 6, 9, 11, 44), datetime(2018, 6, 9, 11, 46)],
-    >>>                    'ID': "SENSOR",
-    >>>                    'TYPE': "DEPTH",
-    >>>                    'VALUE': [1, 20, 3, 20]})
+    ...                             datetime(2018, 6, 9, 11, 44), datetime(2018, 6, 9, 11, 46)],
+    ...                    'ID': "SENSOR",
+    ...                    'TYPE': "DEPTH",
+    ...                    'VALUE': [1, 20, 3, 20]})
     >>>
     >>> normalize_timestamps(df, freq = "15 min", end_time="2018-06-09 12:15:00")
-        TIME                    ID      TYPE   VALUE
-    0 	2018-06-09 11:00:00 	SENSOR 	DEPTH  1.0
-    1 	2018-06-09 11:15:00 	SENSOR 	DEPTH  NaN
-    2 	2018-06-09 11:30:00 	SENSOR 	DEPTH  3.0
-    3 	2018-06-09 11:45:00 	SENSOR 	DEPTH  20.0
-    4 	2018-06-09 12:00:00 	SENSOR 	DEPTH  NaN
+                     TIME      ID   TYPE  VALUE
+    0 2018-06-09 11:15:00  SENSOR  DEPTH    1.0
+    1 2018-06-09 11:30:00  SENSOR  DEPTH    NaN
+    2 2018-06-09 11:45:00  SENSOR  DEPTH    3.0
+    3 2018-06-09 12:00:00  SENSOR  DEPTH   20.0
+    4 2018-06-09 12:15:00  SENSOR  DEPTH    NaN
 
     >>> from sam.preprocessing import normalize_timestamps
     >>> from datetime import datetime
     >>> import pandas as pd
     >>> df = pd.DataFrame({'TIME': [datetime(2018, 6, 9, 11, 13), datetime(2018, 6, 9, 11, 34),
-    >>>                             datetime(2018, 6, 9, 11, 44), datetime(2018, 6, 9, 11, 46)],
-    >>>                    'ID': "SENSOR",
-    >>>                    'TYPE': "DEPTH"
-    >>>                    'VALUE': [1, 20, 3, 20]})
+    ...                             datetime(2018, 6, 9, 11, 44), datetime(2018, 6, 9, 11, 46)],
+    ...                    'ID': "SENSOR",
+    ...                    'TYPE': "DEPTH",
+    ...                    'VALUE': [1, 20, 3, 20]})
     >>>
     >>> normalize_timestamps(df, freq = "15 min", end_time="2018-06-09 12:15:00",
-    >>>                     aggregate_method = "mean", fillna_method="ffill")
-        TIME                ID      TYPE   VALUE
-    0   2018-06-09 11:00:00 SENSOR  DEPTH  1.0
-    1   2018-06-09 11:15:00 SENSOR  DEPTH  1.0
-    2   2018-06-09 11:30:00 SENSOR  DEPTH  11.5
-    3   2018-06-09 11:45:00 SENSOR  DEPTH  20.0
-    4   2018-06-09 12:00:00 SENSOR  DEPTH  20.0
+    ...                     aggregate_method = "mean", fillna_method="ffill")
+                     TIME      ID   TYPE  VALUE
+    0 2018-06-09 11:15:00  SENSOR  DEPTH    1.0
+    1 2018-06-09 11:30:00  SENSOR  DEPTH    1.0
+    2 2018-06-09 11:45:00  SENSOR  DEPTH   11.5
+    3 2018-06-09 12:00:00  SENSOR  DEPTH   20.0
+    4 2018-06-09 12:15:00  SENSOR  DEPTH   20.0
     """
 
     if df.empty:

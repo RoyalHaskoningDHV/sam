@@ -164,7 +164,7 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
     >>> model.fit(X_train, y_train)
     >>> pred = model.predict(X_test, y_test)
     >>> pred.head()
-           predict_lead_1_q_0.25  predict_lead_1_q_0.75  predict_lead_1_mean
+           predict_lead_0_q_0.25  predict_lead_0_q_0.75  predict_lead_0_mean
     11655                   56.0                  158.0                101.0
     11656                   56.0                  158.0                101.0
     11657                   56.0                  158.0                101.0

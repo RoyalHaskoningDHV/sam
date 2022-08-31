@@ -7,7 +7,6 @@ from .weather.regenradar import read_regenradar
 __all__ = [
     "synthetic_timeseries",
     "synthetic_date_range",
-    "create_synthetic_timeseries",
     "read_knmi",
     "read_knmi_station_data",
     "read_knmi_stations",

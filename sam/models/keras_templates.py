@@ -66,14 +66,16 @@ def create_keras_quantile_mlp(
     Examples
     --------
     >>> from sam.models import create_keras_quantile_mlp
-    >>> from keras.datasets import boston_housing
-    >>> (x_train, y_train), (x_test, y_test) = boston_housing.load_data()
-    >>> n_input = x_train.shape[1]
+    >>> from sam.datasets import load_rainbow_beach
+    >>> data = load_rainbow_beach()
+    >>> X, y = data, data["water_temperature"]
+    >>> n_input = X.shape[1]
     >>> n_neurons = 64
     >>> n_layers = 3
     >>> quantiles = [0.1, 0.5, 0.9]
-    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles)
-    >>> model.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=16, epochs=20)
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
+    >>> model.fit(X, y, batch_size=16, epochs=20, verbose=0)  # doctest: +ELLIPSIS
+    <keras.callbacks.History ...
     """
     from tensorflow.keras.layers import (
         Activation,
@@ -181,6 +183,7 @@ def create_keras_quantile_rnn(
     Examples
     --------
     >>> import pandas as pd
+    >>> import numpy as np
     >>> from sam.data_sources import synthetic_date_range, synthetic_timeseries
     >>> from sam.preprocessing import RecurrentReshaper
     >>> from sam.models import create_keras_quantile_rnn
@@ -193,7 +196,8 @@ def create_keras_quantile_rnn(
     >>> y = y[24:]
     >>> input_shape = X_3d.shape[1:]
     >>> model = create_keras_quantile_rnn(input_shape, quantiles=[0.01, 0.99])
-    >>> model.fit(X_3d, y, batch_size=32, epochs=5)
+    >>> model.fit(X_3d, y, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
+    <keras.callbacks.History ...
     """
     from tensorflow.keras.layers import GRU, LSTM, Dense, Input
     from tensorflow.keras.models import Model
@@ -290,13 +294,14 @@ def create_keras_autoencoder_mlp(
     >>> import pandas as pd
     >>> from sam.data_sources import synthetic_date_range, synthetic_timeseries
     >>> from sam.preprocessing import RecurrentReshaper
-    >>> from sam.models import create_keras_autoencoder_rnn
+    >>> from sam.models import create_keras_autoencoder_mlp
     >>> dates = pd.Series(synthetic_date_range().to_pydatetime())
-    >>> X = [synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=i) \
-    >>>    for i in range(100)]
+    >>> X = [synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=i)
+    ...      for i in range(100)]
     >>> X = pd.DataFrame(X)
     >>> model = create_keras_autoencoder_mlp(n_input=100)
-    >>> model.fit(X, X, batch_size=32, epochs=5)
+    >>> model.fit(X.T, X.T, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
+    <keras.callbacks.History ...
     """
     from tensorflow.keras.layers import (
         Activation,
@@ -318,7 +323,7 @@ def create_keras_autoencoder_mlp(
     h = input_layer
     # For each n_neuron value, add a dense layer to the model
     n_neurons = encoder_neurons + encoder_neurons[:-1][::-1]
-    for n in range(n_neurons):
+    for n in n_neurons:
         h = Dense(n)(h)
         if momentum < 1:
             h = BatchNormalization(momentum=momentum)(h)
@@ -396,7 +401,8 @@ def create_keras_autoencoder_rnn(
     >>> X_3d = X_3d[24:]
     >>> input_shape = X_3d.shape[1:]
     >>> model = create_keras_autoencoder_rnn(input_shape)
-    >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5)
+    >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
+    <keras.callbacks.History ...
     """
     from tensorflow.keras.layers import (
         GRU,

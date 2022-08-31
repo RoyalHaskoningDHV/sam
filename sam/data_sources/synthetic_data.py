@@ -147,17 +147,27 @@ def synthetic_timeseries(
     Examples
     --------
     >>> # Create data that slightly resembles the temperature in a Nereda reactor:
-    >>> dates= pd.date_range('2015-01-01', '2016-01-01', freq='6H').to_series()
-    >>> rnd = synthetic_timeseries(dates,
-    >>>                            monthly=5, daily=1, hourly=0.0,
-    >>>                            monthnoise = ('normal', 0.01), daynoise=('normal', 0.01),
-    >>>                            noise={'normal': 0.1}, minmax_values=(5, 25),
-    >>>                            cutoff_values=None, random_missing=0.12)
+    >>> from sam.data_sources.synthetic_data import synthetic_date_range, synthetic_timeseries
+    >>> dates = pd.date_range('2015-01-01', '2016-01-01', freq='6H').to_series()
+    >>> rnd = synthetic_timeseries(
+    ...     dates,
+    ...     monthly=5,
+    ...     daily=1,
+    ...     hourly=0.0,
+    ...     monthnoise=('normal', 0.01),
+    ...     daynoise=('normal', 0.01),
+    ...     noise={'normal': 0.1},
+    ...     minmax_values=(5, 25),
+    ...     cutoff_values=None,
+    ...     random_missing=0.12,
+    ...     seed = 0,
+    ... )
     >>> # visualize the result to see if it looks random or not
     >>> import matplotlib.pyplot as plt
     >>> fig, ax = plt.subplots()
-    >>> ax.plot(dates[600:700], rnd[600:700])
-    >>> fig.autofmt_xdate()
+    >>> ax = ax.plot(dates[600:700], rnd[600:700])
+    >>> fig = fig.autofmt_xdate()
+    >>> plt.show()  # doctest: +SKIP
     """
     if dates.size < 2:
         raise ValueError("There must be at least 2 datetimes to generate a timeseries")
@@ -266,17 +276,23 @@ def synthetic_date_range(
     Examples
     --------
     >>> # Generate times with point approximately every 6 hours
-    >>> create_synthetic_times('2016-01-01', '2016-01-02', '6H', 600, 0, 1)
-    array(['2016-01-01T00:09:01.085663549', '2016-01-01T06:15:31.888934287',
-       '2016-01-01T12:25:00.846725139', '2016-01-01T18:27:53.250789414'],
-      dtype='datetime64[ns]')
+    >>> from sam.data_sources.synthetic_data import synthetic_date_range
+    >>> synthetic_date_range('2016-01-01', '2016-01-02', '6H', 600, 0, 1, seed=0)
+    DatetimeIndex(['2016-01-01 00:05:29.288102356',
+                   '2016-01-01 06:12:38.401722180',
+                   '2016-01-01 12:18:40.059747823',
+                   '2016-01-01 18:24:06.989657621'],
+                  dtype='datetime64[ns]', freq=None)
 
     >>> # Generate times with very likely stops of length 1
-    >>> create_synthetic_times('2016-01-01', '2016-01-02', 'H', 0, 0.5, 1)
-    array(['2016-01-01T02:00:00.000000000', '2016-01-01T04:00:00.000000000',
-           '2016-01-01T08:00:00.000000000', '2016-01-01T16:00:00.000000000',
-           '2016-01-01T18:00:00.000000000', '2016-01-01T20:00:00.000000000'],
-          dtype='datetime64[ns]')
+    >>> synthetic_date_range('2016-01-01', '2016-01-02', 'H', 0, 0.5, 1, seed=0)
+    DatetimeIndex(['2016-01-01 00:00:00', '2016-01-01 01:00:00',
+                   '2016-01-01 02:00:00', '2016-01-01 03:00:00',
+                   '2016-01-01 04:00:00', '2016-01-01 05:00:00',
+                   '2016-01-01 09:00:00', '2016-01-01 10:00:00',
+                   '2016-01-01 11:00:00', '2016-01-01 13:00:00',
+                   '2016-01-01 16:00:00', '2016-01-01 21:00:00'],
+                  dtype='datetime64[ns]', freq=None)
     """
     index = pd.date_range(start, end, freq=freq).to_series()
     if index.size == 0:

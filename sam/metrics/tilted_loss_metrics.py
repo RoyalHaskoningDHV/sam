@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def tilted_loss(y_true: np.array, y_pred: np.array, quantile: float = 0.5, axis: int = -1):
+def tilted_loss(y_true: np.ndarray, y_pred: np.ndarray, quantile: float = 0.5, axis: int = -1):
     r"""
     Calculate tilted (also known as pinball or quantile loss) with numpy. Given a quantile
     :math:`q`, and an error :math:`e=y_\text{true}-y_\text{pred}`, then tilted loss :math:`L_q`
@@ -53,6 +53,7 @@ def tilted_loss(y_true: np.array, y_pred: np.array, quantile: float = 0.5, axis:
     >>> actual = np.array([1, 2, 3, 4])
     >>> pred = np.array([0.9, 2.1, 2.9, 3.1])
     >>> tilted_loss(actual, pred, quantile=0.5)
+    0.15000000000000002
     """
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     e = y_true - y_pred
@@ -104,10 +105,11 @@ def joint_mae_tilted_loss(
     >>> from sam.metrics import joint_mae_tilted_loss
     >>> y_true = pd.DataFrame(np.array([4, 5, 6]), columns=["output_1"])
     >>> y_pred = pd.DataFrame(
-    >>>     np.array([[1, 2, 3], [7, 8, 9], [3.9, 5.1, 5.9]]),
-    >>>     columns=["output_1_quantile_1", "output_1_quantile_2", "output_1_mean"],
-    >>> )
+    ...     np.array([[1, 2, 3], [7, 8, 9], [3.9, 5.1, 5.9]]),
+    ...     columns=["output_1_quantile_1", "output_1_quantile_2", "output_1_mean"],
+    ... )
     >>> joint_mae_tilted_loss(y_true, y_pred, quantiles=[0.1, 0.9], n_targets=1)
+    3.44
     """
     if quantiles is None:
         quantiles = []
@@ -168,10 +170,11 @@ def joint_mse_tilted_loss(
     >>> from sam.metrics import joint_mae_tilted_loss
     >>> y_true = pd.DataFrame(np.array([4, 5, 6]), columns=["output_1"])
     >>> y_pred = pd.DataFrame(
-    >>>     np.array([[1, 2, 3], [7, 8, 9], [3.9, 5.1, 5.9]]),
-    >>>     columns=["output_1_quantile_1", "output_1_quantile_2", "output_1_mean"],
-    >>> )
+    ...     np.array([[1, 2, 3], [7, 8, 9], [3.9, 5.1, 5.9]]),
+    ...     columns=["output_1_quantile_1", "output_1_quantile_2", "output_1_mean"],
+    ... )
     >>> joint_mse_tilted_loss(y_true, y_pred, quantiles=[0.1, 0.9], n_targets=1)
+    7.410000000000002
     """
     if quantiles is None:
         quantiles = []
