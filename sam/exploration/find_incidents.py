@@ -75,7 +75,7 @@ def incident_curves(
     --------
     >>> from sam.exploration import incident_curves
     >>> data = pd.DataFrame({'ACTUAL': [0.3, np.nan, 0.3, np.nan, 0.3, 0.5, np.nan, 0.7],
-    >>>                      'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4})
+    ...                      'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4})
     >>> incident_curves(data)
     array([1, 0, 2, 0, 3, 0, 0, 4])
     >>> incident_curves(data, max_gap=1)
@@ -239,21 +239,17 @@ def incident_curves_information(
     Examples
     --------
     >>> data = pd.DataFrame({'TIME': range(1547477436, 1547477436+3),  # unix timestamps
-    >>>                     'ACTUAL': [0.3, 0.5, 0.7],
-    >>>                     'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
-    >>> outlier_curves_information(data)
-    OUTLIER_DURATION	OUTLIER_TYPE	OUTLIER_SCORE_MAX	OUTLIER_START_TIME	OUTLIER_END_TIME \
-    OUTLIER_DIST_SUM	OUTLIER_DIST_MAX
-    OUTLIER_CURVE
-    1	1	negative	0.090909	1547477436	1547477436	0.1	0.1
-    2	1	positive	0.090909	1547477438	1547477438	0.1	0.1
-
-    >>> outlier_curves_information(data, return_aggregated=False)
-    ACTUAL	PREDICT	PREDICT_HIGH	PREDICT_LOW	TIME	OUTLIER_CURVE	OUTLIER	OUTLIER_DIST \
-    OUTLIER_SCORE	OUTLIER_TYPE
-    0	0.3	0.5	0.6	0.4	1547477436	1	True	0.1	0.090909	negative
-    1	0.5	0.5	0.6	0.4	1547477437	0	False	0.0	0.000000	none
-    2	0.7	0.5	0.6	0.4	1547477438	2	True	0.1	0.090909	positive
+    ...                     'ACTUAL': [0.3, 0.5, 0.7],
+    ...                     'PREDICT_HIGH': 0.6, 'PREDICT_LOW': 0.4, 'PREDICT': 0.5})
+    >>> incident_curves_information(data)  # doctest: +ELLIPSIS
+                   OUTLIER_DURATION  ...
+    >>> incident_curves_information(data, return_aggregated=False)
+             TIME  ACTUAL  PREDICT_HIGH  ...  OUTLIER_DIST  OUTLIER_SCORE  OUTLIER_TYPE
+    0  1547477436     0.3           0.6  ...           0.1       0.090909      negative
+    1  1547477437     0.5           0.6  ...           0.0       0.000000          none
+    2  1547477438     0.7           0.6  ...           0.1       0.090909      positive
+    <BLANKLINE>
+    [3 rows x 10 columns]
     """
     data = data.copy()
     data = data.rename(columns={normal: "PREDICT", time: "TIME"})
@@ -331,6 +327,6 @@ def incident_curves_information(
             "OUTLIER_DIST_MAX",
         ]
     ]
-    logger.info("Created data from outlier_curves_information:")
+    logger.info("Created data from incident_curves_information:")
     log_dataframe_characteristics(streaks, logging.INFO)
     return streaks[streaks.index != 0]

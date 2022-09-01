@@ -70,7 +70,7 @@ def read_regenradar(
     Examples
     --------
     >>> from sam.data_sources import read_regenradar
-    >>> read_regenradar('2018-01-01', '2018-01-01 00:20:00')
+    >>> read_regenradar('2018-01-01', '2018-01-01 00:20:00')  # doctest: +SKIP
         TIME	PRECIPITATION
     0	2018-05-01 00:00:00	0.05
     1	2018-05-01 00:05:00	0.09
@@ -80,8 +80,13 @@ def read_regenradar(
 
     >>> # Example of using alternative **kwargs
     >>> # For more info about these parameters, ask regenradar experts at RHDHV
-    >>> read_regenradar('2018-01-01', '2018-01-01 00:20:00', boundary_type='MUNICIPALITY',
-    >>>                 geom_id=95071, geom=None)
+    >>> read_regenradar(
+    ...     '2018-01-01',
+    ...     '2018-01-01 00:20:00',
+    ...     boundary_type='MUNICIPALITY',
+    ...     geom_id=95071,
+    ...     geom=None,
+    ... )  # doctest: +SKIP
         TIME	PRECIPITATION
     0	2018-05-01 00:00:00	0.00
     1	2018-05-01 00:05:00	0.00

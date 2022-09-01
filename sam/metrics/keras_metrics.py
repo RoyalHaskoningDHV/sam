@@ -38,7 +38,12 @@ def keras_tilted_loss(y_true: tf.Tensor, y_pred: tf.Tensor, quantile: float = 0.
     Examples
     --------
     >>> from sam.metrics import keras_tilted_loss
-    >>> model = Sequential(...)  # Any keras model
+    >>> from sam.models import create_keras_quantile_mlp
+    >>> n_input = 1000
+    >>> n_neurons = 64
+    >>> n_layers = 3
+    >>> quantiles = [0.1, 0.5, 0.9]
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
     >>> quantile = 0.5  # Quantile, in this case the median
     >>> model.compile(loss=lambda y,f: keras_tilted_loss(y, f, quantile))
     """
@@ -82,7 +87,12 @@ def keras_joint_mse_tilted_loss(
     Examples
     --------
     >>> from sam.metrics import keras_joint_mse_tilted_loss as mse_tilted
-    >>> model = Sequential(...)  # Any keras model
+    >>> from sam.models import create_keras_quantile_mlp
+    >>> n_input = 1000
+    >>> n_neurons = 64
+    >>> n_layers = 3
+    >>> quantiles = [0.1, 0.5, 0.9]
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
     >>> qs = [0.1, 0.9]
     >>> model.compile(loss=lambda y,f: mse_tilted(y, f, qs))
     """
@@ -139,7 +149,12 @@ def keras_joint_mae_tilted_loss(
     Examples
     --------
     >>> from sam.metrics import keras_joint_mae_tilted_loss as mae_tilted
-    >>> model = Sequential(...)  # Any keras model
+    >>> from sam.models import create_keras_quantile_mlp
+    >>> n_input = 1000
+    >>> n_neurons = 64
+    >>> n_layers = 3
+    >>> quantiles = [0.1, 0.5, 0.9]
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
     >>> qs = [0.1, 0.9]
     >>> model.compile(loss=lambda y,f: mae_tilted(y, f, qs))
     """
@@ -175,7 +190,12 @@ def keras_rmse(y_true: tf.Tensor, y_pred: tf.Tensor):
     Examples
     --------
     >>> from sam.metrics import keras_rmse
-    >>> model = Sequential(...)  # Any keras model
+    >>> from sam.models import create_keras_quantile_mlp
+    >>> n_input = 1000
+    >>> n_neurons = 64
+    >>> n_layers = 3
+    >>> quantiles = [0.1, 0.5, 0.9]
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
     >>> model.compile(loss=keras_rmse)
     """
     return K.sqrt(K.mean(K.square(y_pred - y_true), axis=-1))
@@ -197,9 +217,14 @@ def get_keras_forecasting_metrics(quantiles: List[float] = None):
 
     Examples
     --------
-    >>> from sam.metrics import keras_rmse, keras_forecasting_metrics
-    >>> model = Sequential(...)  # Any keras model
-    >>> model.compile(loss=keras_rmse, metrics=keras_forecasting_metrics)
+    >>> from sam.metrics import keras_rmse, get_keras_forecasting_metrics
+    >>> from sam.models import create_keras_quantile_mlp
+    >>> n_input = 1000
+    >>> n_neurons = 64
+    >>> n_layers = 3
+    >>> quantiles = [0.1, 0.5, 0.9]
+    >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
+    >>> model.compile(loss=keras_rmse, metrics=get_keras_forecasting_metrics())
     """
     if quantiles is None:
         quantiles = []

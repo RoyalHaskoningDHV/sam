@@ -63,15 +63,17 @@ def plot_incident_heatmap(
     >>> # Initialize a random dataframe
     >>> rng = pd.date_range('1/1/2011', periods=150, freq='D')
     >>> ts = pd.DataFrame({'values': np.random.randn(len(rng)),
-    >>>                    'id': np.random.choice(['A','B','C'], len(rng))},
-    >>>                     index=rng, columns=['values','id'])
+    ...                    'id': np.random.choice(['A','B','C'], len(rng))},
+    ...                     index=rng, columns=['values','id'])
     >>>
     >>> # Create some incidents
     >>> ts['incident'] = 0
     >>> ts.loc[ts['values'] > .5, 'incident'] = 1
     >>>
     >>> # Create the heatmap
-    >>> plot_incident_heatmap(ts, resolution='W', annot=True, cmap='Reds', datefmt="%Y, week %W")
+    >>> fig = plot_incident_heatmap(
+    ...     ts, resolution='W', annot=True, cmap='Reds', datefmt="%Y, week %W"
+    ... )
     """
     import matplotlib.pyplot as plt
     import seaborn as sns

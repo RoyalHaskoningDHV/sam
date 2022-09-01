@@ -30,10 +30,10 @@ def plot_lag_correlation(df: pd.DataFrame, ylim_min: int = None, ylim_max: int =
     >>> import numpy as np
     >>> goal_feature = 'DEBIET#TOTAAL'
     >>> df = pd.DataFrame({
-    >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0,
-    >>>                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    >>>                'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
-    >>>                'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
+    ...                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0,
+    ...                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...                'DEBIET#A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
+    ...                'DEBIET#B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
     >>> df['DEBIET#TOTAAL'] = df['DEBIET#A'] + df['DEBIET#B']
     >>> test = lag_correlation(df, goal_feature)
     >>> f = plot_lag_correlation(test)

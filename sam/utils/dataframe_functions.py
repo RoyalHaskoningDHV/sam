@@ -43,26 +43,17 @@ def sum_grouped_columns(df: pd.DataFrame, sep: str = "#", skipna: bool = True) -
 
     Examples
     --------
+    >>> import pandas as pd
     >>> df = pd.DataFrame({
-    >>>    'X#lag_0': [1, 2, 3],
-    >>>    'X#lag_1': [1, 2, 3],
-    >>>    'Y': [5, 5, 5]
-    >>> })
+    ...    'X#lag_0': [1, 2, 3],
+    ...    'X#lag_1': [1, 2, 3],
+    ...    'Y': [5, 5, 5]
+    ... })
     >>> sum_grouped_columns(df)
-        X	Y
-    0	2	5
-    1	4	5
-    2	6	5
-
-    >>> # In this example, we use the new shapley values to make a shapley visualization
-    >>> shaps = explainer.shap_values(X)
-    >>> summed_shaps = sum_grouped_columns(shaps)
-    >>> # Shapley plots often use the original feature values, but there is no single value
-    >>> # To describe an entire group, so we have to use empty strings instead.
-    >>> empty_X = pd.DataFrame(np.full_like(summed_shaps, "", dtype=str),
-    >>>                        columns=summed_shaps.columns)
-    >>> # make a force plot to explain the first instance
-    >>> shap.force_plot(explainer.expected_value, summed_shaps.values[0,:], empty_X.iloc[0,:])
+       X  Y
+    0  2  5
+    1  4  5
+    2  6  5
     """
     logger.debug("Now running sum_grouped_columns with sep={}, skipna={}".format(sep, skipna))
     foo = df.copy()

@@ -47,12 +47,12 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     >>>
     >>> # Prepare data
     >>> data = read_knmi('2018-02-01', '2019-10-01', freq='hourly',
-    >>>                 variables=['FH', 'FF', 'FX', 'T']).set_index('TIME')
+    ...                 variables=['FH', 'FF', 'FX', 'T']).set_index('TIME')
     >>> y = data['T']
     >>> X = data.drop('T', axis=1)
     >>> # Fit model
     >>> model = LinearQuantileRegression()
-    >>> model.fit(X, y)
+    >>> model.fit(X, y)  # doctest: +SKIP
     """
 
     @add_future_warning(

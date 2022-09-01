@@ -1,5 +1,6 @@
-import matplotlib
 import os
+
+import matplotlib
 
 # For this unit test, we don't need GPU
 # So run on CPU to increase reliability

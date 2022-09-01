@@ -40,17 +40,17 @@ def label_dst(timestamps_series: pd.Series):
     >>> date_labels = label_dst(pd.Series(daterange))
     >>>
     >>> pd.DataFrame({'TIME' : daterange,
-    >>>               'LABEL': date_labels})
-        TIME                LABEL
-    0   2019-10-27 01:00:00 normal
-    1   2019-10-27 01:15:00 normal
-    2   2019-10-27 01:30:00 normal
-    3   2019-10-27 01:45:00 normal
-    4   2019-10-27 02:00:00 to_wintertime
-    5   2019-10-27 02:15:00 to_wintertime
-    6   2019-10-27 02:30:00 to_wintertime
-    7   2019-10-27 02:45:00 to_wintertime
-    8   2019-10-27 03:00:00 normal
+    ...               'LABEL': date_labels})
+                     TIME          LABEL
+    0 2019-10-27 01:00:00         normal
+    1 2019-10-27 01:15:00         normal
+    2 2019-10-27 01:30:00         normal
+    3 2019-10-27 01:45:00         normal
+    4 2019-10-27 02:00:00  to_wintertime
+    5 2019-10-27 02:15:00  to_wintertime
+    6 2019-10-27 02:30:00  to_wintertime
+    7 2019-10-27 02:45:00  to_wintertime
+    8 2019-10-27 03:00:00         normal
     """
     logger.debug("Labeling dst on {} timestamps".format(timestamps_series.size))
     last_sunday_morning = (
@@ -101,15 +101,15 @@ def average_winter_time(data: pd.DataFrame, tmpcol: str = "tmp_UNID"):
     >>>
     >>> daterange = pd.date_range('2019-10-27 01:45:00', '2019-10-27 03:00:00', freq='15min')
     >>> test_df = pd.DataFrame({"TIME": daterange.values[[0, 1, 1, 2, 2, 3, 3, 4, 4, 5]],
-    >>>                         "VALUE": np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])})
+    ...                         "VALUE": np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])})
     >>> average_winter_time(test_df)
-        TIME                VALUE
-    0   2019-10-27 01:45:00 0.0
-    1   2019-10-27 02:00:00 1.5
-    2   2019-10-27 02:15:00 3.5
-    3   2019-10-27 02:30:00 5.5
-    4   2019-10-27 02:45:00 7.5
-    5   2019-10-27 03:00:00 9.0
+                     TIME  VALUE
+    0 2019-10-27 01:45:00    0.0
+    1 2019-10-27 02:00:00    1.5
+    2 2019-10-27 02:15:00    3.5
+    3 2019-10-27 02:30:00    5.5
+    4 2019-10-27 02:45:00    7.5
+    5 2019-10-27 03:00:00    9.0
     """
     warnings.warn(
         "DEPRECATED: Convert to UTC using pandas Series.dt.tz_convert() and use the"

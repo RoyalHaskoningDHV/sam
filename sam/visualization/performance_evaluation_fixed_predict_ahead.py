@@ -72,27 +72,58 @@ def performance_evaluation_fixed_predict_ahead(
     -------
 
     # assuming you have some y_true_train, y_true_test and predictions y_hat_train and y_hat_test:
-    from sam.visualization import performance_evaluation_fixed_predict_ahead
+    >>> from sam.datasets import load_rainbow_beach
+    >>> from sam.feature_engineering import SimpleFeatureEngineer
+    >>> from sam.models import MLPTimeseriesRegressor
+    >>> from sam.visualization import performance_evaluation_fixed_predict_ahead
+    ...
+    >>> data = load_rainbow_beach()
+    >>> X, y = data, data["water_temperature"]
+    >>> test_size = int(X.shape[0] * 0.33)
+    >>> train_size = X.shape[0] - test_size
+    >>> X_train, y_train = X.iloc[:train_size, :], y[:train_size]
+    >>> X_test, y_test = X.iloc[train_size:, :], y[train_size:]
+    ...
+    >>> simple_features = SimpleFeatureEngineer(
+    ...     rolling_features=[
+    ...         ("wave_height", "mean", 24),
+    ...         ("wave_height", "mean", 12),
+    ...     ],
+    ...     time_features=[
+    ...         ("hour_of_day", "cyclical"),
+    ...     ],
+    ...     keep_original=False,
+    ... )
+    ...
+    >>> model = MLPTimeseriesRegressor(
+    ...     predict_ahead=(0,1),
+    ...     feature_engineer=simple_features,
+    ...     verbose=0,
+    ... )
+    ...
+    >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
+    <keras.callbacks.History ...
+    >>> y_hat_train = model.predict(X_train)
+    >>> y_hat_test = model.predict(X_test)
     >>> r2_df, bar_fig, scatter_fig, best_res = performance_evaluation_fixed_predict_ahead(
-    >>>     y_true_train,
-    >>>     y_hat_train,
-    >>>     y_true_test,
-    >>>     y_hat_test,
-    >>>     resolutions=[None, '15min', '1H', '3H', '6H', '1D'])
+    ...     y_train,
+    ...     y_hat_train,
+    ...     y_test,
+    ...     y_hat_test,
+    ...     resolutions=[None, '15min', '1H', '3H', '6H', '1D'])
 
     >>> # display the results
     >>> bar_fig.show()
     >>> scatter_fig.show()
-    >>> print('best resolution found at %s'%best_res)
-    >>> r2_df.head()
-
+    >>> print('best resolution found at %s'%best_res)  # doctest: +SKIP
+    >>> r2_df.head()  # doctest: +SKIP
     >>> # print some results
     >>> best_res_r2 = r2_df.loc[(r2_df['dataset']=='train') &
-    >>>                         (r2_df['resolution'] == best_res), 'R2'].values[0]
+    ...                         (r2_df['resolution'] == best_res), 'R2'].values[0]
     >>> native_r2 = r2_df.loc[(r2_df['dataset']=='train') &
-    >>>                       (r2_df['resolution'] == 'native'), 'R2'].values[0]
+    ...                       (r2_df['resolution'] == 'native'), 'R2'].values[0]
     >>> print('best resolution found at %s (%.3f vs %.3f native)'%(
-    >>>         best_res, best_res_r2, native_r2))
+    ...         best_res, best_res_r2, native_r2))  # doctest: +SKIP
     """
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -101,8 +132,8 @@ def performance_evaluation_fixed_predict_ahead(
     scatter_fig = plt.figure(figsize=(len(resolutions) * 3, 6))
 
     # select and shift the requested predict ahead
-    y_hat_train = y_hat_train["predict_lead_%d_mean" % predict_ahead].shift(predict_ahead)
-    y_hat_test = y_hat_test["predict_lead_%d_mean" % predict_ahead].shift(predict_ahead)
+    y_hat_train = y_hat_train[f"predict_lead_{predict_ahead}_mean"].shift(predict_ahead)
+    y_hat_test = y_hat_test[f"predict_lead_{predict_ahead}_mean"].shift(predict_ahead)
 
     # compute the metrics for the different temporal resolutions, for train and test data
     metric_list, dataset_list, resolution_list = [], [], []

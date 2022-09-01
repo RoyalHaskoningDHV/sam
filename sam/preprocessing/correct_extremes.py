@@ -54,28 +54,28 @@ def setdoc(func: Callable):
     >>> data = pd.Series([0, -1, 2, 1], index = [2, 3, 4, 6])
     >>>
     >>> correct_below_threshold(data, method = "average", threshold=0)
-    2    0
-    3    1
-    4    2
-    6    1
-    dtype: int64
+    2    0.0
+    3    1.0
+    4    2.0
+    6    1.0
+    dtype: float64
     >>> from sam.preprocessing import correct_outside_range
     >>> import pandas as pd
     >>> data = pd.Series([0, -1, 2, 1])
     >>>
     >>> correct_outside_range(data, method = "na", threshold=(0,1))
-    0    0
+    0    0.0
     1    NaN
     2    NaN
-    3    1
-    dtype: int64
+    3    1.0
+    dtype: float64
     >>> from sam.preprocessing import correct_above_threshold
     >>> import pandas as pd
     >>> data = pd.Series([0, -1, 2, 1])
     >>>
     >>> correct_above_threshold(data, method = "remove", threshold = 1)
     0    0
-    1    -1
+    1   -1
     3    1
     dtype: int64
     """

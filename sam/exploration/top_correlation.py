@@ -46,33 +46,32 @@ def top_n_correlations(
     --------
     >>> import pandas as pd
     >>> from sam.feature_engineering import BuildRollingFeatures
-    >>> from sam.exploration import retrieve_top_n_correlations
+    >>> from sam.exploration import top_n_correlations
     >>> import numpy as np
     >>> goal_feature = 'DEBIET_TOTAAL#lag_0'
     >>> df = pd.DataFrame({
-    >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    >>>                'DEBIET_A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
-    >>>                'DEBIET_B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
+    ...                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...                'DEBIET_A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
+    ...                'DEBIET_B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
     >>> df['DEBIET_TOTAAL'] = df['DEBIET_A'] + df['DEBIET_B']
-    >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \
-    >>>     window_size = np.arange(12), lookback=0, keep_original=False)
+    >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag',
+    ...     window_size = np.arange(12), lookback=0, keep_original=False)
     >>> res = RollingFeatures.fit_transform(df)
-    >>> retrieve_top_n_correlations(res, goal_feature, n=2, grouped=True, sep='#')
-                GROUP                index  DEBIET_TOTAAL#lag_0
-    0       DEBIET_A       DEBIET_A#lag_0             0.838591
-    1       DEBIET_A       DEBIET_A#lag_5             0.667537
-    2       DEBIET_B       DEBIET_B#lag_0             0.897340
-    3       DEBIET_B       DEBIET_B#lag_9             0.755929
-    4  DEBIET_TOTAAL  DEBIET_TOTAAL#lag_9             0.944911
-    5  DEBIET_TOTAAL  DEBIET_TOTAAL#lag_4             0.636884
-    6           RAIN           RAIN#lag_9             0.944911
-    7           RAIN           RAIN#lag_8             0.871695
+    >>> top_n_correlations(res, goal_feature, n=2, grouped=True, sep='#')
+               GROUP                 index  DEBIET_TOTAAL#lag_0
+    0       DEBIET_A       DEBIET_A#lag_10             1.000000
+    1       DEBIET_A        DEBIET_A#lag_0             0.838591
+    2       DEBIET_B       DEBIET_B#lag_10            -1.000000
+    3       DEBIET_B        DEBIET_B#lag_0             0.897340
+    4  DEBIET_TOTAAL  DEBIET_TOTAAL#lag_10            -1.000000
+    5  DEBIET_TOTAAL   DEBIET_TOTAAL#lag_9             0.944911
+    6           RAIN           RAIN#lag_10             1.000000
+    7           RAIN            RAIN#lag_9            -0.944911
 
-
-    >>> retrieve_top_n_correlations(res, goal_feature, n=2, grouped=False)
-                        index  DEBIET_TOTAAL#lag_0          GROUP
-    39  DEBIET_TOTAAL#lag_9             0.944911  DEBIET_TOTAAL
-    36           RAIN#lag_9             0.944911           RAIN
+    >>> top_n_correlations(res, goal_feature, n=2, grouped=False)
+                      index  DEBIET_TOTAAL#lag_0
+    0  DEBIET_TOTAAL#lag_10                 -1.0
+    1       DEBIET_A#lag_10                  1.0
     """
 
     if goal_feature not in df.columns:
@@ -135,24 +134,24 @@ def top_score_correlations(df: pd.DataFrame, goal_feature: str, score: float = 0
     --------
     >>> import pandas as pd
     >>> from sam.feature_engineering import BuildRollingFeatures
-    >>> from sam.exploration import retrieve_top_score_correlations
+    >>> from sam.exploration import top_score_correlations
     >>> import numpy as np
     >>> goal_feature = 'DEBIET_TOTAAL#lag_0'
     >>> df = pd.DataFrame({
-    >>>                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    >>>                'DEBIET_A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
-    >>>                'DEBIET_B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
+    ...                'RAIN': [0.1, 0.2, 0.0, 0.6, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...                'DEBIET_A': [1, 2, 3, 4, 5, 5, 4, 3, 2, 4, 2, 3],
+    ...                'DEBIET_B': [3, 1, 2, 3, 3, 6, 4, 1, 3, 3, 1, 5]})
     >>> df['DEBIET_TOTAAL'] = df['DEBIET_A'] + df['DEBIET_B']
     >>> RollingFeatures = BuildRollingFeatures(rolling_type='lag', \\
-    >>>     window_size = np.arange(10), lookback=0, keep_original=False)
+    ...     window_size = np.arange(10), lookback=0, keep_original=False)
     >>> res = RollingFeatures.fit_transform(df)
-    >>> retrieve_top_score_correlations(res, goal_feature, score=0.8)
-                index 	                DEBIET_TOTAAL#lag_0
-            0 	DEBIET_TOTAAL#lag_9 	0.944911
-            1 	RAIN#lag_9 	            -0.944911
-            2 	DEBIET_B#lag_0 	        0.897340
-            3 	RAIN#lag_8 	            0.871695
-            4 	DEBIET_A#lag_0 	        0.838591
+    >>> top_score_correlations(res, goal_feature, score=0.8)
+                     index  DEBIET_TOTAAL#lag_0
+    0  DEBIET_TOTAAL#lag_9             0.944911
+    1           RAIN#lag_9            -0.944911
+    2       DEBIET_B#lag_0             0.897340
+    3           RAIN#lag_8             0.871695
+    4       DEBIET_A#lag_0             0.838591
     """
 
     if goal_feature not in df.columns:

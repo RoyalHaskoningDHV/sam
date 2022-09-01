@@ -41,15 +41,15 @@ def plot_precision_recall_curve(
 
     Examples
     --------
-    >>> from sam.visualization import make_precision_recall_curve
+    >>> from sam.visualization import plot_precision_recall_curve
     >>> y_true = np.array([0, 0, 1, 1, 1, 0])
     >>> y_scores = np.array([0.1, 0.4, 0.35, 0.8, 0.2, 0.3])
     >>>
-    >>> make_precision_recall_curve(y_true, y_scores)
+    >>> fig = plot_precision_recall_curve(y_true, y_scores)
 
     >>> # Incident recall curve
     >>> y_incidents = np.array([0, 0, 0, 0, 1, 0])
-    >>> make_precision_recall_curve(y_incidents, y_scores, (0, 2))
+    >>> fig2 = plot_precision_recall_curve(y_incidents, y_scores, (0, 2))
     """
     import matplotlib.pyplot as plt
 

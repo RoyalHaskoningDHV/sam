@@ -23,11 +23,10 @@ class MongoWrapper:
 
     Examples
     --------
-    >>> from sam.data_sources import MongoWrapper
-    >>> mon = MongoWrapper('test_magweg','test_magookweg')
-    >>> mon.empty().add([{'test': 7}]).get()
-        test
-    0	7
+    >>> from sam.data_sources import MongoWrapper  # doctest: +SKIP
+    >>> mon = MongoWrapper('test_magweg','test_magookweg')  # doctest: +SKIP
+    >>> mon.empty().add([{'test': 7}]).get()  # doctest: +SKIP
+    >>> test  # doctest: +SKIP
     """
 
     def __init__(self, db, collection, location="localhost", port=27017, **kwargs):
