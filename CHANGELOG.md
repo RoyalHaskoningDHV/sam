@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.2
+
+### Changes
+- Add `pytest --doctest-modules ./sam*` to `unittest.yml` in github actions workflows to test all docstring examples.
+
 ## Version 3.1.1
 
 ### Changes
