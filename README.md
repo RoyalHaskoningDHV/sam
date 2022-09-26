@@ -1,8 +1,13 @@
+<div align="center">
+    <img src="docs/source/images/logo.png" width=600><br>
+</div>
+
 # SAM
 
 [![PyPI Latest Release](https://img.shields.io/pypi/v/sam.svg)](https://pypi.org/project/sam/)
-[![License](https://img.shields.io/pypi/l/sam.svg)](https://github.com/RoyalHaskoningDHV/sam/blob/main/LICENSE)
+[![Documentation Status](https://readthedocs.org/projects/sam-rhdhv/badge/?version=latest)](https://sam-rhdhv.readthedocs.io/en/latest/?badge=latest)
 [![Downloads](https://static.pepy.tech/personalized-badge/sam?period=month&units=international_system&left_color=black&right_color=orange&left_text=PyPI%20downloads%20per%20month)](https://pepy.tech/project/sam)
+[![License](https://img.shields.io/pypi/l/sam.svg)](https://github.com/RoyalHaskoningDHV/sam/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 

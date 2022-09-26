@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.3
+
+### Changes
+- Added logo to README and documentation
+- Added Lasso example to documentation
+
 ## Version 3.1.2
 
 ### Changes
