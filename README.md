@@ -1,4 +1,6 @@
-![](docs/source/images/logo.png)
+<div align="center">
+    <img src="docs/source/images/logo.png" width=600><br>
+</div>
 
 # SAM
 
