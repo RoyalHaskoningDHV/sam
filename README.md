@@ -1,3 +1,5 @@
+![](docs/source/images/logo.png)
+
 # SAM
 
 [![PyPI Latest Release](https://img.shields.io/pypi/v/sam.svg)](https://pypi.org/project/sam/)
