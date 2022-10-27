@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.4
+
+### Changes
+- Fixed a bug where `data_sources.weather` was not installed.
+
 ## Version 3.1.3
 
 ### Changes
