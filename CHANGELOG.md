@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.5
+
+### Changes
+- Properly included datasets so `load_rainbow_beach()` and `load_sewage_data()` work
+
 ## Version 3.1.4
 
 ### Changes
