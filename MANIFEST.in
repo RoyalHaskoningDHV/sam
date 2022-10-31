@@ -2,3 +2,4 @@ recursive-include docs *
 recursive-include examples *
 
 include .config.example
+include sam/datasets/data/*.csv
