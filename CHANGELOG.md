@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.6
+
+### Changes
+- Updated wrong types in `quantile_plot.py`
+
 ## Version 3.1.5
 
 ### Changes
