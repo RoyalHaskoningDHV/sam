@@ -7,7 +7,7 @@ COLORS = ["#2453bd", "#7497e3", "#c3d0eb", "#d1d8e8"]
 
 
 def sam_quantile_plot(
-    y_true: pd.DataFrame,
+    y_true: pd.Series,
     y_hat: pd.DataFrame,
     title: str = None,
     y_title: str = "",
@@ -38,8 +38,8 @@ def sam_quantile_plot(
 
     Parameters
     ---------
-    y_true: pd.DataFrame
-        Pandas DataFrame with single row (the actual values) should have same index as y_hat.
+    y_true: pd.Series
+        Pandas Series containing the actual values. Should have same index as y_hat.
     y_hat: pd.DataFrame
         Dataframe returned by the MLPTimeseriesRegressor .predict() function.
         Columns should contain at least `predict_lead_x_mean`, where x is predict ahead
@@ -178,7 +178,7 @@ def sam_quantile_plot(
 
 
 def _interactive_quantile_plot(
-    y_true: pd.DataFrame,
+    y_true: pd.Series,
     y_hat: pd.DataFrame,
     title: str = None,
     y_title: str = "",
@@ -309,7 +309,7 @@ def _interactive_quantile_plot(
 
 
 def _static_quantile_plot(
-    y_true: pd.DataFrame,
+    y_true: pd.Series,
     y_hat: pd.DataFrame,
     title: str = None,
     y_title: str = "",
