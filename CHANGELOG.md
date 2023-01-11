@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.7
+
+### Changes
+- Updated `BaseTimeseriesRegressor.get_feature_names_out()` so, in case of the feature engineer is a `Pipeline`, it returns the names from the last `ColumnTransformer`, if available
+
 ## Version 3.1.6
 
 ### Changes

@@ -11,6 +11,7 @@ from sam.metrics import joint_mae_tilted_loss, joint_mse_tilted_loss
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
+from sklearn.compose import ColumnTransformer
 from sklearn.utils.validation import check_is_fitted
 from sklearn.pipeline import Pipeline
 
@@ -486,6 +487,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         Function for obtaining feature names. Generally used instead of the attribute, and more
         compatible with the sklearn API.
 
+        It is assumed that in case of Pipelines for feature engineer, the last
+        ColumnTransformer step contains the feature names. If any element from
+        the Pipeline is an instance of ColumnTransformer, the last step is used for
+        getting the feature names. If not any step is a instance of ColumnTransformer, the last
+        element of the Pipeline with the method `get_feature_names_out` is used.
+
         Returns
         -------
         list:
@@ -502,6 +509,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                 if hasattr(step[-1], "get_feature_names_out")
             ]
             if len(feature_steps) > 0:
+                for step in feature_steps[::-1]:
+                    if isinstance(step, ColumnTransformer):
+                        return step.get_feature_names_out()
                 return feature_steps[-1].get_feature_names_out()
             else:
                 raise ValueError(
