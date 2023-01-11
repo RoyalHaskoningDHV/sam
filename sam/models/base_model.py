@@ -490,7 +490,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         It is assumed that in case of Pipelines for feature engineer, the last
         ColumnTransformer step contains the feature names. If any element from
         the Pipeline is an instance of ColumnTransformer, the last step is used for
-        getting the feature names. If any step is a instance of ColumnTransformer, the last
+        getting the feature names. If not any step is a instance of ColumnTransformer, the last
         element of the Pipeline with the method `get_feature_names_out` is used.
 
         Returns
