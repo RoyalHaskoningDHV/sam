@@ -172,7 +172,6 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         return_data: bool = False,
         force_monotonic_quantiles: bool = False,
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
-
         self.validate_data(X)
 
         if y is None and self.use_diff_of_y:

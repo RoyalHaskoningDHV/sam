@@ -54,7 +54,6 @@ def test_lasso(
     y_scaler,
     max_mae,
 ):
-
     X, y = get_dataset()
     model = train_lasso(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler)
     assert_get_actual(model, X, y, predict_ahead)

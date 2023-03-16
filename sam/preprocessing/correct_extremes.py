@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 def setdoc(func: Callable):
-
     func.__doc__ = """
     This documentation covers `correct_above_threshold`, `correct_below_threshold`
     and `correct_outside_range`. These three functions can be used to filter extreme

@@ -47,7 +47,6 @@ class TestClipTransformer(unittest.TestCase):
         assert_frame_equal(output, self.test_output)
 
     def test_transform_single_col(self):
-
         for column in ["A", "B", "C"]:
             clipper = ClipTransformer(cols=[column]).fit(self.train_data)
             output = clipper.transform(self.test_input)

@@ -138,7 +138,6 @@ def performance_evaluation_fixed_predict_ahead(
     # compute the metrics for the different temporal resolutions, for train and test data
     metric_list, dataset_list, resolution_list = [], [], []
     for ri, res in enumerate(resolutions):
-
         # resample data to desired resolution of requested
         if res is not None:
             res_label = res

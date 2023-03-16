@@ -44,7 +44,6 @@ class TestIncidentRecall(unittest.TestCase):
         self.assertAlmostEqual(incident_recall(incidents, y_pred, range_pred), 0)
 
     def testIncorrectInputs(self):
-
         self.assertRaises(Exception, incident_recall, "test", "test2", "test3")
         # negative range not possible?
         self.assertRaises(Exception, incident_recall, 0, 0, 0, (-2, -1))
@@ -52,7 +51,6 @@ class TestIncidentRecall(unittest.TestCase):
 
 class TestMakeIncidentRecallScorer(unittest.TestCase):
     def testMakeScorer(self):
-
         op = type(
             "MyClassifier",
             (BaseEstimator, object),

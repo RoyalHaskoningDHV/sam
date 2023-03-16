@@ -7,7 +7,6 @@ from sam.metrics import compute_quantile_crossings, compute_quantile_ratios
 
 class TestQuantileMetrics(unittest.TestCase):
     def test_quantile_ratios(self):
-
         y = pd.Series([1, 1.5, 1, 2, 5])
         pred = pd.DataFrame(
             {
@@ -22,7 +21,6 @@ class TestQuantileMetrics(unittest.TestCase):
         assert_array_equal(list(res.keys()), [0.2, 0.8])
 
     def test_quantile_crossings(self):
-
         pred = pd.DataFrame(
             {
                 "predict_lead_0_q_0.2": [1, 3, 5, 4],

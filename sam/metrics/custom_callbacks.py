@@ -68,7 +68,6 @@ class R2Evaluation(Callback):
         r2s = []
         r2s_val = []
         for p in self.predict_ahead:
-
             if len(self.predict_ahead) > 1:
                 # only add the predict ahead if needed
                 thiscol = "_".join(self.all_data["y_train"].columns[0].split("_")[:-2])

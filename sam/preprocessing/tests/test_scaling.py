@@ -8,7 +8,6 @@ from sam.preprocessing import scale_train_test
 
 class TestScaling(unittest.TestCase):
     def test_standard_scaler_series(self):
-
         N = 10
         basex = np.random.random(N)
         basey = np.random.random(N)
@@ -44,7 +43,6 @@ class TestScaling(unittest.TestCase):
         self.assertNotEqual(X_scaler.mean_[0], y_scaler.mean_[0])
 
     def test_standard_scaler_dataframe(self):
-
         N = 10
         basex = np.random.random(N)
         basey = np.random.random(N)

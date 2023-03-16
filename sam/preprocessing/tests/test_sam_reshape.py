@@ -42,7 +42,6 @@ class TestSamReshape(unittest.TestCase):
         assert_frame_equal(result, self.long)
 
     def test_alternate_colnames(self):
-
         wide2 = self.wide.copy()
         wide2 = wide2.rename(
             {
@@ -65,7 +64,6 @@ class TestSamReshape(unittest.TestCase):
         assert_frame_equal(result2, expected)
 
     def test_messedup_seps(self):
-
         wide2 = self.wide.copy()
         # Keep the _X the same, but the _Y are messed with
         wide2 = wide2.rename({"A_Y": "A_", "B_Y": "Y", "C_Y": "_Y"}, axis=1)

@@ -235,7 +235,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             validation_data = (X_val_transformed, y_val_transformed)
 
         if self.r2_callback_report:
-
             all_data = {"X_train": X_transformed, "y_train": y_transformed}
 
             if validation_data is not None:
