@@ -89,12 +89,7 @@ class TestPerformanceEvaluation(unittest.TestCase):
         assert_frame_equal(expected_df, self.r2_df)
 
     def test_performance_evaluation_fixed_predict_ahead_mae_df(self):
-        (
-            mae_df,
-            _,
-            _,
-            best_res,
-        ) = performance_evaluation_fixed_predict_ahead(
+        mae_df, _, _, best_res = performance_evaluation_fixed_predict_ahead(
             self.y_true_train,
             self.y_hat_train,
             self.y_true_test,
@@ -148,12 +143,7 @@ class TestPerformanceEvaluation(unittest.TestCase):
 
     def test_performance_evaluation_fixed_predict_ahead_non_existing_metric_df(self):
         with self.assertRaises(ValueError) as cm:
-            (
-                mae_df,
-                _,
-                _,
-                best_res,
-            ) = performance_evaluation_fixed_predict_ahead(
+            performance_evaluation_fixed_predict_ahead(
                 self.y_true_train,
                 self.y_hat_train,
                 self.y_true_test,
