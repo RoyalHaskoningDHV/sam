@@ -9,7 +9,6 @@ from .numeric_assertions import NumericAssertions
 
 class TestRemoveExtremes(unittest.TestCase, NumericAssertions):
     def test_remove_extreme_values(self):
-
         # create some random data
         np.random.seed(10)
         test_data = np.random.random(size=(100))

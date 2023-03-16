@@ -26,7 +26,6 @@ class TestMASE(unittest.TestCase):
         assert_almost_equal(output, np.array([0.1, 0.1]))
 
     def test_mase_incorrect(self):
-
         self.assertRaises(ValueError, mean_absolute_scaled_error, [1], [2], 1)
         self.assertRaises(ValueError, mean_absolute_scaled_error, [1, 2, 3], [1, 2, 3], 0)
         self.assertRaises(ValueError, mean_absolute_scaled_error, [1, 2, 3], [1, 2, 3], 1.5)

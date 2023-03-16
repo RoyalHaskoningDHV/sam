@@ -152,7 +152,6 @@ def benchmark_model(
     histories = {}
 
     for modelname in modeldict:
-
         model = modeldict[modelname]
 
         history = model.fit(X_train, y_train, **fit_kwargs)

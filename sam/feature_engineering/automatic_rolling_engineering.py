@@ -137,7 +137,6 @@ class AutomaticRollingEngineering(BaseEstimator, TransformerMixin):
         cyclicals: Optional[List[str]] = None,
         onehots: Optional[List[str]] = None,
     ):
-
         self.window_sizes = window_sizes
         self.rolling_types = rolling_types
         self.n_iter_per_param = n_iter_per_param

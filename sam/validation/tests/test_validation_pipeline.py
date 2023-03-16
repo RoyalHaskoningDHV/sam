@@ -9,7 +9,6 @@ from .numeric_assertions import NumericAssertions
 
 class TestValidationPipeline(unittest.TestCase, NumericAssertions):
     def test_validation_pipeline(self):
-
         # create some data
         np.random.seed(10)
         base = np.random.randn(100)

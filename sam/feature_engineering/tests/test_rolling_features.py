@@ -226,7 +226,6 @@ class TestRollingFeatures(unittest.TestCase):
     # Only two tests for lookback needed, because they are all treated in the exact same way
     # only fourier is treated differently.
     def test_lookback_normal(self):
-
         result = self.simple_transform("lag", 2, [1, 2, 3])
         expected = pd.DataFrame(
             {

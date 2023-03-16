@@ -243,7 +243,6 @@ class BuildRollingFeatures(BaseEstimator, TransformerMixin):
         keep_original: bool = True,
         add_lookback_to_colname: bool = False,
     ):
-
         self.window_size = window_size
         self.lookback = lookback
         self.rolling_type = rolling_type

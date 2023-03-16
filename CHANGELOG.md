@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.8
+
+### Changes
+- `ConstantTimeseriesRegressor` no longer checks dtypes of input data, nor nan/inf values, as the input is only used to determine the shape of the predictions.
+
 ## Version 3.1.7
 
 ### Changes

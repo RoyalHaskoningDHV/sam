@@ -9,7 +9,6 @@ from sam.visualization import diagnostic_extreme_removal
 
 class TestExtremeDiagnosticPlot(unittest.TestCase):
     def setUp(self):
-
         # create some random data
         np.random.seed(10)
         fs = [25, 100, 500]
@@ -41,14 +40,12 @@ class TestExtremeDiagnosticPlot(unittest.TestCase):
 
     @pytest.mark.mpl_image_compare(tolerance=30)
     def test_extreme_values_removal_trainset(self):
-
         _ = self.REV.transform(self.train_df)
         fig = diagnostic_extreme_removal(self.REV, self.train_df, "values")
         return fig
 
     @pytest.mark.mpl_image_compare(tolerance=30)
     def test_extreme_values_removal_testset(self):
-
         _ = self.REV.transform(self.test_df)
         fig = diagnostic_extreme_removal(self.REV, self.test_df, "values")
         return fig

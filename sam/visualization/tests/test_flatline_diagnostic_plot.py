@@ -9,7 +9,6 @@ from sam.visualization import diagnostic_flatline_removal
 class TestFlatlineDiagnosticPlot(unittest.TestCase):
     @pytest.mark.mpl_image_compare(tolerance=30)
     def test_flatline_removal(self):
-
         # create some random data
         data = [1, 2, 6, 3, 4, 4, 4, 3, 6, 7, 7, 2, 2]
         # with one clear outlier

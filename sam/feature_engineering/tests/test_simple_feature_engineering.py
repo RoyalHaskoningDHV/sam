@@ -8,7 +8,6 @@ from sam.feature_engineering import SimpleFeatureEngineer
 
 
 class TestSimpleFeatureEngineer(unittest.TestCase):
-
     dates = pd.date_range("1/1/2000", periods=5, freq="D")
     X = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]}, index=dates)
 

@@ -84,7 +84,6 @@ class MADValidator(BaseValidator):
         cols: list = None,
         madthresh=15,
     ):
-
         self.rollingwindow = rollingwindow
         self.cols = cols
         self.madthresh = madthresh
@@ -110,7 +109,6 @@ class MADValidator(BaseValidator):
         self.thresh_low = {}
         self.cols_ = self.cols if self.cols else data.columns.to_list()
         for c in self.cols:
-
             # get data
             x = data.loc[:, c]
 
@@ -148,7 +146,6 @@ class MADValidator(BaseValidator):
         )
 
         for c in self.cols:
-
             # get data
             x = X.loc[:, c]
 

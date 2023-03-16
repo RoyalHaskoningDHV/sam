@@ -7,7 +7,6 @@ from sam.exploration import top_n_correlations
 
 
 class TestTopNCorrelation(unittest.TestCase):
-
     # We do not test what happens if multiple columns tie for first place
     # This is because this sorting can differ between platforms, and does not
     # matter in practice. As long as either one of the top is chosen, it's fine.

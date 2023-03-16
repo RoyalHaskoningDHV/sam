@@ -34,7 +34,6 @@ class TestTrainR2(unittest.TestCase):
                 custom_r2s = []
                 keras_r2s = []
                 for test_ratio in [0.8, 0.5, 0.2]:
-
                     test_n = int(test_ratio * N)
                     train_n = N - test_n
                     train_data = data[:train_n]

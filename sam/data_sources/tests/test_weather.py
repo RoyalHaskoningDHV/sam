@@ -34,7 +34,6 @@ skiprr = pytest.mark.skipif(
 
 
 class TestWeather(unittest.TestCase):
-
     # We don't test the actual content of the weather predictions, only the columns and dtypes
     # The TIME column is tested exactly, since it should be deterministic
     def test_read_knmi_stations(self):
@@ -93,7 +92,6 @@ class TestWeather(unittest.TestCase):
         self.assertEqual(expected_dtypes, result.dtypes.tolist())
 
     def test_nonan_knmi_station(self):
-
         # This station had all nan values for variable 'P' when I check it,
         # so I picked a relatively short and past moment. If knmi will fill
         # these values later on, the warning below will start to warn for this.

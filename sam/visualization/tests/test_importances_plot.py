@@ -8,7 +8,6 @@ from sam.visualization import plot_feature_importances
 
 class TestFeatureImportancePlot(unittest.TestCase):
     def setUp(self):
-
         base_imps = np.array([0.18, 0.2, 0.19, 0.21, 0.22])
         imps = pd.DataFrame(
             {

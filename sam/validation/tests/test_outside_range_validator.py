@@ -7,7 +7,6 @@ from pandas.testing import assert_frame_equal
 
 
 class TestOutsideRangeValidator(unittest.TestCase):
-
     X_train = pd.DataFrame(
         {
             "A": [1, 2, 6, 3, 4, 4, 4],

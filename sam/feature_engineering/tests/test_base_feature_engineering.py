@@ -7,7 +7,6 @@ from sam.feature_engineering import BaseFeatureEngineer, FeatureEngineer, Identi
 
 
 class TestFeatureEngineer(unittest.TestCase):
-
     X = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]})
     X_out = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7], "C": [4, 6, 8, 10, 12]})
 

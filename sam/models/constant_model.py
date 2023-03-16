@@ -60,7 +60,7 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         -------
         The fitted model
         """
-        X, y = check_X_y(X, y, y_numeric=True)
+        X, y = check_X_y(X, y, dtype=None, force_all_finite=False, y_numeric=True)
         self.n_features_in_ = X.shape[1]
 
         if self.average_type == "median":
@@ -85,7 +85,7 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
             output of the prediction, containing the median and and quantiles
         """
         check_is_fitted(self)
-        X = check_array(X)
+        X = check_array(X, dtype=None, force_all_finite=False)
 
         prediction = np.append(self.model_quantiles_, self.model_average_)
         prediction = np.repeat(prediction, len(self.predict_ahead))
@@ -98,7 +98,13 @@ class ConstantTemplate(BaseEstimator, RegressorMixin):
         """helper function to make sure this class
         passes the check_estimator check
         """
-        return {"poor_score": True}
+        return {
+            "poor_score": True,
+            "allow_nan": True,
+            "_xfail_checks": {
+                "check_dtype_object": "ConstantTemplate has no need to check dtypes of input data"
+            },
+        }
 
 
 class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
