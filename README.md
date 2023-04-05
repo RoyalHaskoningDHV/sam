@@ -17,7 +17,7 @@ The documentation is available on [ReadTheDocs](https://sam-rhdhv.readthedocs.io
 
 Author: [Royal HaskoningDHV](https://global.royalhaskoningdhv.com/)
 
-Email: [ruben.peters@rhdhv.com](mailto:ruben.peters@rhdhv.com)
+Email: [ruud.kassing@rhdhv.com](mailto:ruud.kassing@rhdhv.com)
 
 ## Getting started
 

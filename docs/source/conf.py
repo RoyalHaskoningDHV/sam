@@ -25,7 +25,7 @@ root_folder = Path(__file__).parents[2]
 # -- Project information -----------------------------------------------------
 
 project = "sam"
-copyright = "2018-2022, Royal HaskoningDHV"
+copyright = "2018-2023, Royal HaskoningDHV"
 author = "Royal HaskoningDHV"
 
 

@@ -69,6 +69,25 @@ class TestConstantTimeseriesRegressor(unittest.TestCase):
         self.assertEqual(y_pred.shape, (20, 3))
         self.assertListEqual(list(y_pred.index), list(self.y_test.index))
 
+    def test_with_nan(self):
+        """Test that nan values in X have no effect on the SPC model"""
+        X_train_nan = self.X_train.copy()
+        X_train_nan["x"] = np.nan
+        X_test_nan = self.X_test.copy()
+        X_test_nan["x"] = np.nan
+
+        model = ConstantTimeseriesRegressor(timecol="TIME")
+        model.fit(self.X_train, self.y_train)
+        model_with_nan = ConstantTimeseriesRegressor(timecol="TIME")
+        model_with_nan.fit(X_train_nan, self.y_train)
+
+        y_pred_normal = model.predict(self.X_test, self.y_test)
+        y_pred_train_nan = model_with_nan.predict(self.X_test, self.y_test)
+        y_pred_test_nan = model.predict(X_test_nan, self.y_test)
+
+        pd.testing.assert_series_equal(y_pred_normal, y_pred_train_nan)
+        pd.testing.assert_series_equal(y_pred_normal, y_pred_test_nan)
+
     def test_replacement_sam(self):
         """Test if SPC model also works with all the default SAM parameters"""
         model = ConstantTimeseriesRegressor(

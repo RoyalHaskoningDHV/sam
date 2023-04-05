@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.9
+
+### Fixes
+- `ConstantTimeseriesRegressor` now fills nan values in input data with zero before calling `preprocess_fit` in order to successfully (by)pass validation from `BaseTimeseriesRegressor`. Besides scikit-learn compatibility, the input data is not actually used when fitting.
+
 ## Version 3.1.8
 
 ### Changes
