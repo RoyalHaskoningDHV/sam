@@ -323,7 +323,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             raise ValueError("You must provide y when using use_diff_of_y=True")
 
         X_transformed = self.preprocess_predict(X, y)
-        prediction = self.model_.predict(X_transformed)
+        prediction = self.model_.predict(X_transformed, verbose=self.verbose)
 
         prediction = self.postprocess_predict(
             prediction, X, y, force_monotonic_quantiles=force_monotonic_quantiles
@@ -543,9 +543,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
             def score(X, y, model=self.model_):
                 if self.average_type == "median":
-                    return np.mean(np.abs(y - model.predict(X)[:, -1]))
+                    return np.mean(np.abs(y - model.predict(X, verbose=0)[:, -1]))
                 elif self.average_type == "mean":
-                    return np.mean((y - model.predict(X)[:, -1]) ** 2)
+                    return np.mean((y - model.predict(X, verbose=0)[:, -1]) ** 2)
 
         X_transformed = self.preprocess_predict(X, y)
 
@@ -643,8 +643,10 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
         <keras.callbacks.History ...
-        >>> explainer = model.get_explainer(X_test, y_test, sample_n=10)
-        >>> shap_values = explainer.shap_values(X_test[0:30], y_test[0:30])
+        >>> ();explainer = model.get_explainer(X_test, y_test, sample_n=10);()  # doctest: +ELLIPSIS
+        (...)
+        >>> ();shap_values = explainer.shap_values(X_test[0:30], y_test[0:30]);()  # doctest: +ELLIPSIS
+        (...)
         >>> test_values = explainer.test_values(X_test[0:30], y_test[0:30])
         >>> shap.force_plot(explainer.expected_value[0], shap_values[0][-1,:],
         ...                 test_values.iloc[-1,:], matplotlib=True)

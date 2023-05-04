@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.10
+
+### Changes
+- Allow numpy versions up to 1.23.x. 1.24 is not yet supported by shap (and shap does not specify this constraint in its requirements). For future reference, note that numpy 1.24 is also not supported by h5py versions below 3.0.0 (again without specifying) as it uses the deprecated `np.typeDict`. h5py is a requirement of tensorflow.
+- Upgrade tensorflow
+- Limit scikit-learn version <2
+
 ## Version 3.1.9
 
 ### Fixes
