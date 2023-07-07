@@ -9,6 +9,11 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.1.11
+
+### Changes
+- Make `'ID'`and `'TYPE'` columns `pd.Categorical` instead of `str`, to reduce the memory spike when using `pd.pivot_table` in `sam_format_to_wide`.
+
 ## Version 3.1.10
 
 ### Changes
