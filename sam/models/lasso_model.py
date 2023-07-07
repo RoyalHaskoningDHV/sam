@@ -134,6 +134,7 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
             estimator = QuantileRegressor(
                 quantile=quantile,
                 alpha=self.alpha,
+                solver="highs",
                 fit_intercept=self.fit_intercept,
                 **(self.quantile_options or {}),
             )

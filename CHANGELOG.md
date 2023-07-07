@@ -13,6 +13,7 @@ Version X.Y.Z stands for:
 
 ### Changes
 - Make `'ID'`and `'TYPE'` columns `pd.Categorical` instead of `str`, to reduce the memory spike when using `pd.pivot_table` in `sam_format_to_wide`.
+- Added parameter in `QuantileRegressor` to use HiGHS solver, as recommended in <https://docs.scipy.org/doc/scipy/reference/optimize.linprog-highs.html>. This will also keep the package compatible with future versions of SciPy.
 
 ## Version 3.1.10
 
