@@ -25,9 +25,11 @@ def sam_format_to_wide(data: pd.DataFrame, sep: str = "_"):
         will be sorted by TIME, ascending. The index will be a range from 0 to `nrows`.
     """
 
-    data['ID'], data['TYPE'] = pd.Categorical(data['ID']), pd.Categorical(data['TYPE'])
+    data["ID"], data["TYPE"] = pd.Categorical(data["ID"]), pd.Categorical(data["TYPE"])
 
-    data = pd.pivot_table(data, values="VALUE", index=["TIME"], columns=["ID", "TYPE"], observed=True)
+    data = pd.pivot_table(
+        data, values="VALUE", index=["TIME"], columns=["ID", "TYPE"], observed=True
+    )
     try:
         data.columns = [
             str(x[0]) + sep + x[1]
