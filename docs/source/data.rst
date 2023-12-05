@@ -1,5 +1,5 @@
-Data formats
-============
+Data format
+===========
 
 To make it easier to work together in a project we defined a standard way of storing data.
 This way was designed to be easy to use and also support the different programming languages.
