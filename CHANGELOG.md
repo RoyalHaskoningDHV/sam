@@ -12,7 +12,7 @@ Version X.Y.Z stands for:
 ## Version 3.1.12
 
 ### Changes
-- Remove `keras_templates` imports from `sam.models` initialization. This will allow users to use certain models that do not depend on tensorflow without having that rather large dependency installed.
+- Make specific imports that require `tensorflow` in `__init__.py` of `sam.models` optional - so it is possible to use `SAM` models that do not require `tensorflow` without it being installed.
 
 ## Version 3.1.11
 
