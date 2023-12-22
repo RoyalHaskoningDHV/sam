@@ -13,12 +13,13 @@ try:
         create_keras_quantile_rnn,
     )
     from .mlp_model import MLPTimeseriesRegressor
+    
 except ImportError:
     pass
 
+from .base_model import BaseTimeseriesRegressor
 from .sam_shap_explainer import SamShapExplainer
 from .linear_model import LinearQuantileRegression
-from .base_model import BaseTimeseriesRegressor
 from .constant_model import ConstantTimeseriesRegressor
 from .lasso_model import LassoTimeseriesRegressor
 
