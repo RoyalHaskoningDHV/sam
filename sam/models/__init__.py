@@ -13,7 +13,7 @@ try:
         create_keras_quantile_rnn,
     )
     from .mlp_model import MLPTimeseriesRegressor
-    
+
 except ImportError:
     pass
 
