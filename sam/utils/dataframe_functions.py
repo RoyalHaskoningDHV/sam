@@ -94,7 +94,7 @@ def has_strictly_increasing_index(df: pd.DataFrame, linear: bool = True) -> bool
         else:
             return False
 
-    if type(df.index) == pd.core.indexes.datetimes.DatetimeIndex and (
+    if type(df.index) is pd.core.indexes.datetimes.DatetimeIndex and (
         df.index.is_monotonic_increasing and df.index.is_unique
     ):
         if linear and not _index_has_constant_increase(df):

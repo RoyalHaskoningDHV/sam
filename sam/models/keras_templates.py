@@ -65,7 +65,7 @@ def create_keras_quantile_mlp(
 
     Examples
     --------
-    >>> from sam.models import create_keras_quantile_mlp
+    >>> from sam.models.keras_templates import create_keras_quantile_mlp
     >>> from sam.datasets import load_rainbow_beach
     >>> data = load_rainbow_beach()
     >>> X, y = data, data["water_temperature"]
@@ -294,7 +294,7 @@ def create_keras_autoencoder_mlp(
     >>> import pandas as pd
     >>> from sam.data_sources import synthetic_date_range, synthetic_timeseries
     >>> from sam.preprocessing import RecurrentReshaper
-    >>> from sam.models import create_keras_autoencoder_mlp
+    >>> from sam.models.keras_templates import create_keras_autoencoder_mlp
     >>> dates = pd.Series(synthetic_date_range().to_pydatetime())
     >>> X = [synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=i)
     ...      for i in range(100)]
@@ -393,7 +393,7 @@ def create_keras_autoencoder_rnn(
     >>> import pandas as pd
     >>> from sam.data_sources import synthetic_date_range, synthetic_timeseries
     >>> from sam.preprocessing import RecurrentReshaper
-    >>> from sam.models import create_keras_autoencoder_rnn
+    >>> from sam.models.keras_templates import create_keras_autoencoder_rnn
     >>> dates = pd.Series(synthetic_date_range().to_pydatetime())
     >>> y = synthetic_timeseries(dates, daily=2, noise={'normal': 0.25}, seed=2)
     >>> X = pd.DataFrame(y)

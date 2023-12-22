@@ -16,10 +16,10 @@ Linear Quantile Regression
 Keras templates
 ---------------------------
 .. _create-keras-quantile-mlp:
-.. autofunction:: sam.models.create_keras_quantile_mlp
-.. autofunction:: sam.models.create_keras_quantile_rnn
-.. autofunction:: sam.models.create_keras_autoencoder_mlp
-.. autofunction:: sam.models.create_keras_autoencoder_rnn
+.. autofunction:: sam.models.keras_templates.create_keras_quantile_mlp
+.. autofunction:: sam.models.keras_templates.create_keras_quantile_rnn
+.. autofunction:: sam.models.keras_templates.create_keras_autoencoder_mlp
+.. autofunction:: sam.models.keras_templates.create_keras_autoencoder_rnn
 
 Statistical process control
 ---------------------------

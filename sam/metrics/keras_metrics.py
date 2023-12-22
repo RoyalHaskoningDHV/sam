@@ -38,7 +38,7 @@ def keras_tilted_loss(y_true: tf.Tensor, y_pred: tf.Tensor, quantile: float = 0.
     Examples
     --------
     >>> from sam.metrics import keras_tilted_loss
-    >>> from sam.models import create_keras_quantile_mlp
+    >>> from sam.models.keras_templates import create_keras_quantile_mlp
     >>> n_input = 1000
     >>> n_neurons = 64
     >>> n_layers = 3
@@ -87,7 +87,7 @@ def keras_joint_mse_tilted_loss(
     Examples
     --------
     >>> from sam.metrics import keras_joint_mse_tilted_loss as mse_tilted
-    >>> from sam.models import create_keras_quantile_mlp
+    >>> from sam.models.keras_templates import create_keras_quantile_mlp
     >>> n_input = 1000
     >>> n_neurons = 64
     >>> n_layers = 3
@@ -149,7 +149,7 @@ def keras_joint_mae_tilted_loss(
     Examples
     --------
     >>> from sam.metrics import keras_joint_mae_tilted_loss as mae_tilted
-    >>> from sam.models import create_keras_quantile_mlp
+    >>> from sam.models.keras_templates import create_keras_quantile_mlp
     >>> n_input = 1000
     >>> n_neurons = 64
     >>> n_layers = 3
@@ -190,7 +190,7 @@ def keras_rmse(y_true: tf.Tensor, y_pred: tf.Tensor):
     Examples
     --------
     >>> from sam.metrics import keras_rmse
-    >>> from sam.models import create_keras_quantile_mlp
+    >>> from sam.models.keras_templates import create_keras_quantile_mlp
     >>> n_input = 1000
     >>> n_neurons = 64
     >>> n_layers = 3
@@ -218,7 +218,7 @@ def get_keras_forecasting_metrics(quantiles: List[float] = None):
     Examples
     --------
     >>> from sam.metrics import keras_rmse, get_keras_forecasting_metrics
-    >>> from sam.models import create_keras_quantile_mlp
+    >>> from sam.models.keras_templates import create_keras_quantile_mlp
     >>> n_input = 1000
     >>> n_neurons = 64
     >>> n_layers = 3
