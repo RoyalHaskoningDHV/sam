@@ -93,15 +93,15 @@ def _parse_knmi_measurements(knmi_raw, freq, start=None, end=None):
     knmi.columns = columns
 
     if freq == "hourly":
-        knmi["H"] = pd.to_numeric(knmi["H"])  # needs to be numeric to subtract 1
+        knmi["HH"] = pd.to_numeric(knmi["HH"])  # needs to be numeric to subtract 1
         # Subtract 1 from H since it runs from 1 to 24, which will make datetime conversion fail
-        knmi["TIME"] = knmi["YYYYMMDD"].astype(str) + " " + (knmi["H"] - 1).astype(str) + ":00:00"
+        knmi["TIME"] = knmi["YYYYMMDD"].astype(str) + " " + (knmi["HH"] - 1).astype(str) + ":00:00"
     elif freq == "daily":
         knmi["TIME"] = knmi["YYYYMMDD"].astype(str) + " 00:00:00"
     else:
         raise ValueError('freq must be either "hourly" or "daily"')
 
-    knmi = knmi.drop(["YYYYMMDD", "H"], axis=1, errors="ignore")
+    knmi = knmi.drop(["YYYYMMDD", "HH"], axis=1, errors="ignore")
     knmi["TIME"] = pd.to_datetime(knmi["TIME"], format="%Y%m%d %H:%M:%S")
 
     if freq == "hourly":

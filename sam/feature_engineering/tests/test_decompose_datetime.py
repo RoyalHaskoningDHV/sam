@@ -56,6 +56,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
             {"TIME": daterange, "OTHER": 1, "TIME_hour": [0, 1, 2, 3, 4]},
             columns=["TIME", "OTHER", "TIME_hour"],
         )
+        expected = expected.astype({"TIME_hour": "int32"})
         assert_frame_equal(result, expected)
 
         # add cyclical test without keeping original
@@ -90,6 +91,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
             },
             columns=["TIME", "OTHER", "TIME_hour", "TIME_hour_sin", "TIME_hour_cos"],
         )
+        expected = expected.astype({"TIME_hour": "int32"})
         assert_frame_equal(result, expected)
 
     def test_incorrect_cyclical_cols(self):
@@ -175,7 +177,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         daterange = pd.date_range(time1, time2, freq=freq)
 
         data = pd.DataFrame({"TIME": daterange, "OTHER": 1})
-        expected = pd.DataFrame({"TIME_minute": [8, 23, 38, 53, 8]})
+        expected = pd.DataFrame({"TIME_minute": [8, 23, 38, 53, 8]}, dtype='int32')
 
         result = decompose_datetime(data, "TIME", ["minute"], keep_original=False)
         assert_frame_equal(result, expected)
@@ -256,7 +258,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         test_dataframe = pd.DataFrame({"TIME": daterange, "OTHER": 1})
 
         result = decompose_datetime(test_dataframe, components=["weekday"], onehots=["weekday"])
-
+        expected_data_columns = [f"TIME_weekday_{i}" for i in range(7)]
         expected = pd.DataFrame(
             {
                 "TIME": test_dataframe["TIME"],
@@ -270,6 +272,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
                 "TIME_weekday_6": [0, 0, 0, 0],
             }
         )
+        expected = expected.astype({col: "int32" for col in expected_data_columns})
 
         assert_frame_equal(result, expected)
 

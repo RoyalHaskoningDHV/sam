@@ -37,7 +37,7 @@ def _nfft_helper(
     # first convert time index to nanoseconds since epoch
     # If a non-pandas timestamp index is used, these units aren't nanoseconds
     # However, since we normalize to [-0.5, 0.5] anyway, it doesn't matter
-    time = np.array(series.index.astype(int))
+    time = np.array(series.index.astype("int64"))
     # then make first value 0
     time -= np.min(time)
     # normalize to run from -0.5 to 0.5

@@ -9,10 +9,10 @@ from sam.feature_engineering import SimpleFeatureEngineer
 
 class TestSimpleFeatureEngineer(unittest.TestCase):
     dates = pd.date_range("1/1/2000", periods=5, freq="D")
-    X = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]}, index=dates)
+    X = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]}, index=dates, dtype='int32')
 
     def test_default(self):
-        X_out_exp = pd.DataFrame(index=self.dates)
+        X_out_exp = pd.DataFrame(index=self.dates, columns=[])
         fe = SimpleFeatureEngineer()
         X_out = fe.fit_transform(self.X)
         assert_frame_equal(X_out, X_out_exp)
@@ -116,6 +116,7 @@ class TestSimpleFeatureEngineer(unittest.TestCase):
                 "day_of_week_onehot_7": [0, 1, 0, 0, 0],
             },
             index=self.dates,
+            dtype='int32'
         )
 
         fe = SimpleFeatureEngineer(time_features=time_features)

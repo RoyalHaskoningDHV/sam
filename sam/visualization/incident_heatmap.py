@@ -87,10 +87,18 @@ def plot_incident_heatmap(
     else:
         if time_column is not None:
             # Use a specific column instead of the index
-            df_grouped = df.pivot(row_column, time_column, value_column).fillna(0)
+            df_grouped = df.pivot(
+                index=row_column,
+                columns=time_column,
+                values=value_column
+            ).fillna(0)
         else:
             # Use the index, so first reset_index
-            df_grouped = df.reset_index().pivot(row_column, "index", value_column).fillna(0)
+            df_grouped = df.reset_index().pivot(
+                index=row_column,
+                columns="index",
+                values=value_column
+            ).fillna(0)
 
     if normalize:
         df_grouped = df_grouped / df_grouped.values.max()
