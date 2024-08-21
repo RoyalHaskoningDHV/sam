@@ -5,7 +5,6 @@ from typing import List, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
-import pytz
 from sam.logging_functions import log_dataframe_characteristics, log_new_columns
 
 logger = logging.getLogger(__name__)
@@ -163,7 +162,7 @@ def decompose_datetime(
     # Fix timezone
     if timezone is not None:
         if timecol.dt.tz is not None:
-            if timecol.dt.tz != datetime.UTC:
+            if timecol.dt.tz != datetime.timezone.utc:
                 raise ValueError(
                     "Data should either be in UTC timezone or it should have no"
                     " timezone information (assumed to be in UTC)"

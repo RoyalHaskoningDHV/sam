@@ -15,13 +15,13 @@ def _validate_dataframe(df: pd.DataFrame):
 
 
 def normalize_timestamps(
-    df: pd.DataFrame,
-    freq: str,
-    start_time: Union[datetime, str] = "",
-    end_time: Union[datetime, str] = "",
-    round_method: str = "ceil",
-    aggregate_method: Union[str, Callable, dict, List[Callable]] = "last",
-    fillna_method: str = None,
+        df: pd.DataFrame,
+        freq: str,
+        start_time: Union[datetime, str] = "",
+        end_time: Union[datetime, str] = "",
+        round_method: str = "ceil",
+        aggregate_method: Union[str, Callable, dict, List[Callable]] = "last",
+        fillna_method: str = None,
 ):
     """
     Create a dataframe with all timestamps according to a given frequency. Fills in values
@@ -211,11 +211,8 @@ def normalize_timestamps(
     logger.debug("Number of missings before fillna: {}".format(complete_df["VALUE"].isna().sum()))
 
     if fillna_method:
-        # TODO Check if this fix was correct
-        complete_df["VALUE"] = complete_df.groupby(["ID", "TYPE"])["VALUE"].fillna(method=fillna_method)
-        # apply(
-        #     lambda x: x.fillna(method=fillna_method)
-        # )
+        complete_df["VALUE"] = complete_df.groupby(["ID", "TYPE"])["VALUE"] \
+            .fillna(method=fillna_method)
 
     logger.info(
         "Dataframe changed because of normalize_timestamps: "
