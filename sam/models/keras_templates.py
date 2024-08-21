@@ -75,7 +75,7 @@ def create_keras_quantile_mlp(
     >>> quantiles = [0.1, 0.5, 0.9]
     >>> model = create_keras_quantile_mlp(n_input, n_neurons, n_layers, quantiles=quantiles)
     >>> model.fit(X, y, batch_size=16, epochs=20, verbose=0)  # doctest: +ELLIPSIS
-    <keras.callbacks.History ...
+    <keras.src.callbacks.history.History ...
     """
     from tensorflow.keras.layers import (
         Activation,
@@ -197,7 +197,7 @@ def create_keras_quantile_rnn(
     >>> input_shape = X_3d.shape[1:]
     >>> model = create_keras_quantile_rnn(input_shape, quantiles=[0.01, 0.99])
     >>> model.fit(X_3d, y, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
-    <keras.callbacks.History ...
+    <keras.src.callbacks.history.History ...
     """
     from tensorflow.keras.layers import GRU, LSTM, Dense, Input
     from tensorflow.keras.models import Model
@@ -301,7 +301,7 @@ def create_keras_autoencoder_mlp(
     >>> X = pd.DataFrame(X)
     >>> model = create_keras_autoencoder_mlp(n_input=100)
     >>> model.fit(X.T, X.T, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
-    <keras.callbacks.History ...
+    <keras.src.callbacks.history.History ...
     """
     from tensorflow.keras.layers import (
         Activation,
@@ -402,7 +402,7 @@ def create_keras_autoencoder_rnn(
     >>> input_shape = X_3d.shape[1:]
     >>> model = create_keras_autoencoder_rnn(input_shape)
     >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
-    <keras.callbacks.History ...
+    <keras.src.callbacks.history.History ...
     """
     from tensorflow.keras.layers import (
         GRU,
