@@ -442,92 +442,92 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         random_state: int = None,
     ) -> pd.DataFrame:
         """
-            Computes feature importances based on the loss function used to estimate the average.
-            This function uses ELI5's `get_score_importances:
-            <https://eli5.readthedocs.io/en/latest/autodocs/permutation_importance.html>`
-            to compute feature importances. It is a method that measures how the score decreases when
-            a feature is not available.
-            This is essentially a model-agnostic type of feature importance that works with
-            every model, including keras MLP models.
+        Computes feature importances based on the loss function used to estimate the average.
+        This function uses ELI5's `get_score_importances:
+        <https://eli5.readthedocs.io/en/latest/autodocs/permutation_importance.html>`
+        to compute feature importances. It is a method that measures how the score decreases when
+        a feature is not available.
+        This is essentially a model-agnostic type of feature importance that works with
+        every model, including keras MLP models.
 
-            Note that we compute feature importance over the average (the central trace, and the last
-            output node, either median or mean depending on self.average_type), and do not include
-            the quantiles in the loss calculation. Initially, the quantiles were included, but
-            experimentation showed that importances behaved very badly when including the
-            quantiles in the loss: importances were sometimes consistently negative (i.e. in all
-            random iterations), while these features should have been important according to theory,
-            and excluding them indeed lead to much worse model performance. This behavior goes away
-            when only using the mean trace to estimate feature importance.
+        Note that we compute feature importance over the average (the central trace, and the last
+        output node, either median or mean depending on self.average_type), and do not include
+        the quantiles in the loss calculation. Initially, the quantiles were included, but
+        experimentation showed that importances behaved very badly when including the
+        quantiles in the loss: importances were sometimes consistently negative (i.e. in all
+        random iterations), while these features should have been important according to theory,
+        and excluding them indeed lead to much worse model performance. This behavior goes away
+        when only using the mean trace to estimate feature importance.
 
-            Parameters
-            ----------
-            X: pd.DataFrame
-                dataframe with test or train features
-            y: pd.Series
-                dataframe with test or train target
-            score: str or function, optional (default=None)
-                Either a function with signature score(X, y, model)
-                that returns a scalar. Will be used to measure score decreases for ELI5.
-                If None, defaults to MSE or MAE depending on self.average_type.
-                Note that if score computes a loss (i.e. higher is worse), negative values indicate
-                positive contribution to model performance (i.e. negative score decrease means that
-                removing this feature will increase the metric, which is a bad thing with MAE/MSE).
-            n_iter: int, optional (default=5)
-                Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
-                this parameter may provide more stability at the cost of a longer runtime
-            sum_time_components: bool, optional (default=False)
-                if set to true, sums feature importances of the different subfeatures of each time
-                component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
-            random_state: int, optional (default=None)
-                Used for shuffling columns of matrix columns.
+        Parameters
+        ----------
+        X: pd.DataFrame
+            dataframe with test or train features
+        y: pd.Series
+            dataframe with test or train target
+        score: str or function, optional (default=None)
+            Either a function with signature score(X, y, model)
+            that returns a scalar. Will be used to measure score decreases for ELI5.
+            If None, defaults to MSE or MAE depending on self.average_type.
+            Note that if score computes a loss (i.e. higher is worse), negative values indicate
+            positive contribution to model performance (i.e. negative score decrease means that
+            removing this feature will increase the metric, which is a bad thing with MAE/MSE).
+        n_iter: int, optional (default=5)
+            Number of iterations to use for ELI5. Since ELI5 results can vary wildly, increasing
+            this parameter may provide more stability at the cost of a longer runtime
+        sum_time_components: bool, optional (default=False)
+            if set to true, sums feature importances of the different subfeatures of each time
+            component (i.e. weekday_1, weekday_2 etc. in one 'weekday' importance)
+        random_state: int, optional (default=None)
+            Used for shuffling columns of matrix columns.
 
-            Returns
-            -------
-            score_decreases: Pandas dataframe,  shape (n_iter x n_features)
-                The score decreases when leaving out each feature per iteration. The larger the
-                magnitude, the more important each feature is considered by the model.
+        Returns
+        -------
+        score_decreases: Pandas dataframe,  shape (n_iter x n_features)
+            The score decreases when leaving out each feature per iteration. The larger the
+            magnitude, the more important each feature is considered by the model.
 
-            Examples
-            --------
-            >>> # Example with a fictional dataset with only 2 features
-            >>> import pandas as pd
-            >>> import seaborn
-            >>> from sam.models import MLPTimeseriesRegressor
-            >>> from sam.feature_engineering import SimpleFeatureEngineer
-            >>> from sam.datasets import load_rainbow_beach
-            ...
-            >>> data = load_rainbow_beach()
-            >>> X, y = data, data["water_temperature"]
-            >>> test_size = int(X.shape[0] * 0.33)
-            >>> train_size = X.shape[0] - test_size
-            >>> X_train, y_train = X.iloc[:train_size, :], y[:train_size]
-            >>> X_test, y_test = X.iloc[train_size:, :], y[train_size:]
-            ...
-            >>> simple_features = SimpleFeatureEngineer(
-            ...     rolling_features=[
-            ...         ("wave_height", "mean", 24),
-            ...         ("wave_height", "mean", 12),
-            ...     ],
-            ...     time_features=[
-            ...         ("hour_of_day", "cyclical"),
-            ...     ],
-            ...     keep_original=False,
-            ... )
-            ...
-            >>> model = MLPTimeseriesRegressor(
-            ...     predict_ahead=(0,),
-            ...     feature_engineer=simple_features,
-            ...     verbose=0,
-            ... )
-            ...
-            >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
-            <keras.src.callbacks.history.History ...
-            >>> score_decreases = model.quantile_feature_importances(
-            ...     X_test[:100], y_test[:100], n_iter=3, random_state=42)
-            >>> # The score decreases of each feature in each iteration
-            >>> feature_importances = score_decreases.mean()
-            >>> # This will show a barplot of all the score importances, with error bars
-            >>> seaborn.barplot(data=score_decreases)  # doctest: +SKIP
+        Examples
+        --------
+        >>> # Example with a fictional dataset with only 2 features
+        >>> import pandas as pd
+        >>> import seaborn
+        >>> from sam.models import MLPTimeseriesRegressor
+        >>> from sam.feature_engineering import SimpleFeatureEngineer
+        >>> from sam.datasets import load_rainbow_beach
+        ...
+        >>> data = load_rainbow_beach()
+        >>> X, y = data, data["water_temperature"]
+        >>> test_size = int(X.shape[0] * 0.33)
+        >>> train_size = X.shape[0] - test_size
+        >>> X_train, y_train = X.iloc[:train_size, :], y[:train_size]
+        >>> X_test, y_test = X.iloc[train_size:, :], y[train_size:]
+        ...
+        >>> simple_features = SimpleFeatureEngineer(
+        ...     rolling_features=[
+        ...         ("wave_height", "mean", 24),
+        ...         ("wave_height", "mean", 12),
+        ...     ],
+        ...     time_features=[
+        ...         ("hour_of_day", "cyclical"),
+        ...     ],
+        ...     keep_original=False,
+        ... )
+        ...
+        >>> model = MLPTimeseriesRegressor(
+        ...     predict_ahead=(0,),
+        ...     feature_engineer=simple_features,
+        ...     verbose=0,
+        ... )
+        ...
+        >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
+        <keras.src.callbacks.history.History ...
+        >>> score_decreases = model.quantile_feature_importances(
+        ...     X_test[:100], y_test[:100], n_iter=3, random_state=42)
+        >>> # The score decreases of each feature in each iteration
+        >>> feature_importances = score_decreases.mean()
+        >>> # This will show a barplot of all the score importances, with error bars
+        >>> seaborn.barplot(data=score_decreases)  # doctest: +SKIP
         """
         # Model must be fitted for this method
         check_is_fitted(self, "model_")
