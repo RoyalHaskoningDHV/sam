@@ -14,7 +14,7 @@ from sam.metrics import (
 skipkeras = False
 try:
     import tensorflow as tf  # noqa: F401
-    import tensorflow.keras.backend as K # noqa: F401
+    import tensorflow.keras.backend as K  # noqa: F401
     from tensorflow.keras.layers import Input
 except ImportError:
     skipkeras = True
