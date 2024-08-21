@@ -224,7 +224,7 @@ def synthetic_timeseries(
 def synthetic_date_range(
     start="2016-01-01",
     end="2017-01-01",
-    freq="H",
+    freq="h",
     max_delay=0,
     random_stop_freq=0,
     random_stop_max_length=1,

@@ -62,13 +62,13 @@ class TestSimpleFeatureEngineer(unittest.TestCase):
         rolling_features = [
             ("A", "mean", "2D"),
             ("B", "mean", "3D"),
-            ("A", "mean", "24H"),
+            ("A", "mean", "24h"),
         ]
         X_out_exp = pd.DataFrame(
             {
                 "A_mean_2D": [1, 1.5, 2.5, 3.5, 4.5],
                 "B_mean_3D": [3, 3.5, 4, 5, 6],
-                "A_mean_24H": [1, 2, 3, 4, 5],
+                "A_mean_24h": [1, 2, 3, 4, 5],
             },
             index=self.dates,
         )

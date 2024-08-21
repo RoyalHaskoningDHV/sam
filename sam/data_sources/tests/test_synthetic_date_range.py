@@ -8,19 +8,19 @@ from sam.data_sources import synthetic_date_range
 
 class TestCreateSyntheticTimes(unittest.TestCase):
     def test_nonoise(self):
-        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 03:00:00", freq="H")
+        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 03:00:00", freq="h")
         expected = pd.DatetimeIndex(
             np.array(["2016-01-01 00:00:00", "2016-01-01 01:00:00", "2016-01-01 02:00:00"])
         )
         assert_array_equal(result, expected)
 
     def test_shortseries(self):
-        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 01:00:00", freq="H")
+        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 01:00:00", freq="h")
         expected = pd.DatetimeIndex(np.array(["2016-01-01 00:00:00"]))
         assert_array_equal(result, expected)
 
     def test_emptyseries(self):
-        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 00:30:00", freq="2H")
+        result = synthetic_date_range(start="2016-01-01", end="2016-01-01 00:30:00", freq="2h")
         expected = pd.DatetimeIndex(np.array(["2016-01-01 00:00:00"]))
         assert_array_equal(result, expected)
 
@@ -30,7 +30,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
             synthetic_date_range,
             "2016-01-01 02:00:00",
             "2016-01-01 00:30:00",
-            "2H",
+            "2h",
         )
         self.assertRaises(Exception, synthetic_date_range, "2016-01-01", "2017-01-01", "1 hour")
         self.assertRaises(
@@ -65,7 +65,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
         result = synthetic_date_range(
             start="2016-01-01 00:00:00",
             end="2017-01-01 00:30:00",
-            freq="H",
+            freq="h",
             max_delay=600,
         )
         # Delays should be between 1 hour and 1H10M (1 hour normal, 0-10 min delay)
@@ -83,7 +83,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
         result = synthetic_date_range(
             start="2016-01-01 00:00:00",
             end="2016-02-01 00:30:00",
-            freq="H",
+            freq="h",
             random_stop_freq=0.5,
         )
         # approx half of all points should have been removed.
@@ -97,7 +97,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
         result = synthetic_date_range(
             start="2016-01-01 00:00:00",
             end="2016-02-01 00:30:00",
-            freq="H",
+            freq="h",
             random_stop_freq=0.1,
             random_stop_max_length=3,
         )
@@ -111,7 +111,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
         foo = synthetic_date_range(
             start="2016-01-01 00:00:00",
             end="2016-02-01 00:30:00",
-            freq="H",
+            freq="h",
             max_delay=100,
             random_stop_freq=0.1,
             random_stop_max_length=3,
@@ -120,7 +120,7 @@ class TestCreateSyntheticTimes(unittest.TestCase):
         bar = synthetic_date_range(
             start="2016-01-01 00:00:00",
             end="2016-02-01 00:30:00",
-            freq="H",
+            freq="h",
             max_delay=100,
             random_stop_freq=0.1,
             random_stop_max_length=3,

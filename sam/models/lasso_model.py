@@ -88,7 +88,7 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     ...     verbose=0,
     ... )
     >>> model.fit(X, y)  # doctest: +ELLIPSIS
-    <keras.callbacks.History ...
+    <keras.src.callbacks.history.History ...
     """
 
     def __init__(

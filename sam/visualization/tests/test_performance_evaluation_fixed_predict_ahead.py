@@ -41,7 +41,7 @@ class TestPerformanceEvaluation(unittest.TestCase):
             self.y_hat_train,
             self.y_true_test,
             self.y_hat_test,
-            resolutions=[None, "15min", "1H", "1D", "1W"],
+            resolutions=[None, "15min", "1h", "1D", "1W"],
         )
 
     def test_performance_evaluation_fixed_predict_ahead_r2_df(self):
@@ -76,8 +76,8 @@ class TestPerformanceEvaluation(unittest.TestCase):
                     "native",
                     "15min",
                     "15min",
-                    "1H",
-                    "1H",
+                    "1h",
+                    "1h",
                     "1D",
                     "1D",
                     "1W",
@@ -94,7 +94,7 @@ class TestPerformanceEvaluation(unittest.TestCase):
             self.y_hat_train,
             self.y_true_test,
             self.y_hat_test,
-            resolutions=[None, "15min", "1H", "1D", "1W"],
+            resolutions=[None, "15min", "1h", "1D", "1W"],
             metric="MAE",
         )
         expected_df = pd.DataFrame(
@@ -128,8 +128,8 @@ class TestPerformanceEvaluation(unittest.TestCase):
                     "native",
                     "15min",
                     "15min",
-                    "1H",
-                    "1H",
+                    "1h",
+                    "1h",
                     "1D",
                     "1D",
                     "1W",
@@ -148,7 +148,7 @@ class TestPerformanceEvaluation(unittest.TestCase):
                 self.y_hat_train,
                 self.y_true_test,
                 self.y_hat_test,
-                resolutions=[None, "15min", "1H", "1D", "1W"],
+                resolutions=[None, "15min", "1h", "1D", "1W"],
                 metric="DOESNTEXIST",
             )
 

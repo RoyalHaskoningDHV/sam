@@ -8,7 +8,7 @@ from pandas.testing import assert_frame_equal, assert_series_equal
 class TestTrainTestSplit(unittest.TestCase):
     data = pd.DataFrame(
         {
-            "TIME": pd.date_range("2022-01-01", periods=10, freq="H", tz=None),
+            "TIME": pd.date_range("2022-01-01", periods=10, freq="h", tz=None),
             "a": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             "b": [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
         }

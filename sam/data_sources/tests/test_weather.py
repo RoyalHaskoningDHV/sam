@@ -57,7 +57,7 @@ class TestWeather(unittest.TestCase):
         self.assertEqual(result.columns.tolist(), ["RH", "SQ", "N", "TIME"])
 
         expected_time = pd.Series(
-            pd.date_range("2016-03-07 06:00:00", "2016-03-07 12:00:00", freq="H")
+            pd.date_range("2016-03-07 06:00:00", "2016-03-07 12:00:00", freq="h")
         )
         expected_time.name = "TIME"
         assert_series_equal(expected_time, result["TIME"])

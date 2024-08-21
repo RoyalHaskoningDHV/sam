@@ -8,8 +8,8 @@ from sam.data_sources import synthetic_timeseries
 
 class TestSyntheticTimeseries(unittest.TestCase):
     def setUp(self):
-        self.dates = pd.date_range("2015-01-01", "2015-01-01 03:00:00", freq="H").to_series()
-        self.many_dates = pd.date_range("2015-01-01", "2015-02-01 00:00:00", freq="H").to_series()
+        self.dates = pd.date_range("2015-01-01", "2015-01-01 03:00:00", freq="h").to_series()
+        self.many_dates = pd.date_range("2015-01-01", "2015-02-01 00:00:00", freq="h").to_series()
 
     def test_nonoise(self):
         result = synthetic_timeseries(self.dates)
