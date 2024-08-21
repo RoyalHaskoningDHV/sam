@@ -177,7 +177,7 @@ class TestBuildTimeFeatures(unittest.TestCase):
         daterange = pd.date_range(time1, time2, freq=freq)
 
         data = pd.DataFrame({"TIME": daterange, "OTHER": 1})
-        expected = pd.DataFrame({"TIME_minute": [8, 23, 38, 53, 8]}, dtype='int32')
+        expected = pd.DataFrame({"TIME_minute": [8, 23, 38, 53, 8]}, dtype="int32")
 
         result = decompose_datetime(data, "TIME", ["minute"], keep_original=False)
         assert_frame_equal(result, expected)
