@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.2.0
+
+### Changes
+- Removed support for Python 3.9
+- Updated pandas, sqlalchemy, tensorflow, numpy, and scikit-learn.
+- Implemented necessary changes to keep behaviour unchanged.
+
 ## Version 3.1.11
 
 ### Changes
