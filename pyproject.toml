@@ -46,8 +46,7 @@ all = [
     "requests",
     "scipy",
     "seaborn",
-    "tensorflow>=2.9.1,<2.13.0",
-    "eli5",
+    "tensorflow~=2.17,<3",
     "Jinja2~=3.0.3",
     "shap",
     "plotly",
@@ -56,7 +55,7 @@ all = [
 plotting = ["matplotlib", "plotly", "seaborn"]
 data-engineering = ["requests", "pymongo"]
 data-science = [
-    "tensorflow>=2.9.1,<3",
+    "tensorflow~=2.17,<3",
     "cloudpickle",
     "nfft",
     "scipy",
@@ -74,7 +73,7 @@ docs = [
     "readthedocs-sphinx-search",
     "sphinx-markdown-tables",
     "toml",
-    "tensorflow>=2.9.1,<3",
+    "tensorflow~=2.17,<3",
 ]
 
 [project.urls]
@@ -85,7 +84,7 @@ documentation = "https://sam-rhdhv.readthedocs.io/en/latest/"
 
 [tool.black]
 line-length = 99
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py39', 'py310']
 
 [tool.isort]
 profile = "black"
