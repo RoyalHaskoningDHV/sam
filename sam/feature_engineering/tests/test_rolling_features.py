@@ -327,15 +327,15 @@ class TestRollingFeatures(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_datetimeindex(self):
-        roller = BuildRollingFeatures("sum", lookback=1, window_size=["61min", "3H"])
+        roller = BuildRollingFeatures("sum", lookback=1, window_size=["61min", "3h"])
         result = roller.fit_transform(self.X_times)
         expected = pd.DataFrame(
             {
                 "X": [10, 12, 15, 9, 0, 0, 1],
                 "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0],
-                "X#sum_3H": [np.nan, 10, 22, 37, 24, 9, 9],
+                "X#sum_3h": [np.nan, 10, 22, 37, 24, 9, 9],
             },
-            columns=["X", "X#sum_61min", "X#sum_3H"],
+            columns=["X", "X#sum_61min", "X#sum_3h"],
             index=pd.DatetimeIndex(self.times),
         )
 
