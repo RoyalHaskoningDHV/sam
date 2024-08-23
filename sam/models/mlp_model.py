@@ -11,6 +11,7 @@ from sam.preprocessing import make_shifted_target
 from sklearn.base import TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sam.models.sam_shap_explainer import SamShapExplainer
+from sam.utils.score_importance import get_score_importances
 
 
 class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
@@ -537,7 +538,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
                 "This method is currently not implemented " "for multiple targets"
             )
 
-        from eli5.permutation_importance import get_score_importances
+        # from eli5.permutation_importance import get_score_importances
 
         if score is None:
 

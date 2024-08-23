@@ -60,7 +60,6 @@ data-science = [
     "nfft",
     "scipy",
     "shap",
-    "eli5",
     "Jinja2~=3.0.3",
     "statsmodels"
 ]
