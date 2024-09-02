@@ -39,6 +39,9 @@ def iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False, random_state=No
 
 
 def _get_scores_shufled(score_func, X, y, columns_to_shuffle=None, random_state=None):
+    """
+    Return the scores of the shuffled features
+    """
     Xs = iter_shuffled(X, columns_to_shuffle, random_state=random_state)
     return np.array([score_func(X_shuffled, y) for X_shuffled in Xs])
 
@@ -51,6 +54,18 @@ def get_score_importances(
     columns_to_shuffle=None,
     random_state=None,
 ):
+    """
+    Returns a tuple (base_score, score_decreases) with the base score and
+    score decreases when a feature is not available.
+
+    ``base_score`` is ``score_func(X, y)``; ``score_decreases``
+    is a list of length ``n_iter`` with feature importance arrays
+    (each array is of shape ``n_features``); feature importances are computed
+    as score decrease when a feature is not available.
+
+    ``n_iter`` iterations of the basic algorithm is done, each iteration
+    starting from a different random seed.
+    """
     rng = check_random_state(random_state)
     base_score = score_func(X, y)
     scores_decreases = []

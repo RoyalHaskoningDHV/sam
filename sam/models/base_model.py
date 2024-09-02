@@ -347,7 +347,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         Transform a DataFrame X so it can be fed to self.model_.
         This is useful for several usecases, where you want to use the underlying
-        keras model as opposed to the wrapper. For example shap, eli5, and even just
+        keras model as opposed to the wrapper. For example shap, and even just
         implementing the `predict` function.
 
         Parameters

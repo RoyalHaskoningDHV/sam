@@ -444,7 +444,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     ) -> pd.DataFrame:
         """
         Computes feature importances based on the loss function used to estimate the average.
-        This function uses ELI5's `get_score_importances:
+        This function uses an adaptation of ELI5's `get_score_importances:
         <https://eli5.readthedocs.io/en/latest/autodocs/permutation_importance.html>`
         to compute feature importances. It is a method that measures how the score decreases when
         a feature is not available.
@@ -538,8 +538,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
                 "This method is currently not implemented " "for multiple targets"
             )
 
-        # from eli5.permutation_importance import get_score_importances
-
         if score is None:
 
             def score(X, y, model=self.model_):
@@ -560,7 +558,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         X_transformed = X_transformed.loc[~missings, :]
         y_target = y_target[~missings]
 
-        # use eli5 to compute feature importances:
         base_scores, score_decreases = get_score_importances(
             score,
             X_transformed.to_numpy(),
