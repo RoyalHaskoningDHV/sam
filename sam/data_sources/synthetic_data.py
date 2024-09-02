@@ -224,7 +224,7 @@ def synthetic_timeseries(
 def synthetic_date_range(
     start="2016-01-01",
     end="2017-01-01",
-    freq="H",
+    freq="h",
     max_delay=0,
     random_stop_freq=0,
     random_stop_max_length=1,
@@ -252,7 +252,7 @@ def synthetic_date_range(
         Left bound for generating dates.
     end: str or datetime-like, optional (default='2017-01-01')
         Right bound for generating dates. Exclusive bound.
-    freq: str or DateOffset, optional (default='H') (hourly)
+    freq: str or DateOffset, optional (default='h') (hourly)
         Frequency strings can have multiples, e.g. '5H'. See `here for a list of frequency aliases.
         <https://pandas.pydata.org/pandas-docs/stable/timeseries.html#timeseries-offset-aliases`_
     max_delay: numeric, optional (default=0)
@@ -277,7 +277,7 @@ def synthetic_date_range(
     --------
     >>> # Generate times with point approximately every 6 hours
     >>> from sam.data_sources.synthetic_data import synthetic_date_range
-    >>> synthetic_date_range('2016-01-01', '2016-01-02', '6H', 600, 0, 1, seed=0)
+    >>> synthetic_date_range('2016-01-01', '2016-01-02', '6h', 600, 0, 1, seed=0)
     DatetimeIndex(['2016-01-01 00:05:29.288102356',
                    '2016-01-01 06:12:38.401722180',
                    '2016-01-01 12:18:40.059747823',
@@ -285,7 +285,7 @@ def synthetic_date_range(
                   dtype='datetime64[ns]', freq=None)
 
     >>> # Generate times with very likely stops of length 1
-    >>> synthetic_date_range('2016-01-01', '2016-01-02', 'H', 0, 0.5, 1, seed=0)
+    >>> synthetic_date_range('2016-01-01', '2016-01-02', 'h', 0, 0.5, 1, seed=0)
     DatetimeIndex(['2016-01-01 00:00:00', '2016-01-01 01:00:00',
                    '2016-01-01 02:00:00', '2016-01-01 03:00:00',
                    '2016-01-01 04:00:00', '2016-01-01 05:00:00',

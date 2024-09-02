@@ -2,8 +2,8 @@ from typing import Dict, Sequence
 
 import numpy as np
 import pandas as pd
+from tensorflow.python.keras.callbacks import Callback
 from sam.metrics.r2_calculation import train_r2
-from tensorflow.keras.callbacks import Callback
 
 
 class R2Evaluation(Callback):

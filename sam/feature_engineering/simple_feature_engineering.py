@@ -178,7 +178,7 @@ class SimpleFeatureEngineer(BaseFeatureEngineer):
                 for value in range(comp_min, comp_max + 1):
                     comp_series = self._get_time_column(X, component)
                     colname_ = f"{colname}_{value}"
-                    X_out[colname_] = (comp_series == value).astype(int)
+                    X_out[colname_] = (comp_series == value).astype("int32")
 
             elif type == "cyclical":
                 comp_series = self._get_time_column(X, component)

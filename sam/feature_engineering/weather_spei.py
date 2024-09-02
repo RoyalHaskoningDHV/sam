@@ -180,10 +180,12 @@ class SPEITransformer(BaseEstimator, TransformerMixin):
             # is just a first approach, and does the essential trick
             # Default SP(E)I from literature does not use smoothing
             self.model_["mean"] = (
-                self.model_["mean"].rolling(5, center=True, min_periods=1).median(skipna=True)
+                self.model_["mean"]
+                .rolling(5, center=True, min_periods=1)
+                .median(numeric_only=True)
             )
             self.model_["std"] = (
-                self.model_["std"].rolling(5, center=True, min_periods=1).median(skipna=True)
+                self.model_["std"].rolling(5, center=True, min_periods=1).median(numeric_only=True)
             )
 
         return self

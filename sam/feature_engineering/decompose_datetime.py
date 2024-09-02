@@ -1,10 +1,10 @@
+import datetime
 import logging
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
-import pytz
 from sam.logging_functions import log_dataframe_characteristics, log_new_columns
 
 logger = logging.getLogger(__name__)
@@ -162,7 +162,7 @@ def decompose_datetime(
     # Fix timezone
     if timezone is not None:
         if timecol.dt.tz is not None:
-            if timecol.dt.tz != pytz.utc:
+            if timecol.dt.tz != datetime.timezone.utc:
                 raise ValueError(
                     "Data should either be in UTC timezone or it should have no"
                     " timezone information (assumed to be in UTC)"
@@ -387,13 +387,13 @@ def recode_onehot_features(
             raise ValueError(f"{col} is not in input dataframe")
 
         # get the onehot encoded dummies
-        dummies: pd.DataFrame = pd.get_dummies(df[col], prefix=col).astype(int)
+        dummies: pd.DataFrame = pd.get_dummies(df[col], prefix=col)
 
         # fill in the weekdays not in the dataset
         for i in range(onehot_min, onehot_max):
             if not "%s_%d" % (col, i) in dummies.columns:
                 dummies["%s_%d" % (col, i)] = 0
-        dummies_sorted = dummies[np.sort(dummies.columns)]
+        dummies_sorted = dummies[np.sort(dummies.columns)].astype("int32")
         new_df = new_df.join(dummies_sorted)
 
         # drop the original. if keep_original is False, this is unneeded: it was already removed

@@ -211,8 +211,8 @@ def normalize_timestamps(
     logger.debug("Number of missings before fillna: {}".format(complete_df["VALUE"].isna().sum()))
 
     if fillna_method:
-        complete_df["VALUE"] = complete_df.groupby(["ID", "TYPE"])["VALUE"].apply(
-            lambda x: x.fillna(method=fillna_method)
+        complete_df["VALUE"] = complete_df.groupby(["ID", "TYPE"])["VALUE"].fillna(
+            method=fillna_method
         )
 
     logger.info(

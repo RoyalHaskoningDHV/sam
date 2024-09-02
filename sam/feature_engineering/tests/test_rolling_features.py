@@ -327,15 +327,15 @@ class TestRollingFeatures(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_datetimeindex(self):
-        roller = BuildRollingFeatures("sum", lookback=1, window_size=["61min", "3H"])
+        roller = BuildRollingFeatures("sum", lookback=1, window_size=["61min", "3h"])
         result = roller.fit_transform(self.X_times)
         expected = pd.DataFrame(
             {
                 "X": [10, 12, 15, 9, 0, 0, 1],
                 "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0],
-                "X#sum_3H": [np.nan, 10, 22, 37, 24, 9, 9],
+                "X#sum_3h": [np.nan, 10, 22, 37, 24, 9, 9],
             },
-            columns=["X", "X#sum_61min", "X#sum_3H"],
+            columns=["X", "X#sum_61min", "X#sum_3h"],
             index=pd.DatetimeIndex(self.times),
         )
 
@@ -345,16 +345,16 @@ class TestRollingFeatures(unittest.TestCase):
         X = self.X.copy()
         X["TIME"] = self.times
         roller = BuildRollingFeatures(
-            "sum", lookback=1, window_size=["61min", "3H"], timecol="TIME"
+            "sum", lookback=1, window_size=["61min", "3h"], timecol="TIME"
         )
         result = roller.fit_transform(X)
         expected = pd.DataFrame(
             {
                 "X": [10, 12, 15, 9, 0, 0, 1],
                 "X#sum_61min": [np.nan, 10, 22, 27, 9, 9, 0],
-                "X#sum_3H": [np.nan, 10, 22, 37, 24, 9, 9],
+                "X#sum_3h": [np.nan, 10, 22, 37, 24, 9, 9],
             },
-            columns=["X", "X#sum_61min", "X#sum_3H"],
+            columns=["X", "X#sum_61min", "X#sum_3h"],
         )
 
         assert_frame_equal(result, expected)
@@ -377,7 +377,7 @@ class TestRollingFeatures(unittest.TestCase):
     def test_nfft(self):
         X = pd.DataFrame({"X": pd.concat([self.X.X] * 2)})  # length 14
         times = pd.Series(pd.to_datetime(self.times))
-        X["TIME"] = pd.concat([times, times + pd.Timedelta("8H")])
+        X["TIME"] = pd.concat([times, times + pd.Timedelta("8h")])
 
         roller = BuildRollingFeatures(
             "nfft",
@@ -439,7 +439,6 @@ class TestRollingFeatures(unittest.TestCase):
         expected.columns = ["X#nfft_500min_0", "X#nfft_500min_1", "X#nfft_500min_2"]
         # When window_size is 6, only 2 values are calculated, so remove the third value
         expected["X#nfft_500min_2"].iloc[5:7] = 0
-
         assert_frame_equal(result, expected)
 
     def test_incorrect_inputs(self):
@@ -494,15 +493,15 @@ class TestRollingFeatures(unittest.TestCase):
         self.assertRaises(Exception, validate, rolling_type="trimmean", proportiontocut=[0.1, 0.2])
 
         # timeoffset can only be used with datetimeindex, and not with lag/ewm/fourier/diff
-        self.assertRaises(ValueError, validate, window_size="1H")
+        self.assertRaises(ValueError, validate, window_size="1h")
         self.assertRaises(
-            ValueError, validate, X=self.X_times, window_size="1H", rolling_type="lag"
+            ValueError, validate, X=self.X_times, window_size="1h", rolling_type="lag"
         )
         self.assertRaises(
             ValueError,
             validate,
             X=self.X_times,
-            window_size=[1, "1H"],
+            window_size=[1, "1h"],
             rolling_type="lag",
         )
 

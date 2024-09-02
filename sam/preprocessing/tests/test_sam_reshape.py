@@ -8,7 +8,7 @@ from sam.preprocessing import sam_format_to_wide, wide_to_sam_format
 class TestSamReshape(unittest.TestCase):
     def setUp(self):
         self.time = pd.Series(
-            pd.date_range("2018-01-01 11:00:00", "2018-01-01 15:00:00", freq="H")
+            pd.date_range("2018-01-01 11:00:00", "2018-01-01 15:00:00", freq="h")
         )
         self.long = pd.DataFrame(
             {

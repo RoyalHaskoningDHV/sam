@@ -43,7 +43,7 @@ def performance_evaluation_fixed_predict_ahead(
     resolutions: list (default=[None])
         List of strings (and/or None) that are interpretable by pandas resampler.
         If set to None, will return results for the native data resolution.
-        Valid options are e.g.: [None], [None, '15min', '1H'], or ['1H', '1D']
+        Valid options are e.g.: [None], [None, '15min', '1h'], or ['1h', '1d']
     predict_ahead: int (default=0)
         Predict_ahead to display performance for
     train_avg_func: func - Callable (default=np.nanmean)
@@ -102,7 +102,7 @@ def performance_evaluation_fixed_predict_ahead(
     ... )
     ...
     >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
-    <keras.callbacks.History ...
+    <keras.src.callbacks.history.History ...
     >>> y_hat_train = model.predict(X_train)
     >>> y_hat_test = model.predict(X_test)
     >>> r2_df, bar_fig, scatter_fig, best_res = performance_evaluation_fixed_predict_ahead(
@@ -110,7 +110,7 @@ def performance_evaluation_fixed_predict_ahead(
     ...     y_hat_train,
     ...     y_test,
     ...     y_hat_test,
-    ...     resolutions=[None, '15min', '1H', '3H', '6H', '1D'])
+    ...     resolutions=[None, '15min', '1h', '3h', '6h', '1h'])
 
     >>> # display the results
     >>> bar_fig.show()

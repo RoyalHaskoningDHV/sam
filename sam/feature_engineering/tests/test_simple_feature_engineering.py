@@ -9,10 +9,10 @@ from sam.feature_engineering import SimpleFeatureEngineer
 
 class TestSimpleFeatureEngineer(unittest.TestCase):
     dates = pd.date_range("1/1/2000", periods=5, freq="D")
-    X = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]}, index=dates)
+    X = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [3, 4, 5, 6, 7]}, index=dates, dtype="int32")
 
     def test_default(self):
-        X_out_exp = pd.DataFrame(index=self.dates)
+        X_out_exp = pd.DataFrame(index=self.dates, columns=[])
         fe = SimpleFeatureEngineer()
         X_out = fe.fit_transform(self.X)
         assert_frame_equal(X_out, X_out_exp)
@@ -62,13 +62,13 @@ class TestSimpleFeatureEngineer(unittest.TestCase):
         rolling_features = [
             ("A", "mean", "2D"),
             ("B", "mean", "3D"),
-            ("A", "mean", "24H"),
+            ("A", "mean", "24h"),
         ]
         X_out_exp = pd.DataFrame(
             {
                 "A_mean_2D": [1, 1.5, 2.5, 3.5, 4.5],
                 "B_mean_3D": [3, 3.5, 4, 5, 6],
-                "A_mean_24H": [1, 2, 3, 4, 5],
+                "A_mean_24h": [1, 2, 3, 4, 5],
             },
             index=self.dates,
         )
@@ -116,6 +116,7 @@ class TestSimpleFeatureEngineer(unittest.TestCase):
                 "day_of_week_onehot_7": [0, 1, 0, 0, 0],
             },
             index=self.dates,
+            dtype="int32",
         )
 
         fe = SimpleFeatureEngineer(time_features=time_features)

@@ -11,6 +11,7 @@ from sam.preprocessing import make_shifted_target
 from sklearn.base import TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sam.models.sam_shap_explainer import SamShapExplainer
+from sam.utils.score_importance import get_score_importances
 
 
 class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
@@ -117,7 +118,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     ...     verbose=0,
     ... )
     >>> model.fit(X, y)  # doctest: +ELLIPSIS
-    <keras.callbacks.History ...
+    <keras.src.callbacks.history.History ...
     """
 
     def __init__(
@@ -219,7 +220,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
         Returns
         -------
-        tf.keras.callbacks.History:
+        tf.keras.src.callbacks.history.History:
             The history object after fitting the keras model
         """
         (
@@ -443,7 +444,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     ) -> pd.DataFrame:
         """
         Computes feature importances based on the loss function used to estimate the average.
-        This function uses ELI5's `get_score_importances:
+        This function uses an adaptation of ELI5's `get_score_importances:
         <https://eli5.readthedocs.io/en/latest/autodocs/permutation_importance.html>`
         to compute feature importances. It is a method that measures how the score decreases when
         a feature is not available.
@@ -521,7 +522,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
-        <keras.callbacks.History ...
+        <keras.src.callbacks.history.History ...
         >>> score_decreases = model.quantile_feature_importances(
         ...     X_test[:100], y_test[:100], n_iter=3, random_state=42)
         >>> # The score decreases of each feature in each iteration
@@ -536,8 +537,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             raise NotImplementedError(
                 "This method is currently not implemented " "for multiple targets"
             )
-
-        from eli5.permutation_importance import get_score_importances
 
         if score is None:
 
@@ -559,7 +558,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         X_transformed = X_transformed.loc[~missings, :]
         y_target = y_target[~missings]
 
-        # use eli5 to compute feature importances:
         base_scores, score_decreases = get_score_importances(
             score,
             X_transformed.to_numpy(),
@@ -642,7 +640,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
-        <keras.callbacks.History ...
+        <keras.src.callbacks.history.History ...
         >>> ();explainer = model.get_explainer(X_test, y_test, sample_n=10);()
         ... # doctest: +ELLIPSIS
         (...)
@@ -650,8 +648,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ... # doctest: +ELLIPSIS
         (...)
         >>> test_values = explainer.test_values(X_test[0:30], y_test[0:30])
-        >>> shap.force_plot(explainer.expected_value[0], shap_values[0][-1,:],
-        ...                 test_values.iloc[-1,:], matplotlib=True)
+        >>> shap.plots.force(base_value=float(explainer.expected_value[0]),
+        ...                  features=test_values.iloc[-1, :],
+        ...                  shap_values=shap_values[-1, :, 0], matplotlib=True)
         """
         import shap
 

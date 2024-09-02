@@ -279,9 +279,11 @@ def incident_curves_information(
         np.where(
             data.ACTUAL > data.PREDICT_HIGH,
             (data.ACTUAL - data.PREDICT_HIGH) / (1 + data.PREDICT_HIGH - data.PREDICT),
-            (data.PREDICT_LOW - data.ACTUAL) / (1 + data.PREDICT - data.PREDICT_LOW)
-            if under_conf_interval
-            else 0,
+            (
+                (data.PREDICT_LOW - data.ACTUAL) / (1 + data.PREDICT - data.PREDICT_LOW)
+                if under_conf_interval
+                else 0
+            ),
         ),
         0,
     )
