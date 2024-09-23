@@ -1,3 +1,5 @@
+import unittest
+
 import pytest
 from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
 from sam.models import MLPTimeseriesRegressor
@@ -90,3 +92,52 @@ def test_mlp(
         average_type=average_type,
         max_mae=max_mae,
     )
+
+
+class TestOptimizer(unittest.TestCase):
+    def test_default_optimizer(self):
+        from keras.src.optimizers import Adam
+
+        X, y = get_dataset()
+        fe = SimpleFeatureEngineer(keep_original=True)
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
+        model.fit(X, y)
+        self.assertIsInstance(model.model_.optimizer, Adam)
+        self.assertAlmostEqual(
+            float(model.model_.optimizer.learning_rate.value.value()),
+            0.001,
+        )
+
+    def test_set_learning_rate(self):
+        from keras.src.optimizers import Adam
+
+        X, y = get_dataset()
+        fe = SimpleFeatureEngineer(keep_original=True)
+        learning_rate = 0.123
+        model = MLPTimeseriesRegressor(epochs=1, lr=learning_rate, feature_engineer=fe)
+        model.fit(X, y)
+        self.assertIsInstance(model.model_.optimizer, Adam)
+        self.assertAlmostEqual(
+            float(model.model_.optimizer.learning_rate.value.value()),
+            learning_rate,
+        )
+
+    def test_overwrite_optimizer(self):
+        from keras.src.optimizers import AdamW
+
+        X, y = get_dataset()
+        fe = SimpleFeatureEngineer(keep_original=True)
+        learning_rate = 0.01
+        weight_decay = 1e-5
+        optimizer = AdamW(learning_rate=learning_rate, weight_decay=weight_decay)
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe, optimizer=optimizer)
+        model.fit(X, y)
+        self.assertIsInstance(model.model_.optimizer, AdamW)
+        self.assertAlmostEqual(
+            float(model.model_.optimizer.learning_rate.value.value()),
+            learning_rate,
+        )
+        self.assertAlmostEqual(
+            float(model.model_.optimizer.weight_decay),
+            weight_decay,
+        )
