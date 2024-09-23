@@ -14,7 +14,6 @@ Version X.Y.Z stands for:
 ### Changes
 - Added the option to forcefully overwrite the optimizer.
 
-
 ## Version 3.2.0
 
 ### Changes
