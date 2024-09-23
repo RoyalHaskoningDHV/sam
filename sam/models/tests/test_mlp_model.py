@@ -59,12 +59,12 @@ def train_mlp(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_sca
     ],
 )
 def test_mlp(
-        predict_ahead,
-        quantiles,
-        average_type,
-        use_diff_of_y,
-        y_scaler,
-        max_mae,
+    predict_ahead,
+    quantiles,
+    average_type,
+    use_diff_of_y,
+    y_scaler,
+    max_mae,
 ):
     X, y = get_dataset()
     model = train_mlp(X, y, predict_ahead, quantiles, average_type, use_diff_of_y, y_scaler)
@@ -97,6 +97,7 @@ def test_mlp(
 class TestOptimizer(unittest.TestCase):
     def test_default_optimizer(self):
         from keras.src.optimizers import Adam
+
         X, y = get_dataset()
         fe = SimpleFeatureEngineer(keep_original=True)
         model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
@@ -109,6 +110,7 @@ class TestOptimizer(unittest.TestCase):
 
     def test_set_learning_rate(self):
         from keras.src.optimizers import Adam
+
         X, y = get_dataset()
         fe = SimpleFeatureEngineer(keep_original=True)
         learning_rate = 0.123
@@ -122,6 +124,7 @@ class TestOptimizer(unittest.TestCase):
 
     def test_overwrite_optimizer(self):
         from keras.src.optimizers import AdamW
+
         X, y = get_dataset()
         fe = SimpleFeatureEngineer(keep_original=True)
         learning_rate = 0.01

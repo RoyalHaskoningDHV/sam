@@ -189,7 +189,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             momentum=self.momentum,
             dropout=self.dropout,
             average_type=self.average_type,
-            optimizer=self.optimizer
+            optimizer=self.optimizer,
         )
 
     def fit(
