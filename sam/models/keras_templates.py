@@ -1,4 +1,6 @@
-from typing import Callable
+from typing import Callable, Optional
+
+from keras import Optimizer
 
 from sam.metrics import keras_joint_mae_tilted_loss, keras_joint_mse_tilted_loss
 
@@ -15,6 +17,7 @@ def create_keras_quantile_mlp(
     output_activation: str = "linear",
     lr: float = 0.001,
     average_type: str = "mean",
+    optimizer: Optional[Optimizer] = None,
 ) -> Callable:
     """
     Creates a multilayer perceptron in keras.
@@ -58,6 +61,8 @@ def create_keras_quantile_mlp(
         node in the output layer and does not reflect a quantile, but rather estimates the central
         tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
         setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
+    optimizer: Optimizer (default=None)
+        Forcefully overwrites the default Adam optimizer object.
 
     Returns
     --------
@@ -118,8 +123,8 @@ def create_keras_quantile_mlp(
     out = Dense(n_out, activation=output_activation)(h)
 
     model = Model(inputs=input_layer, outputs=out)
-    model.compile(loss=mse_tilted, optimizer=Adam(learning_rate=lr))
-
+    optimizer = Adam(learning_rate=lr) if optimizer is None else optimizer
+    model.compile(loss=mse_tilted, optimizer=optimizer)
     return model
 
 
@@ -135,6 +140,7 @@ def create_keras_quantile_rnn(
     hidden_activation: str = "relu",
     output_activation: str = "linear",
     lr: float = 0.001,
+    optimizer: Optional[Optimizer] = None,
 ) -> Callable:
     """
     Creates a simple RNN (LSTM or GRU) with keras.
@@ -176,6 +182,8 @@ def create_keras_quantile_rnn(
         https://keras.io/layers/core/
     lr: float (default=0.001)
         Learning rate
+    optimizer: Optimizer (default=None)
+        Forcefully overwrites the default Adam optimizer object.
 
     Returns
         keras model
@@ -240,7 +248,8 @@ def create_keras_quantile_rnn(
         )(h)
     out = Dense(n_out, activation=output_activation)(h)
     model = Model(inputs=input_layer, outputs=out)
-    model.compile(loss=mse_tilted, optimizer=Adam(learning_rate=lr))
+    optimizer = Adam(learning_rate=lr) if optimizer is None else optimizer
+    model.compile(loss=mse_tilted, optimizer=optimizer)
     return model
 
 
@@ -252,6 +261,7 @@ def create_keras_autoencoder_mlp(
     hidden_activation: str = "relu",
     output_activation: str = "linear",
     lr: float = 0.001,
+    optimizer: Optional[Optimizer] = None,
 ) -> Callable:
     """
     Function to create an MLP auto-encoder in keras
@@ -285,6 +295,8 @@ def create_keras_autoencoder_mlp(
         https://keras.io/layers/core/
     lr: float (default=0.001)
         Learning rate
+    optimizer: Optimizer (default=None)
+        Forcefully overwrites the default Adam optimizer object.
 
     Returns
         keras model
@@ -333,7 +345,8 @@ def create_keras_autoencoder_mlp(
     out = Dense(n_input, activation=output_activation)(h)
     # compile
     model = Model(inputs=input_layer, outputs=out)
-    model.compile(loss="mse", optimizer=Adam(learning_rate=lr))
+    optimizer = Adam(learning_rate=lr) if optimizer is None else optimizer
+    model.compile(loss="mse", optimizer=optimizer)
     return model
 
 
@@ -346,6 +359,7 @@ def create_keras_autoencoder_rnn(
     hidden_activation: str = "relu",
     output_activation: str = "linear",
     lr: float = 0.001,
+    optimizer: Optional[Optimizer] = None,
 ) -> Callable:
     """
     Function to create a recurrent auto-encoder in keras
@@ -384,6 +398,8 @@ def create_keras_autoencoder_rnn(
         https://keras.io/layers/core/
     lr: float (default=0.001)
         Learning rate
+    optimizer: Optimizer (default=None)
+        Forcefully overwrites the default Adam optimizer object.
 
     Returns
         keras model
@@ -462,5 +478,6 @@ def create_keras_autoencoder_rnn(
     out = TimeDistributed(Dense(n_features, activation=output_activation))(h)
     # compile
     model = Model(inputs=input_layer, outputs=out)
-    model.compile(loss="mse", optimizer=Adam(learning_rate=lr))
+    optimizer = Adam(learning_rate=lr) if optimizer is None else optimizer
+    model.compile(loss="mse", optimizer=optimizer)
     return model
