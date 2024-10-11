@@ -250,7 +250,6 @@ def create_keras_quantile_rnn(
     model = Model(inputs=input_layer, outputs=out)
     optimizer = Adam(learning_rate=lr) if optimizer is None else optimizer
     model.compile(loss=mse_tilted, optimizer=optimizer)
-    model.compile(loss=mse_tilted, optimizer=Adam(learning_rate=lr))
     return model
 
 
