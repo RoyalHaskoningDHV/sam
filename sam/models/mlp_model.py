@@ -1,8 +1,10 @@
 from pathlib import Path
-from typing import Callable, Sequence, Tuple, Union
+from typing import Callable, Sequence, Tuple, Union, Optional
 
 import numpy as np
 import pandas as pd
+from keras import Optimizer
+
 from sam.feature_engineering import BaseFeatureEngineer
 from sam.metrics import R2Evaluation, keras_joint_mse_tilted_loss
 from sam.models import create_keras_quantile_mlp
@@ -76,6 +78,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         node in the output layer and does not reflect a quantile, but rather estimates the central
         tendency of the data. Setting to 'mean' results in fitting that node with MSE, and
         setting this to 'median' results in fitting that node with MAE (equal to 0.5 quantile).
+    optimizer: Optimizer (default=None)
+        Forcefully overwrites the default Adam optimizer object.
+
     kwargs: dict, optional
         Not used. Just for compatibility with other SAM models.
 
@@ -139,6 +144,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         verbose: int = 1,
         r2_callback_report: bool = False,
         average_type: str = "mean",
+        optimizer: Optional[Optimizer] = None,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -160,6 +166,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         self.verbose = verbose
         self.r2_callback_report = r2_callback_report
         self.average_type = average_type
+        self.optimizer = optimizer
 
         if self.average_type == "median" and 0.5 in self.quantiles:
             raise ValueError(
@@ -185,6 +192,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             momentum=self.momentum,
             dropout=self.dropout,
             average_type=self.average_type,
+            optimizer=self.optimizer,
         )
 
     def fit(
