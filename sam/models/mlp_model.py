@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Sequence, Tuple, Union, Optional, Any
+from typing import Callable, Sequence, Tuple, Union, Optional
 
 import numpy as np
 import pandas as pd
