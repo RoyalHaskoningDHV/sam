@@ -127,25 +127,25 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     """
 
     def __init__(
-            self,
-            predict_ahead: Sequence[int] = (0,),
-            quantiles: Sequence[float] = (),
-            use_diff_of_y: bool = False,
-            timecol: str = None,
-            y_scaler: TransformerMixin = None,
-            feature_engineer: BaseFeatureEngineer = None,
-            n_neurons: int = 200,
-            n_layers: int = 2,
-            batch_size: int = 16,
-            epochs: int = 20,
-            lr: float = 0.001,
-            dropout: float = None,
-            momentum: float = None,
-            verbose: int = 1,
-            r2_callback_report: bool = False,
-            average_type: str = "mean",
-            optimizer: Optional[Optimizer] = None,
-            **kwargs,
+        self,
+        predict_ahead: Sequence[int] = (0,),
+        quantiles: Sequence[float] = (),
+        use_diff_of_y: bool = False,
+        timecol: str = None,
+        y_scaler: TransformerMixin = None,
+        feature_engineer: BaseFeatureEngineer = None,
+        n_neurons: int = 200,
+        n_layers: int = 2,
+        batch_size: int = 16,
+        epochs: int = 20,
+        lr: float = 0.001,
+        dropout: float = None,
+        momentum: float = None,
+        verbose: int = 1,
+        r2_callback_report: bool = False,
+        average_type: str = "mean",
+        optimizer: Optional[Optimizer] = None,
+        **kwargs,
     ) -> None:
         super().__init__(
             predict_ahead=predict_ahead,
@@ -196,11 +196,11 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         )
 
     def fit(
-            self,
-            X: pd.DataFrame,
-            y: pd.Series,
-            validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-            **fit_kwargs,
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+        **fit_kwargs,
     ) -> Callable:
         """
         This function does the following:
@@ -254,9 +254,8 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             if "callbacks" in fit_kwargs.keys():
                 # early stopping should be last callback to work properly
                 fit_kwargs["callbacks"] = [
-                                              R2Evaluation(all_data, self.prediction_cols_,
-                                                           self.predict_ahead)
-                                          ] + fit_kwargs["callbacks"]
+                    R2Evaluation(all_data, self.prediction_cols_, self.predict_ahead)
+                ] + fit_kwargs["callbacks"]
             else:
                 fit_kwargs["callbacks"] = [
                     R2Evaluation(all_data, self.prediction_cols_, self.predict_ahead)
@@ -283,11 +282,11 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         return history
 
     def predict(
-            self,
-            X: pd.DataFrame,
-            y: pd.Series = None,
-            return_data: bool = False,
-            force_monotonic_quantiles: bool = False,
+        self,
+        X: pd.DataFrame,
+        y: pd.Series = None,
+        return_data: bool = False,
+        force_monotonic_quantiles: bool = False,
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """
         Make a prediction, and undo differencing in the case it was used
@@ -378,6 +377,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         Overwrites the abstract method from BaseTimeseriesRegressor
         """
         import keras
+
         foldername = Path(foldername)
         loss = obj._get_loss()
         return keras.models.load_model(
@@ -416,13 +416,13 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         self.model_.summary(print_fn=print_fn)
 
     def quantile_feature_importances(
-            self,
-            X: pd.DataFrame,
-            y: pd.Series,
-            score: Union[str, Callable] = None,
-            n_iter: int = 5,
-            sum_time_components: bool = False,
-            random_state: int = None,
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        score: Union[str, Callable] = None,
+        n_iter: int = 5,
+        sum_time_components: bool = False,
+        random_state: int = None,
     ) -> pd.DataFrame:
         """
         Computes feature importances based on the loss function used to estimate the average.
@@ -563,7 +563,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         return decreases_df
 
     def get_explainer(
-            self, X: pd.DataFrame, y: pd.Series = None, sample_n: int = None
+        self, X: pd.DataFrame, y: pd.Series = None, sample_n: int = None
     ) -> SamShapExplainer:
         """
         Obtain a shap explainer-like object. This object can be used to

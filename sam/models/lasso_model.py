@@ -93,19 +93,19 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     """
 
     def __init__(
-            self,
-            predict_ahead: Sequence[int] = (0,),
-            quantiles: Sequence[float] = (),
-            use_diff_of_y: bool = False,
-            timecol: str = None,
-            y_scaler: TransformerMixin = None,
-            average_type: str = "mean",
-            feature_engineer: BaseFeatureEngineer = None,
-            alpha: float = 1.0,
-            fit_intercept: bool = True,
-            quantile_options: dict = None,
-            mean_options: dict = None,
-            **kwargs,
+        self,
+        predict_ahead: Sequence[int] = (0,),
+        quantiles: Sequence[float] = (),
+        use_diff_of_y: bool = False,
+        timecol: str = None,
+        y_scaler: TransformerMixin = None,
+        average_type: str = "mean",
+        feature_engineer: BaseFeatureEngineer = None,
+        alpha: float = 1.0,
+        fit_intercept: bool = True,
+        quantile_options: dict = None,
+        mean_options: dict = None,
+        **kwargs,
     ) -> None:
         super().__init__(
             predict_ahead=predict_ahead,
@@ -148,10 +148,10 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         return MultiOutputRegressor(estimator=estimator)
 
     def fit(
-            self,
-            X: pd.DataFrame,
-            y: pd.Series,
-            **fit_kwargs,
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        **fit_kwargs,
     ):
         X, y, _, _ = self.preprocess_fit(X, y)
         self.model_ = [self.get_untrained_model(quantile) for quantile in self.quantiles]
@@ -168,11 +168,11 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         return self
 
     def predict(
-            self,
-            X: pd.DataFrame,
-            y: pd.Series = None,
-            return_data: bool = False,
-            force_monotonic_quantiles: bool = False,
+        self,
+        X: pd.DataFrame,
+        y: pd.Series = None,
+        return_data: bool = False,
+        force_monotonic_quantiles: bool = False,
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         self.validate_data(X)
 
@@ -194,12 +194,14 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
 
     def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
         import cloudpickle
+
         with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
             cloudpickle.dump(self.model_, f)
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
         import cloudpickle
+
         with open(Path(foldername) / f"{prefix}_params.pkl", "rb") as f:
             model = cloudpickle.load(f)
         return model

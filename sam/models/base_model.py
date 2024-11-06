@@ -75,15 +75,15 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     """
 
     def __init__(
-            self,
-            predict_ahead: Sequence[int] = (0,),
-            quantiles: Sequence[float] = (),
-            use_diff_of_y: bool = False,
-            timecol: str = None,
-            y_scaler: TransformerMixin = None,
-            average_type: str = "mean",
-            feature_engineer: BaseFeatureEngineer = None,
-            **kwargs,
+        self,
+        predict_ahead: Sequence[int] = (0,),
+        quantiles: Sequence[float] = (),
+        use_diff_of_y: bool = False,
+        timecol: str = None,
+        y_scaler: TransformerMixin = None,
+        average_type: str = "mean",
+        feature_engineer: BaseFeatureEngineer = None,
+        **kwargs,
     ) -> None:
         self.predict_ahead = predict_ahead
         self.quantiles = quantiles
@@ -203,10 +203,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return X, y
 
     def preprocess_fit(
-            self,
-            X: pd.DataFrame,
-            y: pd.Series,
-            validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
     ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
         """
         This function does the following:
@@ -271,11 +271,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @abstractmethod
     def fit(
-            self,
-            X: pd.DataFrame,
-            y: pd.Series,
-            validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-            **fit_kwargs,
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+        **fit_kwargs,
     ) -> Callable:
         """Fit the underlying model
 
@@ -303,7 +303,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @abstractmethod
     def predict(
-            self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False
+        self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """Predict on new data using a trained model
 
@@ -343,7 +343,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     def preprocess_predict(
-            self, X: pd.DataFrame, y: pd.Series, dropna: bool = False
+        self, X: pd.DataFrame, y: pd.Series, dropna: bool = False
     ) -> pd.DataFrame:
         """
         Transform a DataFrame X so it can be fed to self.model_.
@@ -377,11 +377,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return X_transformed
 
     def postprocess_predict(
-            self,
-            prediction: pd.DataFrame,
-            X: pd.DataFrame,
-            y: pd.Series,
-            force_monotonic_quantiles: bool = False,
+        self,
+        prediction: pd.DataFrame,
+        X: pd.DataFrame,
+        y: pd.Series,
+        force_monotonic_quantiles: bool = False,
     ) -> pd.DataFrame:
         """
         Postprocessing function for the prediction result.
@@ -680,6 +680,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         # This function only works if the estimator is fitted
         import cloudpickle
+
         backup = None
         if hasattr(self, "model_"):
             check_is_fitted(self, "model_")
@@ -697,8 +698,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @staticmethod
     @abstractmethod
-    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
-        ...
+    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any: ...
 
     @classmethod
     def load(cls, foldername: str, prefix: str = "model"):

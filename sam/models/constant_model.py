@@ -290,12 +290,14 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
 
     def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
         import cloudpickle
+
         with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
             cloudpickle.dump(self.model_, f)
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
         import cloudpickle
+
         with open(Path(foldername) / f"{prefix}_params.pkl", "rb") as f:
             model = cloudpickle.load(f)
         return model
