@@ -1,7 +1,8 @@
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Callable, List, Sequence, Tuple, Union
+from pathlib import Path
+from typing import Callable, List, Sequence, Tuple, Union, Any
 
 import numpy as np
 import pandas as pd
@@ -74,15 +75,15 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     """
 
     def __init__(
-        self,
-        predict_ahead: Sequence[int] = (0,),
-        quantiles: Sequence[float] = (),
-        use_diff_of_y: bool = False,
-        timecol: str = None,
-        y_scaler: TransformerMixin = None,
-        average_type: str = "mean",
-        feature_engineer: BaseFeatureEngineer = None,
-        **kwargs,
+            self,
+            predict_ahead: Sequence[int] = (0,),
+            quantiles: Sequence[float] = (),
+            use_diff_of_y: bool = False,
+            timecol: str = None,
+            y_scaler: TransformerMixin = None,
+            average_type: str = "mean",
+            feature_engineer: BaseFeatureEngineer = None,
+            **kwargs,
     ) -> None:
         self.predict_ahead = predict_ahead
         self.quantiles = quantiles
@@ -202,10 +203,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return X, y
 
     def preprocess_fit(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+            self,
+            X: pd.DataFrame,
+            y: pd.Series,
+            validation_data: Tuple[pd.DataFrame, pd.Series] = None,
     ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
         """
         This function does the following:
@@ -270,11 +271,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @abstractmethod
     def fit(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-        **fit_kwargs,
+            self,
+            X: pd.DataFrame,
+            y: pd.Series,
+            validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+            **fit_kwargs,
     ) -> Callable:
         """Fit the underlying model
 
@@ -302,7 +303,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     @abstractmethod
     def predict(
-        self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False
+            self, X: pd.DataFrame, y: pd.Series = None, return_data: bool = False
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """Predict on new data using a trained model
 
@@ -342,7 +343,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         raise NotImplementedError("Abstract method. Needs to be implemented by subclass")
 
     def preprocess_predict(
-        self, X: pd.DataFrame, y: pd.Series, dropna: bool = False
+            self, X: pd.DataFrame, y: pd.Series, dropna: bool = False
     ) -> pd.DataFrame:
         """
         Transform a DataFrame X so it can be fed to self.model_.
@@ -376,11 +377,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return X_transformed
 
     def postprocess_predict(
-        self,
-        prediction: pd.DataFrame,
-        X: pd.DataFrame,
-        y: pd.Series,
-        force_monotonic_quantiles: bool = False,
+            self,
+            prediction: pd.DataFrame,
+            X: pd.DataFrame,
+            y: pd.Series,
+            force_monotonic_quantiles: bool = False,
     ) -> pd.DataFrame:
         """
         Postprocessing function for the prediction result.
@@ -643,11 +644,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return score
 
     @abstractmethod
-    def dump(self, foldername: str, prefix: str = "model") -> None:
-        """Save a model to disk
+    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
+        """
+        Save a model to disk
 
         This abstract method needs to be implemented by any class inheriting from
-        BaseTimeseriesRegressor. This function dumps the SAM model to disk.
+        BaseTimeseriesRegressor. This function dumps the SAM model parameters to disk.
 
         Parameters
         ----------
@@ -656,11 +658,50 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         prefix : str, optional
            The prefix used in the filename, by default "model"
         """
-        return None
+        ...
+
+    def dump(self, foldername: str, prefix: str = "model"):
+        """
+        Writes the following files:
+        * prefix.pkl
+        * prefix.h5
+
+        to the folder given by foldername. prefix is configurable, and is
+        'model' by default
+
+        Overwrites the abstract method from BaseTimeseriesRegressor
+
+        Parameters
+        ----------
+        foldername: str
+            The name of the folder to save the model
+        prefix: str, optional (Default='model')
+            The name of the model
+        """
+        # This function only works if the estimator is fitted
+        import cloudpickle
+        backup = None
+        if hasattr(self, "model_"):
+            check_is_fitted(self, "model_")
+            self.dump_parameters(foldername=foldername, prefix=prefix)
+            # Set the models to None temporarily, because they can't be pickled
+            backup, self.model_ = self.model_, None
+
+        foldername = Path(foldername)
+
+        with open(foldername / (prefix + ".pkl"), "wb") as f:
+            cloudpickle.dump(self, f)
+
+        if backup is not None:
+            self.model_ = backup
+
+    @staticmethod
+    @abstractmethod
+    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
+        ...
 
     @classmethod
-    @abstractmethod
-    def load(cls, foldername, prefix="model"):
+    def load(cls, foldername: str, prefix: str = "model"):
         """Load a model from disk
 
         This abstract method needs to be implemented by any class inheriting from
@@ -677,4 +718,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         -------
         The SAM model that has been loaded from disk
         """
-        return None
+        import cloudpickle
+
+        with open(Path(foldername) / (prefix + ".pkl"), "rb") as f:
+            obj = cloudpickle.load(f)
+
+        model = obj.load_parameters(obj, foldername=foldername, prefix=prefix)
+        if model is not None:
+            obj.model_ = model
+        return obj

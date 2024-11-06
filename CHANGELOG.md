@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 3.2.2
+
+### Changes
+- The `dump` and `load` functions are now inherited from the BaseTimeseriesRegressor.
+- Added abstract functions `dump_parameters` and `load_parameters` for dumping and loading model files.
+- Implemented `dump_parameters` and `load_parameters` for models.
+
 ## Version 3.2.1
 
 ### Changes

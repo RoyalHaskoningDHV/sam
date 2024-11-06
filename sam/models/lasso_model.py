@@ -1,5 +1,6 @@
 import os
-from typing import Callable, Sequence, Tuple, Union
+from pathlib import Path
+from typing import Callable, Sequence, Tuple, Union, Any
 
 import numpy as np
 import pandas as pd
@@ -92,19 +93,19 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     """
 
     def __init__(
-        self,
-        predict_ahead: Sequence[int] = (0,),
-        quantiles: Sequence[float] = (),
-        use_diff_of_y: bool = False,
-        timecol: str = None,
-        y_scaler: TransformerMixin = None,
-        average_type: str = "mean",
-        feature_engineer: BaseFeatureEngineer = None,
-        alpha: float = 1.0,
-        fit_intercept: bool = True,
-        quantile_options: dict = None,
-        mean_options: dict = None,
-        **kwargs,
+            self,
+            predict_ahead: Sequence[int] = (0,),
+            quantiles: Sequence[float] = (),
+            use_diff_of_y: bool = False,
+            timecol: str = None,
+            y_scaler: TransformerMixin = None,
+            average_type: str = "mean",
+            feature_engineer: BaseFeatureEngineer = None,
+            alpha: float = 1.0,
+            fit_intercept: bool = True,
+            quantile_options: dict = None,
+            mean_options: dict = None,
+            **kwargs,
     ) -> None:
         super().__init__(
             predict_ahead=predict_ahead,
@@ -147,10 +148,10 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         return MultiOutputRegressor(estimator=estimator)
 
     def fit(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        **fit_kwargs,
+            self,
+            X: pd.DataFrame,
+            y: pd.Series,
+            **fit_kwargs,
     ):
         X, y, _, _ = self.preprocess_fit(X, y)
         self.model_ = [self.get_untrained_model(quantile) for quantile in self.quantiles]
@@ -167,11 +168,11 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         return self
 
     def predict(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series = None,
-        return_data: bool = False,
-        force_monotonic_quantiles: bool = False,
+            self,
+            X: pd.DataFrame,
+            y: pd.Series = None,
+            return_data: bool = False,
+            force_monotonic_quantiles: bool = False,
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         self.validate_data(X)
 
@@ -191,43 +192,14 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump(self, foldername: str, prefix: str = "model") -> None:
-        """Save a model to disk
+    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
+        import cloudpickle
+        with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
+            cloudpickle.dump(self.model_, f)
 
-        This abstract method needs to be implemented by any class inheriting from
-        SamQuantileRegressor. This function dumps the SAM model to disk.
-
-        Parameters
-        ----------
-        foldername : str
-            The folder location where to save the model
-        prefix : str, optional
-           The prefix used in the filename, by default "model"
-        """
-        import joblib
-
-        if not os.path.exists(foldername):
-            os.makedirs(foldername)
-        joblib.dump(self, os.path.join(foldername, f"{prefix}.pkl"))
-
-    @classmethod
-    def load(cls, foldername, prefix="model") -> Callable:
-        """Load a model from disk
-
-        This abstract method needs to be implemented by any class inheriting from
-        SamQuantileRegressor. This function loads a SAM model from disk.
-
-        Parameters
-        ----------
-        foldername : str
-            The folder location where the model is stored
-        prefix : str, optional
-           The prefix used in the filename, by default "model"
-
-        Returns
-        -------
-        The SAM model that has been loaded from disk
-        """
-        import joblib
-
-        return joblib.load(os.path.join(foldername, f"{prefix}.pkl"))
+    @staticmethod
+    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
+        import cloudpickle
+        with open(Path(foldername) / f"{prefix}_params.pkl", "rb") as f:
+            model = cloudpickle.load(f)
+        return model

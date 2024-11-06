@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Sequence, Tuple, Union, Optional
+from typing import Callable, Sequence, Tuple, Union, Optional, Any
 
 import numpy as np
 import pandas as pd
@@ -127,25 +127,25 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     """
 
     def __init__(
-        self,
-        predict_ahead: Sequence[int] = (0,),
-        quantiles: Sequence[float] = (),
-        use_diff_of_y: bool = False,
-        timecol: str = None,
-        y_scaler: TransformerMixin = None,
-        feature_engineer: BaseFeatureEngineer = None,
-        n_neurons: int = 200,
-        n_layers: int = 2,
-        batch_size: int = 16,
-        epochs: int = 20,
-        lr: float = 0.001,
-        dropout: float = None,
-        momentum: float = None,
-        verbose: int = 1,
-        r2_callback_report: bool = False,
-        average_type: str = "mean",
-        optimizer: Optional[Optimizer] = None,
-        **kwargs,
+            self,
+            predict_ahead: Sequence[int] = (0,),
+            quantiles: Sequence[float] = (),
+            use_diff_of_y: bool = False,
+            timecol: str = None,
+            y_scaler: TransformerMixin = None,
+            feature_engineer: BaseFeatureEngineer = None,
+            n_neurons: int = 200,
+            n_layers: int = 2,
+            batch_size: int = 16,
+            epochs: int = 20,
+            lr: float = 0.001,
+            dropout: float = None,
+            momentum: float = None,
+            verbose: int = 1,
+            r2_callback_report: bool = False,
+            average_type: str = "mean",
+            optimizer: Optional[Optimizer] = None,
+            **kwargs,
     ) -> None:
         super().__init__(
             predict_ahead=predict_ahead,
@@ -196,11 +196,11 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         )
 
     def fit(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-        **fit_kwargs,
+            self,
+            X: pd.DataFrame,
+            y: pd.Series,
+            validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+            **fit_kwargs,
     ) -> Callable:
         """
         This function does the following:
@@ -254,8 +254,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             if "callbacks" in fit_kwargs.keys():
                 # early stopping should be last callback to work properly
                 fit_kwargs["callbacks"] = [
-                    R2Evaluation(all_data, self.prediction_cols_, self.predict_ahead)
-                ] + fit_kwargs["callbacks"]
+                                              R2Evaluation(all_data, self.prediction_cols_,
+                                                           self.predict_ahead)
+                                          ] + fit_kwargs["callbacks"]
             else:
                 fit_kwargs["callbacks"] = [
                     R2Evaluation(all_data, self.prediction_cols_, self.predict_ahead)
@@ -282,11 +283,11 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         return history
 
     def predict(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series = None,
-        return_data: bool = False,
-        force_monotonic_quantiles: bool = False,
+            self,
+            X: pd.DataFrame,
+            y: pd.Series = None,
+            return_data: bool = False,
+            force_monotonic_quantiles: bool = False,
     ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
         """
         Make a prediction, and undo differencing in the case it was used
@@ -343,10 +344,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump(self, foldername: Union[str, Path], prefix: str = "model") -> None:
+    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
         """
         Writes the following files:
-        * prefix.pkl
         * prefix.h5
 
         to the folder given by foldername. prefix is configurable, and is
@@ -361,54 +361,28 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         prefix: str, optional (Default='model')
             The name of the model
         """
-        # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
-
-        import cloudpickle
-
         foldername = Path(foldername)
-
-        # TEMPORARY
         self.model_.save(foldername / (prefix + ".h5"))
 
-        # Set the models to None temporarily, because they can't be pickled
-        backup, self.model_ = self.model_, None
-
-        with open(foldername / (prefix + ".pkl"), "wb") as f:
-            cloudpickle.dump(self, f)
-
-        # Set it back
-        self.model_ = backup
-
-    @classmethod
-    def load(cls, foldername: Union[str, Path], prefix="model"):
+    @staticmethod
+    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
         """
-        Reads the following files:
-        * prefix.pkl
+        Loads the file:
         * prefix.h5
 
         from the folder given by foldername. prefix is configurable, and is
         'model' by default
-        Output is an entire instance of the fitted model that was saved
+        Output is the `model_` attribute of the MLPTimeseriesRegressor class.
 
         Overwrites the abstract method from BaseTimeseriesRegressor
-
-        Returns
-        -------
-        Keras model
         """
-        import cloudpickle
-        from tensorflow import keras
-
+        import keras
         foldername = Path(foldername)
-        with open(foldername / (prefix + ".pkl"), "rb") as f:
-            obj = cloudpickle.load(f)
-
         loss = obj._get_loss()
-        obj.model_ = keras.models.load_model(
+        return keras.models.load_model(
             foldername / (prefix + ".h5"), custom_objects={"mse_tilted": loss}
         )
-        return obj
 
     def _get_loss(self) -> Union[str, Callable]:
         """
@@ -442,13 +416,13 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         self.model_.summary(print_fn=print_fn)
 
     def quantile_feature_importances(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        score: Union[str, Callable] = None,
-        n_iter: int = 5,
-        sum_time_components: bool = False,
-        random_state: int = None,
+            self,
+            X: pd.DataFrame,
+            y: pd.Series,
+            score: Union[str, Callable] = None,
+            n_iter: int = 5,
+            sum_time_components: bool = False,
+            random_state: int = None,
     ) -> pd.DataFrame:
         """
         Computes feature importances based on the loss function used to estimate the average.
@@ -589,7 +563,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         return decreases_df
 
     def get_explainer(
-        self, X: pd.DataFrame, y: pd.Series = None, sample_n: int = None
+            self, X: pd.DataFrame, y: pd.Series = None, sample_n: int = None
     ) -> SamShapExplainer:
         """
         Obtain a shap explainer-like object. This object can be used to
