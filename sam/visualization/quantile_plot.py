@@ -271,7 +271,7 @@ def _interactive_quantile_plot(
         if outlier_min_q is not None and outliers is None:
             valid_low = y_hat[these_cols[col_order[n_quants - 1 - (outlier_min_q - 1)]]]
             valid_high = y_hat[these_cols[col_order[n_quants + (outlier_min_q - 1)]]]
-            outliers = (y_true > valid_high) | (y_true < valid_low)
+            outliers = (y_true >= valid_high) | (y_true <= valid_low)
             outliers = outliers.astype(int)
             k = np.ones(outlier_window)
             outliers = (
@@ -379,7 +379,7 @@ def _static_quantile_plot(
         if outlier_min_q is not None and outliers is None:
             valid_low = y_hat[these_cols[col_order[n_quants - 1 - (outlier_min_q - 1)]]]
             valid_high = y_hat[these_cols[col_order[n_quants + (outlier_min_q - 1)]]]
-            outliers = (y_true > valid_high) | (y_true < valid_low)
+            outliers = (y_true >= valid_high) | (y_true <= valid_low)
             outliers = outliers.astype(int)
             k = np.ones(outlier_window)
             outliers = (
