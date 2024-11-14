@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Sequence, Tuple, Union, Optional
+from typing import Callable, Sequence, Tuple, Union, Optional, Any
 
 import numpy as np
 import pandas as pd
@@ -343,10 +343,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump(self, foldername: Union[str, Path], prefix: str = "model") -> None:
+    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
         """
         Writes the following files:
-        * prefix.pkl
         * prefix.h5
 
         to the folder given by foldername. prefix is configurable, and is
@@ -361,54 +360,29 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         prefix: str, optional (Default='model')
             The name of the model
         """
-        # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
-
-        import cloudpickle
-
         foldername = Path(foldername)
-
-        # TEMPORARY
         self.model_.save(foldername / (prefix + ".h5"))
 
-        # Set the models to None temporarily, because they can't be pickled
-        backup, self.model_ = self.model_, None
-
-        with open(foldername / (prefix + ".pkl"), "wb") as f:
-            cloudpickle.dump(self, f)
-
-        # Set it back
-        self.model_ = backup
-
-    @classmethod
-    def load(cls, foldername: Union[str, Path], prefix="model"):
+    @staticmethod
+    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
         """
-        Reads the following files:
-        * prefix.pkl
+        Loads the file:
         * prefix.h5
 
         from the folder given by foldername. prefix is configurable, and is
         'model' by default
-        Output is an entire instance of the fitted model that was saved
+        Output is the `model_` attribute of the MLPTimeseriesRegressor class.
 
         Overwrites the abstract method from BaseTimeseriesRegressor
-
-        Returns
-        -------
-        Keras model
         """
-        import cloudpickle
-        from tensorflow import keras
+        import keras
 
         foldername = Path(foldername)
-        with open(foldername / (prefix + ".pkl"), "rb") as f:
-            obj = cloudpickle.load(f)
-
         loss = obj._get_loss()
-        obj.model_ = keras.models.load_model(
+        return keras.models.load_model(
             foldername / (prefix + ".h5"), custom_objects={"mse_tilted": loss}
         )
-        return obj
 
     def _get_loss(self) -> Union[str, Callable]:
         """

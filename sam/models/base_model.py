@@ -1,7 +1,8 @@
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Callable, List, Sequence, Tuple, Union
+from pathlib import Path
+from typing import Callable, List, Sequence, Tuple, Union, Any
 
 import numpy as np
 import pandas as pd
@@ -643,11 +644,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return score
 
     @abstractmethod
-    def dump(self, foldername: str, prefix: str = "model") -> None:
-        """Save a model to disk
+    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
+        """
+        Save a model to disk
 
         This abstract method needs to be implemented by any class inheriting from
-        BaseTimeseriesRegressor. This function dumps the SAM model to disk.
+        BaseTimeseriesRegressor. This function dumps the SAM model parameters to disk.
 
         Parameters
         ----------
@@ -656,11 +658,50 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         prefix : str, optional
            The prefix used in the filename, by default "model"
         """
-        return None
+        ...
+
+    def dump(self, foldername: str, prefix: str = "model"):
+        """
+        Writes the following files:
+        * prefix.pkl
+        * prefix.h5
+
+        to the folder given by foldername. prefix is configurable, and is
+        'model' by default
+
+        Overwrites the abstract method from BaseTimeseriesRegressor
+
+        Parameters
+        ----------
+        foldername: str
+            The name of the folder to save the model
+        prefix: str, optional (Default='model')
+            The name of the model
+        """
+        # This function only works if the estimator is fitted
+        import cloudpickle
+
+        backup = None
+        if hasattr(self, "model_"):
+            check_is_fitted(self, "model_")
+            self.dump_parameters(foldername=foldername, prefix=prefix)
+            # Set the models to None temporarily, because they can't be pickled
+            backup, self.model_ = self.model_, None
+
+        foldername = Path(foldername)
+
+        with open(foldername / (prefix + ".pkl"), "wb") as f:
+            cloudpickle.dump(self, f)
+
+        if backup is not None:
+            self.model_ = backup
+
+    @staticmethod
+    @abstractmethod
+    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any: ...
 
     @classmethod
-    @abstractmethod
-    def load(cls, foldername, prefix="model"):
+    def load(cls, foldername: str, prefix: str = "model"):
         """Load a model from disk
 
         This abstract method needs to be implemented by any class inheriting from
@@ -677,4 +718,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         -------
         The SAM model that has been loaded from disk
         """
-        return None
+        import cloudpickle
+
+        with open(Path(foldername) / (prefix + ".pkl"), "rb") as f:
+            obj = cloudpickle.load(f)
+
+        model = obj.load_parameters(obj, foldername=foldername, prefix=prefix)
+        if model is not None:
+            obj.model_ = model
+        return obj

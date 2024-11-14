@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 4.0.0
+
+### Changes
+- The `dump` and `load` functions are now inherited from the BaseTimeseriesRegressor.
+- Added abstract functions `dump_parameters` and `load_parameters` for dumping and loading model files.
+- Implemented `dump_parameters` and `load_parameters` for models.
+- Outliers in the `_interactive_quantile_plot` and `_static_quantile_plot` functions must now be within or *equal* to the quantile boundaries.
 ## Version 3.2.1
 
 ### Changes

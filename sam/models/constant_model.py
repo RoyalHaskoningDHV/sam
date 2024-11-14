@@ -288,49 +288,16 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump(self, foldername: str, prefix: str = "model") -> None:
-        """
-        Writes the instanced model to foldername/prefix.pkl
-
-        prefix is configurable, and is 'model' by default
-
-        Overwrites the abstract method from SamQuantileRegressor
-
-        Parameters
-        ----------
-        foldername: str
-            The name of the folder to save the model
-        prefix: str, optional (Default='model')
-            The name of the model
-        """
-        # This function only works if the estimator is fitted
-        check_is_fitted(self, "model_")
-
+    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
         import cloudpickle
 
-        foldername = Path(foldername)
+        with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
+            cloudpickle.dump(self.model_, f)
 
-        with open(foldername / (prefix + ".pkl"), "wb") as f:
-            cloudpickle.dump(self, f)
-
-    @classmethod
-    def load(cls, foldername, prefix="model") -> Callable:
-        """
-        Reads and loads the model located at foldername/prefix.pkl
-
-        prefix is configurable, and is 'model' by default
-        Output is an entire instance of the fitted model that was saved
-
-        Overwrites the abstract method from SamQuantileRegressor
-
-        Returns
-        -------
-        A fitted ConstantTimeseriesRegressor object
-        """
+    @staticmethod
+    def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
         import cloudpickle
 
-        foldername = Path(foldername)
-        with open(foldername / (prefix + ".pkl"), "rb") as f:
-            obj = cloudpickle.load(f)
-
-        return obj
+        with open(Path(foldername) / f"{prefix}_params.pkl", "rb") as f:
+            model = cloudpickle.load(f)
+        return model
