@@ -16,8 +16,6 @@ Version X.Y.Z stands for:
 - The `dump_parameters` function for `MLPTimeseriesRegressor` now supports being saved as ONNX.
 - The `dump_parameters` function for `ConstantTimeseriesRegressor` now supports being saved as json.
 
-
-
 ## Version 4.0.0
 
 ### Changes
