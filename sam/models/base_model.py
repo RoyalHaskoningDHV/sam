@@ -1,3 +1,4 @@
+import json
 import warnings
 from abc import ABC, abstractmethod
 from operator import itemgetter
@@ -15,6 +16,8 @@ from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.utils.validation import check_is_fitted
 from sklearn.pipeline import Pipeline
+
+from sam.utils.json_helpers import object_to_dict, object_from_dict
 
 
 class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
@@ -74,6 +77,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         The underlying model
     """
 
+    # These lists are used to save parameters required for saving and loading any class that
+    # inherits from the BaseTimeseriesRegressor
+    to_save_objects = []
+    to_save_parameters = []
+
     def __init__(
         self,
         predict_ahead: Sequence[int] = (0,),
@@ -94,6 +102,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.feature_engineer_ = (
             feature_engineer if feature_engineer else IdentityFeatureEngineer()
         )
+
+        self.prediction_cols_ = []
 
     @abstractmethod
     def get_untrained_model(self) -> Callable:
@@ -500,27 +510,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             list of feature names
         """
 
-        if hasattr(self.feature_engineer_, "feature_engineer_"):
+        if hasattr(self.feature_engineer_, "get_feature_names_out"):
             return self.feature_engineer_.get_feature_names_out()
-        elif isinstance(self.feature_engineer_, Pipeline):
-            # select last step that has get_feature_names method
-            feature_steps = [
-                step[-1]
-                for step in self.feature_engineer_.steps
-                if hasattr(step[-1], "get_feature_names_out")
-            ]
-            if len(feature_steps) > 0:
-                for step in feature_steps[::-1]:
-                    if isinstance(step, ColumnTransformer):
-                        return step.get_feature_names_out()
-                return feature_steps[-1].get_feature_names_out()
-            else:
-                raise ValueError(
-                    "Feature engineering pipelines require at least one step "
-                    "with get_feature_names method"
-                )
         else:
-            raise ValueError("Feature engineering must be a Pipeline or a BaseFeatureEngineer")
+            raise ValueError("Feature engineering must have the function `get_features_names_out`")
 
     def _set_input_cols(self, X: pd.DataFrame) -> None:
         """
@@ -644,7 +637,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return score
 
     @abstractmethod
-    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
+    def dump_parameters(self, foldername: str, prefix: str = "model", file_extension='.pkl') -> None:
         """
         Save a model to disk
 
@@ -657,10 +650,18 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             The folder location where to save the model
         prefix : str, optional
            The prefix used in the filename, by default "model"
+        file_extension : str, optional (default='.pkl')
+            What file extension to save the parameters to (used when there are multiple choices)
         """
         ...
 
-    def dump(self, foldername: str, prefix: str = "model"):
+    def dump(
+            self,
+            foldername: str,
+            prefix: str = "model",
+            model_file_extension: str = ".pkl",
+            weights_file_extension: str = None
+    ):
         """
         Writes the following files:
         * prefix.pkl
@@ -677,21 +678,30 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             The name of the folder to save the model
         prefix: str, optional (Default='model')
             The name of the model
+        model_file_extension : str, optional (default='.pkl)
+        weights_file_extension : str, optional (default='.pkl')
+            What file extension to save the parameters to (used when there are multiple choices)
         """
-        # This function only works if the estimator is fitted
-        import cloudpickle
 
         backup = None
         if hasattr(self, "model_"):
             check_is_fitted(self, "model_")
-            self.dump_parameters(foldername=foldername, prefix=prefix)
+            # Dirty but we need to get the default file extension of the inheritor when file_extension is None
+            dump_kwargs = {} if weights_file_extension is None else {"file_extension": weights_file_extension}
+            self.dump_parameters(foldername=foldername, prefix=prefix, **dump_kwargs)
             # Set the models to None temporarily, because they can't be pickled
             backup, self.model_ = self.model_, None
 
         foldername = Path(foldername)
-
-        with open(foldername / (prefix + ".pkl"), "wb") as f:
-            cloudpickle.dump(self, f)
+        match model_file_extension:
+            case ".json":
+                import json
+                with open(foldername / (prefix + ".json"), "w") as file:
+                    json.dump(self.to_dict(), file)
+            case ".pkl":
+                import cloudpickle
+                with open(foldername / (prefix + ".pkl"), "wb") as file:
+                    cloudpickle.dump(self, file)
 
         if backup is not None:
             self.model_ = backup
@@ -718,12 +728,65 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         -------
         The SAM model that has been loaded from disk
         """
-        import cloudpickle
+        import os
+        foldername = Path(foldername)
+        file_path = foldername / prefix
+        obj = None
+        if os.path.exists(file_path := file_path.with_suffix(".json")):
+            with open(file_path, "r") as f:
+                obj = cls.from_dict(params=json.load(f))
 
-        with open(Path(foldername) / (prefix + ".pkl"), "rb") as f:
-            obj = cloudpickle.load(f)
+        if os.path.exists(file_path := file_path.with_suffix(".pkl")):
+            with open(file_path, "rb") as f:
+                import cloudpickle
+                obj = cloudpickle.load(f)
+
+        if obj is None:
+            raise FileNotFoundError(f"Could not find parameter file: {prefix}.onnx or {prefix}.h5")
 
         model = obj.load_parameters(obj, foldername=foldername, prefix=prefix)
         if model is not None:
             obj.model_ = model
         return obj
+
+    def to_dict(self):
+        """
+        Creates a dictionary used to recreate the BaseTimeseriesRegressor for prediction.
+        """
+        required_objects = {n: getattr(self, n) for n in self.to_save_objects if
+                            hasattr(self, n)}
+
+        object_data = {}
+        for name, obj in required_objects.items():
+            data = object_to_dict(obj)
+            object_data[name] = data
+
+        class_data = {name: getattr(self, name) for name in self.to_save_parameters if
+                      hasattr(self, name)}
+        return {
+            "objects": object_data,
+            "class_parameters": class_data
+        }
+
+    @classmethod
+    def from_dict(cls, params: dict[str, Any]):
+        """
+        Creates a BaseTimeseriesRegressor from a dictionary of parameters (created by `to_dict`)"
+        """
+        # Initialize the saved objects
+        initialized_objects = {}
+        for name, data in params['objects'].items():
+            if data is None:
+                initialized_objects[name] = None
+                continue
+
+            obj = object_from_dict(data)
+            initialized_objects[name] = obj
+        class_object = cls()
+
+        to_set = params['class_parameters'] | initialized_objects
+
+        for name, value in to_set.items():
+            if hasattr(class_object, name):
+                setattr(class_object, name, value)
+        return class_object

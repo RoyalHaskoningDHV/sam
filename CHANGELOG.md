@@ -8,8 +8,17 @@ Version X.Y.Z stands for:
 - Z = Patch version: if only backwards compatible bug fixes are introduced
 
 -------------
+## Version 5.0.0
 
-## Version 4.0.0
+### Changes
+- The `BaseTimeseriesRegressor` now requires a `to_dict` and `from_dict` to be implemented for a minimal version to be able to predict.
+- Now the `dump` method takes `model_file_extension` and `weight_file_extension` for deciding whether to load from pickle or json.
+- The `dump_parameters` function for `MLPTimeseriesRegressor` now supports being saved as ONNX.
+- The `dump_parameters` function for `ConstantTimeseriesRegressor` now supports being saved as json.
+
+
+
+## Version .0.0
 
 ### Changes
 - The `dump` and `load` functions are now inherited from the BaseTimeseriesRegressor.
