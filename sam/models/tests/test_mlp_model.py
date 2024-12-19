@@ -1,5 +1,6 @@
 import unittest
-
+from pathlib import Path
+import numpy as np
 import pytest
 from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
 from sam.models import MLPTimeseriesRegressor
@@ -18,6 +19,8 @@ try:
     import tensorflow as tf  # noqa: F401
 except ImportError:
     skipkeras = True
+
+PATH = __file__
 
 
 @set_seed
@@ -141,3 +144,77 @@ class TestOptimizer(unittest.TestCase):
             float(model.model_.optimizer.weight_decay),
             weight_decay,
         )
+
+
+class TestPipelineFeatureEngineer(unittest.TestCase):
+    def test_get_feature_names_out(self):
+        from sklearn.pipeline import Pipeline
+        from sam.feature_engineering import BuildRollingFeatures
+
+        X, y = get_dataset()
+        fe = Pipeline(
+            [("roll", BuildRollingFeatures(window_size="1h")), ("scaler", StandardScaler())]
+        )
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
+        model.fit(X, y)
+        feature_names = model.get_feature_names_out()
+        self.assertListEqual(list(feature_names), ["x", "x#mean_1h"])
+
+
+class TestLoadDump(unittest.TestCase):
+    file_dir = Path(PATH).parent / "files"
+
+    @classmethod
+    def setUpClass(cls):
+        import os
+
+        os.makedirs(cls.file_dir, exist_ok=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        import os
+
+        files = os.listdir(cls.file_dir)
+        for file in files:
+            os.remove(cls.file_dir / file)
+        os.removedirs(cls.file_dir)
+
+    def test_dump_load_parameters(self):
+        import onnxruntime as ort
+        import keras
+
+        X, y = get_dataset()
+        fe = SimpleFeatureEngineer(keep_original=True)
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
+        model.fit(X, y)
+
+        model.dump_parameters(foldername=self.file_dir, file_extension=".onnx")
+        y_pred_tf = model.predict(X=X)
+        self.assertIsInstance(model.model_, keras.Model)
+        model.model_ = model.load_parameters(obj=model, foldername=self.file_dir)
+
+        self.assertIsInstance(model.model_, ort.InferenceSession)
+        y_pred_onnx = model.predict(X=X)
+
+        self.assertTrue(np.all(np.isclose(y_pred_onnx.values, y_pred_tf.values)))
+
+    def test_to_from_dict(self):
+        import onnxruntime as ort
+        import keras
+
+        X, y = get_dataset()
+        fe = SimpleFeatureEngineer(keep_original=True)
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe, y_scaler=StandardScaler())
+        model.fit(X, y)
+
+        model.dump_parameters(foldername=self.file_dir, file_extension=".onnx")
+        params = model.to_dict()
+        y_pred_tf = model.predict(X=X)
+        self.assertIsInstance(model.model_, keras.Model)
+
+        model = MLPTimeseriesRegressor.from_dict(params=params)
+        model.model_ = model.load_parameters(obj=model, foldername=self.file_dir)
+        self.assertIsInstance(model.model_, ort.InferenceSession)
+        y_pred_onnx = model.predict(X=X)
+
+        self.assertTrue(np.all(np.isclose(y_pred_onnx.values, y_pred_tf.values)))
