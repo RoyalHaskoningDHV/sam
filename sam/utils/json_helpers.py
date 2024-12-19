@@ -36,7 +36,7 @@ def object_to_dict(obj):
 
     # Usually this is overkill
     if hasattr(obj, "get_params"):
-        data['params'] = obj.get_params(deep=True)
+        data["params"] = obj.get_params(deep=True)
 
     return data
 
@@ -56,15 +56,15 @@ def object_from_dict(data):
         if result:
             return result
 
-    obj_class = getattr(importlib.import_module(data['module']), data['class'])
+    obj_class = getattr(importlib.import_module(data["module"]), data["class"])
     # Get the arguments expected by the __init__ of AquasuiteModel
     signature = inspect.signature(obj_class.__init__)
     # Get the arguments which are in the __init__
     arguments = [param.name for param in signature.parameters.values()]
     # Get the arguments which are in the vars and in the __init__
-    found_arguments = {k: v for k, v in data['vars'].items() if k in arguments}
+    found_arguments = {k: v for k, v in data["vars"].items() if k in arguments}
     # Get the attributes which are in the vars and not in the __init__
-    found_attributes = {k: v for k, v in data['vars'].items() if k not in arguments}
+    found_attributes = {k: v for k, v in data["vars"].items() if k not in arguments}
     obj = obj_class(**found_arguments)
 
     # Set the found attributes
@@ -74,6 +74,6 @@ def object_from_dict(data):
         setattr(obj, param_name, value)
 
     # Set the params if it has the `set_params` function.
-    if 'params' in data.keys() and hasattr(obj_class, 'set_params'):
-        obj.set_params(**data['params'])
+    if "params" in data.keys() and hasattr(obj_class, "set_params"):
+        obj.set_params(**data["params"])
     return obj

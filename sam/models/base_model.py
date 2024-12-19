@@ -637,7 +637,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         return score
 
     @abstractmethod
-    def dump_parameters(self, foldername: str, prefix: str = "model", file_extension='.pkl') -> None:
+    def dump_parameters(
+        self, foldername: str, prefix: str = "model", file_extension=".pkl"
+    ) -> None:
         """
         Save a model to disk
 
@@ -656,11 +658,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         ...
 
     def dump(
-            self,
-            foldername: str,
-            prefix: str = "model",
-            model_file_extension: str = ".pkl",
-            weights_file_extension: str = None
+        self,
+        foldername: str,
+        prefix: str = "model",
+        model_file_extension: str = ".pkl",
+        weights_file_extension: str = None,
     ):
         """
         Writes the following files:
@@ -687,7 +689,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if hasattr(self, "model_"):
             check_is_fitted(self, "model_")
             # Dirty but we need to get the default file extension of the inheritor when file_extension is None
-            dump_kwargs = {} if weights_file_extension is None else {"file_extension": weights_file_extension}
+            dump_kwargs = (
+                {}
+                if weights_file_extension is None
+                else {"file_extension": weights_file_extension}
+            )
             self.dump_parameters(foldername=foldername, prefix=prefix, **dump_kwargs)
             # Set the models to None temporarily, because they can't be pickled
             backup, self.model_ = self.model_, None
@@ -696,10 +702,12 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         match model_file_extension:
             case ".json":
                 import json
+
                 with open(foldername / (prefix + ".json"), "w") as file:
                     json.dump(self.to_dict(), file)
             case ".pkl":
                 import cloudpickle
+
                 with open(foldername / (prefix + ".pkl"), "wb") as file:
                     cloudpickle.dump(self, file)
 
@@ -729,6 +737,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         The SAM model that has been loaded from disk
         """
         import os
+
         foldername = Path(foldername)
         file_path = foldername / prefix
         obj = None
@@ -739,6 +748,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if os.path.exists(file_path := file_path.with_suffix(".pkl")):
             with open(file_path, "rb") as f:
                 import cloudpickle
+
                 obj = cloudpickle.load(f)
 
         if obj is None:
@@ -753,20 +763,17 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         Creates a dictionary used to recreate the BaseTimeseriesRegressor for prediction.
         """
-        required_objects = {n: getattr(self, n) for n in self.to_save_objects if
-                            hasattr(self, n)}
+        required_objects = {n: getattr(self, n) for n in self.to_save_objects if hasattr(self, n)}
 
         object_data = {}
         for name, obj in required_objects.items():
             data = object_to_dict(obj)
             object_data[name] = data
 
-        class_data = {name: getattr(self, name) for name in self.to_save_parameters if
-                      hasattr(self, name)}
-        return {
-            "objects": object_data,
-            "class_parameters": class_data
+        class_data = {
+            name: getattr(self, name) for name in self.to_save_parameters if hasattr(self, name)
         }
+        return {"objects": object_data, "class_parameters": class_data}
 
     @classmethod
     def from_dict(cls, params: dict[str, Any]):
@@ -775,7 +782,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         """
         # Initialize the saved objects
         initialized_objects = {}
-        for name, data in params['objects'].items():
+        for name, data in params["objects"].items():
             if data is None:
                 initialized_objects[name] = None
                 continue
@@ -784,7 +791,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             initialized_objects[name] = obj
         class_object = cls()
 
-        to_set = params['class_parameters'] | initialized_objects
+        to_set = params["class_parameters"] | initialized_objects
 
         for name, value in to_set.items():
             if hasattr(class_object, name):

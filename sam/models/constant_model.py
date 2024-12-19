@@ -291,28 +291,33 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump_parameters(self, foldername: str, prefix: str = "model",
-                        file_extension='.json') -> None:
+    def dump_parameters(
+        self, foldername: str, prefix: str = "model", file_extension=".json"
+    ) -> None:
         match file_extension:
-            case '.json':
+            case ".json":
                 parameters = vars(self.model_)
-                parameters['model_quantiles_'] = parameters['model_quantiles_'].tolist()
+                parameters["model_quantiles_"] = parameters["model_quantiles_"].tolist()
                 with open(Path(foldername) / f"{prefix}_params.json", "w") as f:
                     json.dump(obj=parameters, fp=f)
-            case '.pkl':
+            case ".pkl":
                 import cloudpickle
+
                 with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
                     cloudpickle.dump(self.model_, f)
             case _:
-                raise ValueError(f"The file extension: {file_extension} is not supported choose '.pkl' or '.json'")
+                raise ValueError(
+                    f"The file extension: {file_extension} is not supported choose '.pkl' or '.json'"
+                )
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
         import os
+
         foldername = Path(foldername)
         file_path = foldername / (prefix + "_params")
         if os.path.exists(file_path := file_path.with_suffix(".json")):
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 parameters = json.load(f)
                 model = ConstantTemplate()
                 for name, value in parameters.items():
@@ -323,6 +328,7 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
                 return model
         if os.path.exists(file_path := file_path.with_suffix(".pkl")):
             import cloudpickle
+
             with open(file_path, "rb") as f:
                 model = cloudpickle.load(f)
             return model

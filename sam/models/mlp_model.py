@@ -333,6 +333,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             The transformed input data, when return_data is True, otherwise None
         """
         import onnxruntime as ort
+
         self.validate_data(X)
 
         if y is None and self.use_diff_of_y:
@@ -356,7 +357,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump_parameters(self, foldername: str, prefix: str = "model", file_extension='.h5') -> None:
+    def dump_parameters(
+        self, foldername: str, prefix: str = "model", file_extension=".h5"
+    ) -> None:
         """
         Writes the following files:
         * prefix.h5
@@ -378,23 +381,23 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         import tf2onnx
         import onnx
         import tensorflow as tf
+
         check_is_fitted(self, "model_")
         foldername = Path(foldername)
         match file_extension:
             case ".onnx":
-                input_signature = [tf.TensorSpec((None, *self.input_shape), name='X')]
+                input_signature = [tf.TensorSpec((None, *self.input_shape), name="X")]
                 onnx_model, _ = tf2onnx.convert.from_keras(
-                    self.model_,
-                    input_signature=input_signature,
-                    opset=13
+                    self.model_, input_signature=input_signature, opset=13
                 )
-                onnx.save(onnx_model, foldername / (prefix + '.onnx'))
+                onnx.save(onnx_model, foldername / (prefix + ".onnx"))
             case ".h5":
                 self.model_.save(foldername / (prefix + ".h5"))
 
             case _:
                 raise ValueError(
-                    f"The file extension: {file_extension} is not supported choose '.pkl' or '.json'")
+                    f"The file extension: {file_extension} is not supported choose '.pkl' or '.json'"
+                )
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
@@ -411,6 +414,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         import keras
         import os
         import onnxruntime as ort
+
         foldername = Path(foldername)
         loss = obj._get_loss()
         file_path = foldername / prefix

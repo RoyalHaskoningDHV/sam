@@ -150,15 +150,15 @@ class TestPipelineFeatureEngineer(unittest.TestCase):
     def test_get_feature_names_out(self):
         from sklearn.pipeline import Pipeline
         from sam.feature_engineering import BuildRollingFeatures
+
         X, y = get_dataset()
-        fe = Pipeline([
-            ("roll", BuildRollingFeatures(window_size='1h')),
-            ("scaler", StandardScaler())
-        ])
+        fe = Pipeline(
+            [("roll", BuildRollingFeatures(window_size="1h")), ("scaler", StandardScaler())]
+        )
         model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
         model.fit(X, y)
         feature_names = model.get_feature_names_out()
-        self.assertListEqual(list(feature_names), ['x', 'x#mean_1h'])
+        self.assertListEqual(list(feature_names), ["x", "x#mean_1h"])
 
 
 class TestLoadDump(unittest.TestCase):
@@ -167,6 +167,7 @@ class TestLoadDump(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         import os
+
         os.makedirs(cls.file_dir, exist_ok=True)
 
     @classmethod
@@ -187,7 +188,7 @@ class TestLoadDump(unittest.TestCase):
         model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
         model.fit(X, y)
 
-        model.dump_parameters(foldername=self.file_dir, file_extension='.onnx')
+        model.dump_parameters(foldername=self.file_dir, file_extension=".onnx")
         y_pred_tf = model.predict(X=X)
         self.assertIsInstance(model.model_, keras.Model)
         model.model_ = model.load_parameters(obj=model, foldername=self.file_dir)
@@ -206,7 +207,7 @@ class TestLoadDump(unittest.TestCase):
         model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe, y_scaler=StandardScaler())
         model.fit(X, y)
 
-        model.dump_parameters(foldername=self.file_dir, file_extension='.onnx')
+        model.dump_parameters(foldername=self.file_dir, file_extension=".onnx")
         params = model.to_dict()
         y_pred_tf = model.predict(X=X)
         self.assertIsInstance(model.model_, keras.Model)
