@@ -294,22 +294,21 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
     def dump_parameters(
         self, foldername: str, prefix: str = "model", file_extension=".json"
     ) -> None:
-        match file_extension:
-            case ".json":
-                parameters = vars(self.model_)
-                parameters["model_quantiles_"] = parameters["model_quantiles_"].tolist()
-                with open(Path(foldername) / f"{prefix}_params.json", "w") as f:
-                    json.dump(obj=parameters, fp=f)
-            case ".pkl":
-                import cloudpickle
+        if file_extension == ".json":
+            parameters = vars(self.model_)
+            parameters["model_quantiles_"] = parameters["model_quantiles_"].tolist()
+            with open(Path(foldername) / f"{prefix}_params.json", "w") as f:
+                json.dump(obj=parameters, fp=f)
+            return
+        if file_extension == ".pkl":
+            import cloudpickle
 
-                with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
-                    cloudpickle.dump(self.model_, f)
-            case _:
-                raise ValueError(
-                    f"The file extension: {file_extension} "
-                    f"is not supported choose '.pkl' or '.json'"
-                )
+            with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
+                cloudpickle.dump(self.model_, f)
+            return
+        raise ValueError(
+            f"The file extension: {file_extension} " f"is not supported choose '.pkl' or '.json'"
+        )
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:

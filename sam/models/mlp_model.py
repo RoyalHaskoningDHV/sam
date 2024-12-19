@@ -384,21 +384,20 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
         check_is_fitted(self, "model_")
         foldername = Path(foldername)
-        match file_extension:
-            case ".onnx":
-                input_signature = [tf.TensorSpec((None, *self.input_shape), name="X")]
-                onnx_model, _ = tf2onnx.convert.from_keras(
-                    self.model_, input_signature=input_signature, opset=13
-                )
-                onnx.save(onnx_model, foldername / (prefix + ".onnx"))
-            case ".h5":
-                self.model_.save(foldername / (prefix + ".h5"))
+        if file_extension == ".onnx":
+            input_signature = [tf.TensorSpec((None, *self.input_shape), name="X")]
+            onnx_model, _ = tf2onnx.convert.from_keras(
+                self.model_, input_signature=input_signature, opset=13
+            )
+            onnx.save(onnx_model, foldername / (prefix + ".onnx"))
+            return
+        if file_extension == ".h5":
+            self.model_.save(foldername / (prefix + ".h5"))
+            return
 
-            case _:
-                raise ValueError(
-                    f"The file extension: {file_extension} "
-                    f"is not supported choose '.pkl' or '.json'"
-                )
+        raise ValueError(
+            f"The file extension: {file_extension} " f"is not supported choose '.pkl' or '.json'"
+        )
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:

@@ -697,17 +697,17 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             backup, self.model_ = self.model_, None
 
         foldername = Path(foldername)
-        match model_file_extension:
-            case ".json":
-                import json
+        if model_file_extension == ".json":
+            import json
 
-                with open(foldername / (prefix + ".json"), "w") as file:
-                    json.dump(self.to_dict(), file)
-            case ".pkl":
-                import cloudpickle
+            with open(foldername / (prefix + ".json"), "w") as file:
+                json.dump(self.to_dict(), file)
 
-                with open(foldername / (prefix + ".pkl"), "wb") as file:
-                    cloudpickle.dump(self, file)
+        if model_file_extension == ".pkl":
+            import cloudpickle
+
+            with open(foldername / (prefix + ".pkl"), "wb") as file:
+                cloudpickle.dump(self, file)
 
         if backup is not None:
             self.model_ = backup
