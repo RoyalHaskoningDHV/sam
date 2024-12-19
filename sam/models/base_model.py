@@ -13,9 +13,7 @@ from sam.metrics import joint_mae_tilted_loss, joint_mse_tilted_loss
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
 from sam.utils import assert_contains_nans, make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
-from sklearn.compose import ColumnTransformer
 from sklearn.utils.validation import check_is_fitted
-from sklearn.pipeline import Pipeline
 
 from sam.utils.json_helpers import object_to_dict, object_from_dict
 
@@ -688,7 +686,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         backup = None
         if hasattr(self, "model_"):
             check_is_fitted(self, "model_")
-            # Dirty but we need to get the default file extension of the inheritor when file_extension is None
+            # Dirty but we need to get the default file extension of the inheritor
             dump_kwargs = (
                 {}
                 if weights_file_extension is None

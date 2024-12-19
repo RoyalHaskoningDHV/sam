@@ -307,7 +307,8 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
                     cloudpickle.dump(self.model_, f)
             case _:
                 raise ValueError(
-                    f"The file extension: {file_extension} is not supported choose '.pkl' or '.json'"
+                    f"The file extension: {file_extension} "
+                    f"is not supported choose '.pkl' or '.json'"
                 )
 
     @staticmethod
