@@ -134,7 +134,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        feature_engineer: BaseFeatureEngineer | Pipeline = None,
+        feature_engineer: Union[BaseFeatureEngineer, Pipeline] = None,
         n_neurons: int = 200,
         n_layers: int = 2,
         batch_size: int = 16,
