@@ -18,7 +18,7 @@ Version X.Y.Z stands for:
 
 
 
-## Version .0.0
+## Version 4.0.0
 
 ### Changes
 - The `dump` and `load` functions are now inherited from the BaseTimeseriesRegressor.
