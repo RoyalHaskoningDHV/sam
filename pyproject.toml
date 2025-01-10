@@ -44,7 +44,7 @@ all = [
     "nfft",
     "pymongo",
     "requests",
-    "scipy",
+    "scipy~=1.13.1",
     "seaborn",
     "tensorflow~=2.17,<3",
     "Jinja2~=3.0.3",
@@ -64,7 +64,7 @@ data-science = [
     "onnxruntime~=1.19.2",
     "tf2onnx~=1.16.1",
     "nfft",
-    "scipy",
+    "scipy~=1.13.1",
     "shap",
     "Jinja2~=3.0.3",
     "statsmodels"
