@@ -3,7 +3,8 @@ from typing import Callable, Sequence, Tuple, Union, Optional, Any
 
 import numpy as np
 import pandas as pd
-from keras import Optimizer
+from keras import Optimizer, Model
+from sklearn.pipeline import Pipeline
 
 from sam.feature_engineering import BaseFeatureEngineer
 from sam.metrics import R2Evaluation, keras_joint_mse_tilted_loss
@@ -133,7 +134,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         use_diff_of_y: bool = False,
         timecol: str = None,
         y_scaler: TransformerMixin = None,
-        feature_engineer: BaseFeatureEngineer = None,
+        feature_engineer: Union[BaseFeatureEngineer, Pipeline] = None,
         n_neurons: int = 200,
         n_layers: int = 2,
         batch_size: int = 16,
@@ -168,11 +169,16 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         self.average_type = average_type
         self.optimizer = optimizer
 
+        self.input_shape = None
+
         if self.average_type == "median" and 0.5 in self.quantiles:
             raise ValueError(
                 "average_type is mean, but 0.5 is also in quantiles (duplicate). "
                 "Either set average_type to mean or remove 0.5 from quantiles"
             )
+
+        self.to_save_objects = ["feature_engineer_", "y_scaler"]
+        self.to_save_parameters = ["prediction_cols_", "quantiles", "predict_ahead"]
 
     def get_untrained_model(self) -> Callable:
         """
@@ -251,15 +257,12 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
                 all_data["y_val"] = y_val_transformed
 
             # append to the callbacks argument
+            r2_eval_callback = R2Evaluation(all_data, self.prediction_cols_, self.predict_ahead)
             if "callbacks" in fit_kwargs.keys():
                 # early stopping should be last callback to work properly
-                fit_kwargs["callbacks"] = [
-                    R2Evaluation(all_data, self.prediction_cols_, self.predict_ahead)
-                ] + fit_kwargs["callbacks"]
+                fit_kwargs["callbacks"] = [r2_eval_callback] + fit_kwargs["callbacks"]
             else:
-                fit_kwargs["callbacks"] = [
-                    R2Evaluation(all_data, self.prediction_cols_, self.predict_ahead)
-                ]
+                fit_kwargs["callbacks"] = [r2_eval_callback]
 
             # Keras verbosity can be in [0, 1, 2].
             # If verbose is 1, this means that the user wants to display messages.
@@ -268,6 +271,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             # The only solution for now is to set verbose to 2 when using custom callbacks.
             if self.verbose == 1:
                 self.verbose = 2
+
+        # Set input shape for ONNX
+        self.input_shape = X_transformed.values.shape[1:]
 
         # Fit model
         history = self.model_.fit(
@@ -326,13 +332,21 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         X_transformed: pd.DataFrame, optional
             The transformed input data, when return_data is True, otherwise None
         """
+        import onnxruntime as ort
+
         self.validate_data(X)
 
         if y is None and self.use_diff_of_y:
             raise ValueError("You must provide y when using use_diff_of_y=True")
 
         X_transformed = self.preprocess_predict(X, y)
-        prediction = self.model_.predict(X_transformed, verbose=self.verbose)
+
+        prediction = None
+        if isinstance(self.model_, ort.InferenceSession):
+            prediction = self.model_.run([], {"X": X_transformed.values.astype(np.float32)})[0]
+
+        if isinstance(self.model_, Model):
+            prediction = self.model_.predict(X_transformed, verbose=self.verbose)
 
         prediction = self.postprocess_predict(
             prediction, X, y, force_monotonic_quantiles=force_monotonic_quantiles
@@ -343,7 +357,9 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
+    def dump_parameters(
+        self, foldername: str, prefix: str = "model", file_extension=".h5"
+    ) -> None:
         """
         Writes the following files:
         * prefix.h5
@@ -359,10 +375,29 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             The name of the folder to save the model
         prefix: str, optional (Default='model')
             The name of the model
+        file_extension: str, optional (default=".h5")
+            What file extension to use.
         """
+        import tf2onnx
+        import onnx
+        import tensorflow as tf
+
         check_is_fitted(self, "model_")
         foldername = Path(foldername)
-        self.model_.save(foldername / (prefix + ".h5"))
+        if file_extension == ".onnx":
+            input_signature = [tf.TensorSpec((None, *self.input_shape), name="X")]
+            onnx_model, _ = tf2onnx.convert.from_keras(
+                self.model_, input_signature=input_signature, opset=13
+            )
+            onnx.save(onnx_model, foldername / (prefix + ".onnx"))
+            return
+        elif file_extension == ".h5":
+            self.model_.save(foldername / (prefix + ".h5"))
+            return
+
+        raise ValueError(
+            f"The file extension: {file_extension} " f"is not supported, choose '.onnx' or '.h5'"
+        )
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
@@ -377,12 +412,17 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         Overwrites the abstract method from BaseTimeseriesRegressor
         """
         import keras
+        import os
+        import onnxruntime as ort
 
         foldername = Path(foldername)
         loss = obj._get_loss()
-        return keras.models.load_model(
-            foldername / (prefix + ".h5"), custom_objects={"mse_tilted": loss}
-        )
+        file_path = foldername / prefix
+        if os.path.exists(file_path := file_path.with_suffix(".onnx")):
+            return ort.InferenceSession(file_path, providers=["CPUExecutionProvider"])
+        if os.path.exists(file_path := file_path.with_suffix(".h5")):
+            return keras.models.load_model(file_path, custom_objects={"mse_tilted": loss})
+        raise FileNotFoundError(f"Could not find parameter file: {prefix}.onnx or {prefix}.h5")
 
     def _get_loss(self) -> Union[str, Callable]:
         """
@@ -411,8 +451,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         """
         # This function only works if the estimator is fitted
         check_is_fitted(self, "model_")
-        print_fn(str(self))
-        print_fn(self.get_feature_names_out())
         self.model_.summary(print_fn=print_fn)
 
     def quantile_feature_importances(

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any, Callable, Sequence, Tuple, Union
 
@@ -197,6 +198,8 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
             average_type=average_type,
             **kwargs,
         )
+        self.to_save_objects = ["feature_engineer_", "y_scaler"]
+        self.to_save_parameters = ["prediction_cols_", "quantiles", "predict_ahead"]
 
     def get_untrained_model(self) -> Callable:
         """Returns an underlying model that can be trained
@@ -288,16 +291,46 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
         else:
             return prediction
 
-    def dump_parameters(self, foldername: str, prefix: str = "model") -> None:
-        import cloudpickle
+    def dump_parameters(
+        self, foldername: str, prefix: str = "model", file_extension=".json"
+    ) -> None:
+        if file_extension == ".json":
+            parameters = vars(self.model_)
+            parameters["model_quantiles_"] = parameters["model_quantiles_"].tolist()
+            with open(Path(foldername) / f"{prefix}_params.json", "w") as f:
+                json.dump(obj=parameters, fp=f)
+            return
+        elif file_extension == ".pkl":
+            import cloudpickle
 
-        with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
-            cloudpickle.dump(self.model_, f)
+            with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
+                cloudpickle.dump(self.model_, f)
+            return
+        raise ValueError(
+            f"The file extension: {file_extension} is not supported, choose '.pkl' or '.json'"
+        )
 
     @staticmethod
     def load_parameters(obj, foldername: str, prefix: str = "model") -> Any:
-        import cloudpickle
+        import os
 
-        with open(Path(foldername) / f"{prefix}_params.pkl", "rb") as f:
-            model = cloudpickle.load(f)
-        return model
+        foldername = Path(foldername)
+        file_path = foldername / (prefix + "_params")
+        if os.path.exists(file_path := file_path.with_suffix(".json")):
+            with open(file_path, "r") as f:
+                parameters = json.load(f)
+                model = ConstantTemplate()
+                for name, value in parameters.items():
+                    if name == "model_quantiles_":
+                        value = np.array(value)
+                    setattr(model, name, value)
+                model.is_fitted_ = True
+                return model
+        if os.path.exists(file_path := file_path.with_suffix(".pkl")):
+            import cloudpickle
+
+            with open(file_path, "rb") as f:
+                model = cloudpickle.load(f)
+            return model
+
+        raise FileNotFoundError(f"Could not find parameter file: {prefix}.json or {prefix}.pkl")

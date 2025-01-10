@@ -22,7 +22,7 @@ packages = [
 
 [project]
 name = "sam"
-version = "4.0.0"
+version = "5.0.0"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -35,7 +35,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-dependencies = ["pandas~=2.2", "numpy~=1.26", "scikit-learn~=1.5"]
+dependencies = ["pandas~=2.2", "numpy~=1.26", "scikit-learn~=1.5.2"]
 
 [project.optional-dependencies]
 all = [
@@ -44,10 +44,13 @@ all = [
     "nfft",
     "pymongo",
     "requests",
-    "scipy",
+    "scipy~=1.13.1",
     "seaborn",
     "tensorflow~=2.17,<3",
     "Jinja2~=3.0.3",
+    "onnx~=1.16.1",
+    "onnxruntime~=1.19.2",
+    "tf2onnx~=1.16.1",
     "shap",
     "plotly",
     "statsmodels"
@@ -57,8 +60,11 @@ data-engineering = ["requests", "pymongo"]
 data-science = [
     "tensorflow~=2.17,<3",
     "cloudpickle",
+    "onnx~=1.16.1",
+    "onnxruntime~=1.19.2",
+    "tf2onnx~=1.16.1",
     "nfft",
-    "scipy",
+    "scipy~=1.13.1",
     "shap",
     "Jinja2~=3.0.3",
     "statsmodels"
