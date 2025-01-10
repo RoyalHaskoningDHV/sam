@@ -391,12 +391,12 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             )
             onnx.save(onnx_model, foldername / (prefix + ".onnx"))
             return
-        if file_extension == ".h5":
+        elif file_extension == ".h5":
             self.model_.save(foldername / (prefix + ".h5"))
             return
 
         raise ValueError(
-            f"The file extension: {file_extension} " f"is not supported choose '.pkl' or '.json'"
+            f"The file extension: {file_extension} " f"is not supported, choose '.onnx' or '.h5'"
         )
 
     @staticmethod

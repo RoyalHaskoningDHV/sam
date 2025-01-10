@@ -682,6 +682,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         weights_file_extension : str, optional (default='.pkl')
             What file extension to save the parameters to (used when there are multiple choices)
         """
+        if model_file_extension not in ['.json', '.pkl']:
+            raise ValueError(
+                f"The model file extension: {model_file_extension} "
+                "is not supported, choose '.pkl' or '.json'."
+            )
 
         backup = None
         if hasattr(self, "model_"):
@@ -699,16 +704,13 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         foldername = Path(foldername)
         if model_file_extension == ".json":
             import json
-
             with open(foldername / (prefix + ".json"), "w") as file:
                 json.dump(self.to_dict(), file)
 
-        if model_file_extension == ".pkl":
+        elif model_file_extension == ".pkl":
             import cloudpickle
-
             with open(foldername / (prefix + ".pkl"), "wb") as file:
                 cloudpickle.dump(self, file)
-
         if backup is not None:
             self.model_ = backup
 
@@ -743,14 +745,14 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             with open(file_path, "r") as f:
                 obj = cls.from_dict(params=json.load(f))
 
-        if os.path.exists(file_path := file_path.with_suffix(".pkl")):
+        elif os.path.exists(file_path := file_path.with_suffix(".pkl")):
             with open(file_path, "rb") as f:
                 import cloudpickle
 
                 obj = cloudpickle.load(f)
 
         if obj is None:
-            raise FileNotFoundError(f"Could not find parameter file: {prefix}.onnx or {prefix}.h5")
+            raise FileNotFoundError(f"Could not find parameter file: {prefix}.json or {prefix}.pkl")
 
         model = obj.load_parameters(obj, foldername=foldername, prefix=prefix)
         if model is not None:

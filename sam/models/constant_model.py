@@ -199,7 +199,7 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
             **kwargs,
         )
         self.to_save_objects = ["feature_engineer_", "y_scaler"]
-        self.to_save_parameters = ["prediction_cols_"]
+        self.to_save_parameters = ["prediction_cols_", "quantiles", "predict_ahead"]
 
     def get_untrained_model(self) -> Callable:
         """Returns an underlying model that can be trained
@@ -300,14 +300,14 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
             with open(Path(foldername) / f"{prefix}_params.json", "w") as f:
                 json.dump(obj=parameters, fp=f)
             return
-        if file_extension == ".pkl":
+        elif file_extension == ".pkl":
             import cloudpickle
 
             with open(Path(foldername) / f"{prefix}_params.pkl", "wb") as f:
                 cloudpickle.dump(self.model_, f)
             return
         raise ValueError(
-            f"The file extension: {file_extension} " f"is not supported choose '.pkl' or '.json'"
+            f"The file extension: {file_extension} is not supported, choose '.pkl' or '.json'"
         )
 
     @staticmethod
