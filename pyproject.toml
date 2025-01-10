@@ -48,7 +48,7 @@ all = [
     "seaborn",
     "tensorflow~=2.17,<3",
     "Jinja2~=3.0.3",
-    "onnx~=1.17.0",
+    "onnx~=1.16.1",
     "onnxruntime~=1.19.2",
     "tf2onnx~=1.16.1",
     "shap",
@@ -60,7 +60,7 @@ data-engineering = ["requests", "pymongo"]
 data-science = [
     "tensorflow~=2.17,<3",
     "cloudpickle",
-    "onnx~=1.17.0",
+    "onnx~=1.16.1",
     "onnxruntime~=1.19.2",
     "tf2onnx~=1.16.1",
     "nfft",
