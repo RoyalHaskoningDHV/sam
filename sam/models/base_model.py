@@ -176,6 +176,24 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
     def create_weights(
         original_x: pd.DataFrame, feature_x: pd.DataFrame, y: pd.Series, is_train: bool = True
     ) -> pd.Series:
+        """
+        Create weights for the samples. By default, all weights are 1.
+        Parameters
+        ----------
+        original_x: pd.DataFrame
+            The original input data
+        feature_x: pd.DataFrame
+            The feature engineered input data
+        y: pd.Series
+            The target data
+        is_train: bool
+            Whether we are creating weights for training or validation
+        Returns
+        -------
+        pd.Series
+            The weights for the samples
+
+        """
         return pd.Series(
             np.ones(len(y)),
             index=y.index,
