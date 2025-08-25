@@ -240,14 +240,16 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         (
             X_transformed,
             y_transformed,
+            weights,
             X_val_transformed,
             y_val_transformed,
+            val_weights,
         ) = self.preprocess_fit(X, y, validation_data)
 
         self.model_ = self.get_untrained_model()
 
         if validation_data is not None:
-            validation_data = (X_val_transformed, y_val_transformed)
+            validation_data = (X_val_transformed, y_val_transformed, val_weights)
 
         if self.r2_callback_report:
             all_data = {"X_train": X_transformed, "y_train": y_transformed}
@@ -279,6 +281,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         history = self.model_.fit(
             X_transformed.values,
             y_transformed,
+            sample_weight=weights,
             batch_size=self.batch_size,
             epochs=self.epochs,
             verbose=self.verbose,

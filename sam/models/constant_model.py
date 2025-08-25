@@ -242,7 +242,7 @@ class ConstantTimeseriesRegressor(BaseTimeseriesRegressor):
         # preprocess_fit (inherited from BaseTimeseriesRegressor) disallows nan values in X.
         # ConstantTimeseriesRegressor may accept nan values so fillna(0) is used to (by)pass that
         # check without affecting the model because X is only used for its shape.
-        X_transformed, y_transformed, _, _ = self.preprocess_fit(X.fillna(0), y, validation_data)
+        X_transformed, y_transformed, *_ = self.preprocess_fit(X.fillna(0), y, validation_data)
         self.model_ = self.get_untrained_model()
         self.model_.fit(X_transformed, y_transformed)
         return None

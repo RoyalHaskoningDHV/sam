@@ -152,7 +152,7 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
         y: pd.Series,
         **fit_kwargs,
     ):
-        X, y, _, _ = self.preprocess_fit(X, y)
+        X, y, weights, *_ = self.preprocess_fit(X, y)
         self.model_ = [self.get_untrained_model(quantile) for quantile in self.quantiles]
 
         if self.average_type == "mean":

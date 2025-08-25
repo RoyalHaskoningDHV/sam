@@ -172,11 +172,21 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if not y.index.equals(X.index):
             raise ValueError("For training, X and y must have an identical index")
 
+    @staticmethod
+    def create_weights(
+        original_x: pd.DataFrame, feature_x: pd.DataFrame, y: pd.Series, is_train: bool = True
+    ) -> pd.Series:
+        return pd.Series(
+            np.ones(len(y)),
+            index=y.index,
+            name="weights",
+        )
+
     def preprocess(self, X: pd.DataFrame, y: pd.DataFrame, train: bool = False):
         """
         Preprocess the data. This is the first step in the pipeline.
         """
-        X, y = X.copy(), y.copy()
+        original_X, y = X.copy(), y.copy()
         y = make_shifted_target(y=y, use_diff_of_y=self.use_diff_of_y, lags=self.predict_ahead)
         if train:
             if self.y_scaler is not None:
@@ -185,9 +195,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                     index=X.index,
                     columns=y.columns,
                 )
-            self._set_input_cols(X)
+            self._set_input_cols(original_X)
             X = pd.DataFrame(
-                self.feature_engineer_.fit_transform(X),
+                self.feature_engineer_.fit_transform(original_X),
                 index=X.index,
                 columns=self.get_feature_names_out(),
             )
@@ -200,22 +210,23 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
                     columns=y.columns,
                 )
             X = pd.DataFrame(
-                self.feature_engineer_.transform(X),
+                self.feature_engineer_.transform(original_X),
                 index=X.index,
                 columns=self.get_feature_names_out(),
             )
 
-        X, y = remove_until_first_value(X, y)
-        X, y = remove_target_nan(X, y, use_x=False)
+        weights = self.create_weights(original_X, X, y, is_train=train)
+        X, y, weights = remove_until_first_value(X, y, weights)
+        X, y, weights = remove_target_nan(X, y, weights, use_x=False)
 
-        return X, y
+        return X, y, weights
 
     def preprocess_fit(
         self,
         X: pd.DataFrame,
         y: pd.Series,
         validation_data: Tuple[pd.DataFrame, pd.Series] = None,
-    ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
+    ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.Series, pd.Series]:
         """
         This function does the following:
         - Validate that the input is monospaced and has enough rows
@@ -246,6 +257,10 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         y_val_transformed: pd.Series
             The transformed target, ready to be used for validating the model
             If no validation data is provided, this returns None
+        weights: pd.Series
+            The weights for the training samples, used to 'train' the model.
+        val_weights: pd.Series
+            The weights for the validation samples, used to 'train' the model.
         """
         BaseTimeseriesRegressor.verify_same_indexes(X, y)
         self.validate_predict_ahead()
@@ -261,7 +276,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.prediction_cols_ += ["predict_lead_{}_mean".format(p) for p in self.predict_ahead]
         self.n_outputs_ = len(self.prediction_cols_)
 
-        X_transformed, y_transformed = self.preprocess(X, y, train=True)
+        X_transformed, y_transformed, weights = self.preprocess(X, y, train=True)
 
         assert_contains_nans(
             X_transformed, "Data cannot contain nans. Imputation not supported for now"
@@ -271,18 +286,28 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         if validation_data is not None:
             X_val, y_val = validation_data
             self.validate_data(X_val)
-            X_val_transformed, y_val_transformed = self.preprocess(X_val, y_val, train=False)
+            X_val_transformed, y_val_transformed, val_weights = self.preprocess(
+                X_val, y_val, train=False
+            )
         else:
-            X_val_transformed, y_val_transformed = None, None
+            X_val_transformed, y_val_transformed, val_weights = None, None, None
 
-        return X_transformed, y_transformed, X_val_transformed, y_val_transformed
+        return (
+            X_transformed,
+            y_transformed,
+            weights,
+            X_val_transformed,
+            y_val_transformed,
+            val_weights,
+        )
 
     @abstractmethod
     def fit(
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        validation_data: Tuple[pd.DataFrame, pd.Series] = None,
+        weights: pd.Series = None,
+        validation_data: Tuple[pd.DataFrame, pd.Series, pd.Series] = None,
         **fit_kwargs,
     ) -> Callable:
         """Fit the underlying model
@@ -299,6 +324,8 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             The preprocessed input data for the model
         y : pd.Series
             The preprocessed target for the model
+        weights : pd.Series
+            The sample weights for the preprocessed targets.
         validation_data : Tuple[pd.DataFrame, pd.Series], optional
             Validation data to calculate metric scores during training, by default None
 
@@ -598,6 +625,11 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # We need a dataframe, regardless of if these functions outputs a series or dataframe
         prediction = pd.DataFrame(self.predict(X, y), columns=self.prediction_cols_)
         actual = pd.DataFrame(self.get_actual(y))
+        weights = pd.Series(
+            np.ones(len(y)),
+            index=y.index,
+            name="weights",
+        )
 
         # scale these predictions back to get a score that is in same units as keras loss
         if self.y_scaler is not None:
@@ -619,7 +651,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # actual usually has some missings at the end
         # prediction usually has some missings at the beginning
         # We ignore the rows with missings
-        prediction, actual = remove_target_nan(prediction, actual, use_x=True)
+        prediction, actual, _ = remove_target_nan(prediction, actual, weights, use_x=True)
 
         # Calculate the joint tilted loss of all the average and quantile predictions
         if self.average_type == "median":
