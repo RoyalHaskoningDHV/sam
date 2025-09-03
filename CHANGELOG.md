@@ -8,6 +8,12 @@ Version X.Y.Z stands for:
 - Z = Patch version: if only backwards compatible bug fixes are introduced
 
 -------------
+
+## Version 5.1.0
+
+### Changes
+- Added the ability to create sample_weights by overriding the `create_weights" method in the `BaseTimeseriesRegressor`.
+
 ## Version 5.0.0
 
 ### Changes

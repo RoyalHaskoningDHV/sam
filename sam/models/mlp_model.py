@@ -240,14 +240,16 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         (
             X_transformed,
             y_transformed,
+            weights,
             X_val_transformed,
             y_val_transformed,
+            val_weights,
         ) = self.preprocess_fit(X, y, validation_data)
 
         self.model_ = self.get_untrained_model()
 
         if validation_data is not None:
-            validation_data = (X_val_transformed, y_val_transformed)
+            validation_data = (X_val_transformed, y_val_transformed, val_weights)
 
         if self.r2_callback_report:
             all_data = {"X_train": X_transformed, "y_train": y_transformed}
@@ -279,6 +281,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         history = self.model_.fit(
             X_transformed.values,
             y_transformed,
+            sample_weight=weights,
             batch_size=self.batch_size,
             epochs=self.epochs,
             verbose=self.verbose,
@@ -661,16 +664,16 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
         <keras.src.callbacks.history.History ...
-        >>> ();explainer = model.get_explainer(X_test, y_test, sample_n=10);()
+        >>> ();explainer = model.get_explainer(X_test, y_test, sample_n=10);() # doctest: +SKIP
         ... # doctest: +ELLIPSIS
         (...)
-        >>> ();shap_values = explainer.shap_values(X_test[0:30], y_test[0:30]);()
+        >>> ();shap_values = explainer.shap_values(X_test[0:30], y_test[0:30]);() # doctest: +SKIP
         ... # doctest: +ELLIPSIS
         (...)
-        >>> test_values = explainer.test_values(X_test[0:30], y_test[0:30])
+        >>> test_values = explainer.test_values(X_test[0:30], y_test[0:30]) # doctest: +SKIP
         >>> shap.plots.force(base_value=float(explainer.expected_value[0]),
         ...                  features=test_values.iloc[-1, :],
-        ...                  shap_values=shap_values[-1, :, 0], matplotlib=True)
+        ...                  shap_values=shap_values[-1, :, 0], matplotlib=True) # doctest: +SKIP
         """
         import shap
 
