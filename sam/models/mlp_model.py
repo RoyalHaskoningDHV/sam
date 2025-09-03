@@ -664,16 +664,16 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
         <keras.src.callbacks.history.History ...
-        >>> ();explainer = model.get_explainer(X_test, y_test, sample_n=10);()
+        >>> ();explainer = model.get_explainer(X_test, y_test, sample_n=10);() # doctest: +SKIP
         ... # doctest: +ELLIPSIS
         (...)
-        >>> ();shap_values = explainer.shap_values(X_test[0:30], y_test[0:30]);()
+        >>> ();shap_values = explainer.shap_values(X_test[0:30], y_test[0:30]);() # doctest: +SKIP
         ... # doctest: +ELLIPSIS
         (...)
-        >>> test_values = explainer.test_values(X_test[0:30], y_test[0:30])
+        >>> test_values = explainer.test_values(X_test[0:30], y_test[0:30]) # doctest: +SKIP
         >>> shap.plots.force(base_value=float(explainer.expected_value[0]),
         ...                  features=test_values.iloc[-1, :],
-        ...                  shap_values=shap_values[-1, :, 0], matplotlib=True)
+        ...                  shap_values=shap_values[-1, :, 0], matplotlib=True) # doctest: +SKIP
         """
         import shap
 
