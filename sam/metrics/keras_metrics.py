@@ -9,14 +9,14 @@ try:
         warnings.simplefilter("ignore", category=DeprecationWarning)
         warnings.simplefilter("ignore", category=FutureWarning)
         import tensorflow as tf
-        import tensorflow.keras.backend as K
+        import keras.ops as K
 except ImportError:
     # These are optional dependencies so it's not necessary to crash if they aren't found.
     # However, this will crash once one of the functions below runs.
     pass
 
 
-def keras_tilted_loss(y_true: tf.Tensor, y_pred: tf.Tensor, quantile: float = 0.5):
+def keras_tilted_loss(y_true, y_pred, quantile: float = 0.5):
     """
     Calculate tilted, or quantile loss in Keras. Given a quantile q, and an error e,
     tilted loss is defined as `(1-q) * |e|` if `e < 0`, and `q * |e|` if `e > 0`.
@@ -27,9 +27,9 @@ def keras_tilted_loss(y_true: tf.Tensor, y_pred: tf.Tensor, quantile: float = 0.
 
     Parameters
     ----------
-    y_true: Theano/TensorFlow tensor.
+    y_true: tensor
         True labels.
-    y_pred: Theano/TensorFlow tensor.
+    y_pred: tensor
         Predictions. Must be same shape as `y_true`
     quantile: float, optional (default=0.5)
         The quantile to use when computing tilted loss.
@@ -52,16 +52,15 @@ def keras_tilted_loss(y_true: tf.Tensor, y_pred: tf.Tensor, quantile: float = 0.
 
 
 def keras_joint_mse_tilted_loss(
-    y_true: tf.Tensor,
-    y_pred: tf.Tensor,
+    y_true,
+    y_pred,
     quantiles: List[float] = None,
     n_targets: int = 1,
 ):
     """
     Joint mean and quantile regression loss function using mse.
     Sum of mean squared error and multiple tilted loss functions
-    Custom loss function, inspired by https://github.com/fmpr/DeepJMQR
-    Only compatible with tensorflow backend.
+    Custom loss function, inspired by https://github.com/fmpr/DeepJMQR.
 
     This calculates loss for multiple quantiles, and multiple targets.
     The total loss is the sum of the mse of all targets, and the tilted
@@ -75,9 +74,9 @@ def keras_joint_mse_tilted_loss(
 
     Parameters
     ----------
-    y_true: tensorflow tensor
+    y_true: tensor
         True values
-    y_pred: tensorflow tensor
+    y_pred: tensor
         Predicted values
     quantiles: list of floats (default=None)
         Quantiles to predict. Values between 0 and 1. By default, no quantile loss is used.
@@ -100,14 +99,16 @@ def keras_joint_mse_tilted_loss(
         quantiles = []
     # select the last column (nodes) of the output
     k = len(quantiles)
-    mean_pred = tf.slice(y_pred, [0, k * n_targets], [-1, n_targets])
+    
+    # slice(x, start_indices, shape)
+    mean_pred = K.slice(y_pred, [0, k * n_targets], [-1, n_targets])
     # The last node will be fit with regular mean squared error
     loss = K.sum(K.mean(K.square(y_true - mean_pred), axis=0), axis=-1)
     # For each quantile fit one node with corresponding tilted loss
     for k in range(len(quantiles)):
         q = quantiles[k]
         # Select the kth node
-        q_pred = tf.slice(y_pred, [0, k * n_targets], [-1, n_targets])
+        q_pred = K.slice(y_pred, [0, k * n_targets], [-1, n_targets])
         e = y_true - q_pred
         # add tilted loss to total loss
         loss += K.sum(K.mean(K.maximum(q * e, (q - 1) * e), axis=0), axis=-1)
@@ -115,15 +116,14 @@ def keras_joint_mse_tilted_loss(
 
 
 def keras_joint_mae_tilted_loss(
-    y_true: tf.Tensor,
-    y_pred: tf.Tensor,
+    y_true,
+    y_pred,
     quantiles: List[float] = None,
     n_targets: int = 1,
 ):
     """Joint mean and quantile regression loss function using mae.
     Sum of mean absolute error and multiple tilted loss functions
-    Custom loss function, inspired by https://github.com/fmpr/DeepJMQR
-    Only compatible with tensorflow backend.
+    Custom loss function, inspired by https://github.com/fmpr/DeepJMQR.
 
     This calculates loss for multiple quantiles, and multiple targets.
     The total loss is the sum of the mae of all targets, and the tilted
@@ -137,9 +137,9 @@ def keras_joint_mae_tilted_loss(
 
     Parameters
     ----------
-    y_true: tensorflow tensor
+    y_true: tensor
         True values
-    y_pred: tensorflow tensor
+    y_pred: tensor
         Predicted values
     quantiles: list of floats (default=None)
         Quantiles to predict. Values between 0 and 1. By default, no quantile loss is used.
@@ -162,29 +162,29 @@ def keras_joint_mae_tilted_loss(
         quantiles = []
     # select the last column (nodes) of the output
     k = len(quantiles)
-    mean_pred = tf.slice(y_pred, [0, k * n_targets], [-1, n_targets])
+    mean_pred = K.slice(y_pred, [0, k * n_targets], [-1, n_targets])
     # The last node will be fit with 0.5 quantile
-    loss = K.sum(K.mean(K.abs(y_true - mean_pred), axis=0), axis=-1)
+    loss = K.sum(K.mean(K.absolute(y_true - mean_pred), axis=0), axis=-1)
     # For each quantile fit one node with corresponding tilted loss
     for k in range(len(quantiles)):
         q = quantiles[k]
         # Select the kth node
-        q_pred = tf.slice(y_pred, [0, k * n_targets], [-1, n_targets])
+        q_pred = K.slice(y_pred, [0, k * n_targets], [-1, n_targets])
         e = y_true - q_pred
         # add tilted loss to total loss
         loss += K.sum(K.mean(K.maximum(q * e, (q - 1) * e), axis=0), axis=-1)
     return loss
 
 
-def keras_rmse(y_true: tf.Tensor, y_pred: tf.Tensor):
+def keras_rmse(y_true, y_pred):
     """
     Calculate root mean squared error in Keras.
 
     Parameters
     ----------
-    y_true: Theano/TensorFlow tensor.
+    y_true: tensor
         True labels.
-    y_pred: Theano/TensorFlow tensor.
+    y_pred: tensor
         Predictions. Must be same shape as `y_true`
 
     Examples

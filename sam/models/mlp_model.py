@@ -3,7 +3,8 @@ from typing import Callable, Sequence, Tuple, Union, Optional, Any
 
 import numpy as np
 import pandas as pd
-from keras import Optimizer, Model
+from keras.optimizers import Optimizer
+from keras.models import Model
 from sklearn.pipeline import Pipeline
 
 from sam.feature_engineering import BaseFeatureEngineer

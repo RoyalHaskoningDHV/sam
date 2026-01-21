@@ -99,7 +99,7 @@ def test_mlp(
 
 class TestOptimizer(unittest.TestCase):
     def test_default_optimizer(self):
-        from keras.src.optimizers import Adam
+        from keras.optimizers import Adam
 
         X, y = get_dataset()
         fe = SimpleFeatureEngineer(keep_original=True)
@@ -126,7 +126,7 @@ class TestOptimizer(unittest.TestCase):
         )
 
     def test_overwrite_optimizer(self):
-        from keras.src.optimizers import AdamW
+        from keras.optimizers import AdamW
 
         X, y = get_dataset()
         fe = SimpleFeatureEngineer(keep_original=True)

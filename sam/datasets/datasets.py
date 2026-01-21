@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 PACKAGEDIR = Path(__file__).parent.absolute()
 
 
