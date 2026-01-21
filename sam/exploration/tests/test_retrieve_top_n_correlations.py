@@ -15,11 +15,11 @@ class TestTopNCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "TEST_lag_0": [0, 1, 2, 3],
-                "TEST_lag_1": [np.NaN, 0, 1, 2],
-                "TEST_lag_2": [np.NaN, np.NaN, 0, 0],
+                "TEST_lag_1": [np.nan, 0, 1, 2],
+                "TEST_lag_2": [np.nan, np.nan, 0, 0],
                 "OTHER_lag_0": [3, 2, 1, 2],
-                "OTHER_lag_1": [np.NaN, 4, 2, 1],
-                "OTHER_lag_2": [np.NaN, np.NaN, 1, 1],
+                "OTHER_lag_1": [np.nan, 4, 2, 1],
+                "OTHER_lag_2": [np.nan, np.nan, 1, 1],
             }
         )
         expected = pd.DataFrame(
@@ -38,11 +38,11 @@ class TestTopNCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "TEST#lag_0": [0, 1, 2, 3],
-                "TEST#lag_1": [np.NaN, 0, 1, 2],
-                "TEST#lag_2": [np.NaN, np.NaN, 0, 1],
+                "TEST#lag_1": [np.nan, 0, 1, 2],
+                "TEST#lag_2": [np.nan, np.nan, 0, 1],
                 "OTHER#lag_0": [3, 2, 1, 0],
-                "OTHER#lag_1": [np.NaN, 3, 2, 1],
-                "OTHER#lag_2": [np.NaN, np.NaN, 3, 2],
+                "OTHER#lag_1": [np.nan, 3, 2, 1],
+                "OTHER#lag_2": [np.nan, np.nan, 3, 2],
             }
         )
 
@@ -63,14 +63,14 @@ class TestTopNCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "A": [1, 2, 4, 4, 3],
-                "A_lag_1": [np.NaN, 1, 2, 4, 4],
-                "A_lag_2": [np.NaN, np.NaN, 1, 2, 4],
+                "A_lag_1": [np.nan, 1, 2, 4, 4],
+                "A_lag_2": [np.nan, np.nan, 1, 2, 4],
                 "B": [3, 3, 3, 4, 3],
-                "B_lag_1": [np.NaN, 3, 3, 3, 4],
-                "B_lag_2": [np.NaN, np.NaN, 3, 3, 3],
+                "B_lag_1": [np.nan, 3, 3, 3, 4],
+                "B_lag_2": [np.nan, np.nan, 3, 3, 3],
                 "C": [2, 3, 1, 2, 3],
-                "C_lag_1": [np.NaN, 2, 3, 1, 2],
-                "C_lag_2": [np.NaN, np.NaN, 2, 3, 1],
+                "C_lag_1": [np.nan, 2, 3, 1, 2],
+                "C_lag_2": [np.nan, np.nan, 2, 3, 1],
             }
         )
 
@@ -91,14 +91,14 @@ class TestTopNCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "A": [1, 2, 4, 4, 3],
-                "A_lag_1": [np.NaN, 1, 2, 4, 4],
-                "A_lag_2": [np.NaN, np.NaN, 1, 2, 4],
+                "A_lag_1": [np.nan, 1, 2, 4, 4],
+                "A_lag_2": [np.nan, np.nan, 1, 2, 4],
                 "B": [3, 3, 3, 4, 3],
-                "B_lag_1": [np.NaN, 3, 3, 3, 4],
-                "B_lag_2": [np.NaN, np.NaN, 3, 3, 3],
+                "B_lag_1": [np.nan, 3, 3, 3, 4],
+                "B_lag_2": [np.nan, np.nan, 3, 3, 3],
                 "C": [2, 3, 1, 2, 3],
-                "C_lag_1": [np.NaN, 2, 3, 1, 2],
-                "C_lag_2": [np.NaN, np.NaN, 2, 3, 1],
+                "C_lag_1": [np.nan, 2, 3, 1, 2],
+                "C_lag_2": [np.nan, np.nan, 2, 3, 1],
             }
         )
 
@@ -118,8 +118,8 @@ class TestTopNCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "A": [1, 2, 4, 4, 3],
-                "A_lag_1": [np.NaN, 1, 2, 4, 4],
-                "A_lag_2": [np.NaN, np.NaN, 1, 2, 4],
+                "A_lag_1": [np.nan, 1, 2, 4, 4],
+                "A_lag_2": [np.nan, np.nan, 1, 2, 4],
             }
         )
 

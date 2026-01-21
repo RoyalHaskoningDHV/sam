@@ -34,7 +34,7 @@ class TestCompleteTimestamps(unittest.TestCase):
         result = normalize_timestamps(data, "15min", start_time, end_time)
 
         # Values are matched to their first right side matching time,
-        # so the first value is np.NaN
+        # so the first value is np.nan
         output = pd.DataFrame(
             {
                 "TIME": pd.to_datetime(
@@ -84,7 +84,7 @@ class TestCompleteTimestamps(unittest.TestCase):
         result2 = normalize_timestamps(data, "15min", start_time2, end_time2)
 
         # Values are matched to their first left side matching time,
-        # so the last value is np.NaN
+        # so the last value is np.nan
         output = pd.DataFrame(
             {
                 "TIME": pd.to_datetime(
@@ -264,7 +264,7 @@ class TestCompleteTimestamps(unittest.TestCase):
                 ),
                 "ID": [1, 1, 1, 2, 2, 2],
                 "TYPE": 2,
-                "VALUE": [1.0, 2.0, np.NaN, 3.0, np.NaN, 4.0],
+                "VALUE": [1.0, 2.0, np.nan, 3.0, np.nan, 4.0],
             },
             columns=["TIME", "ID", "TYPE", "VALUE"],
         )
@@ -346,7 +346,7 @@ class TestCompleteTimestamps(unittest.TestCase):
                 ),
                 "ID": 1,
                 "TYPE": [1, 1, 1, 2, 2, 2],
-                "VALUE": [1, 2, np.NaN, 3, np.NaN, 4],
+                "VALUE": [1, 2, np.nan, 3, np.nan, 4],
             },
             columns=["TIME", "ID", "TYPE", "VALUE"],
         )
@@ -386,7 +386,7 @@ class TestCompleteTimestamps(unittest.TestCase):
                 ),
                 "ID": 1,
                 "TYPE": [1, 1, 1, 2, 2, 2],
-                "VALUE": [1, 2, np.NaN, 3, np.NaN, 4],
+                "VALUE": [1, 2, np.nan, 3, np.nan, 4],
             },
             columns=["TIME", "ID", "TYPE", "VALUE"],
         )

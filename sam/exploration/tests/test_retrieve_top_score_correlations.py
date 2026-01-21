@@ -11,14 +11,14 @@ class TestTopCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "A": [1, 2, 4, 4, 3],
-                "A_lag_1": [np.NaN, 1, 2, 4, 4],
-                "A_lag_2": [np.NaN, np.NaN, 1, 2, 4],
+                "A_lag_1": [np.nan, 1, 2, 4, 4],
+                "A_lag_2": [np.nan, np.nan, 1, 2, 4],
                 "B": [3, 3, 3, 4, 3],
-                "B_lag_1": [np.NaN, 3, 3, 3, 4],
-                "B_lag_2": [np.NaN, np.NaN, 3, 3, 3],
+                "B_lag_1": [np.nan, 3, 3, 3, 4],
+                "B_lag_2": [np.nan, np.nan, 3, 3, 3],
                 "C": [2, 3, 1, 2, 3],
-                "C_lag_1": [np.NaN, 2, 3, 1, 2],
-                "C_lag_2": [np.NaN, np.NaN, 2, 3, 1],
+                "C_lag_1": [np.nan, 2, 3, 1, 2],
+                "C_lag_2": [np.nan, np.nan, 2, 3, 1],
             }
         )
 
@@ -36,14 +36,14 @@ class TestTopCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "A": [1, 2, 4, 4, 3],
-                "A_lag_1": [np.NaN, 1, 2, 4, 4],
-                "A_lag_2": [np.NaN, np.NaN, 1, 2, 4],
+                "A_lag_1": [np.nan, 1, 2, 4, 4],
+                "A_lag_2": [np.nan, np.nan, 1, 2, 4],
                 "B": [3, 3, 3, 4, 3],
-                "B_lag_1": [np.NaN, 3, 3, 3, 4],
-                "B_lag_2": [np.NaN, np.NaN, 3, 3, 3],
+                "B_lag_1": [np.nan, 3, 3, 3, 4],
+                "B_lag_2": [np.nan, np.nan, 3, 3, 3],
                 "C": [2, 3, 1, 2, 3],
-                "C_lag_1": [np.NaN, 2, 3, 1, 2],
-                "C_lag_2": [np.NaN, np.NaN, 2, 3, 1],
+                "C_lag_1": [np.nan, 2, 3, 1, 2],
+                "C_lag_2": [np.nan, np.nan, 2, 3, 1],
             }
         )
 
@@ -56,14 +56,14 @@ class TestTopCorrelation(unittest.TestCase):
         testserie = pd.DataFrame(
             {
                 "A": [1, 2, 4, 4, 3],
-                "A_lag_1": [np.NaN, 1, 2, 4, 4],
-                "A_lag_2": [np.NaN, np.NaN, 1, 2, 4],
+                "A_lag_1": [np.nan, 1, 2, 4, 4],
+                "A_lag_2": [np.nan, np.nan, 1, 2, 4],
                 "B": [3, 3, 3, 4, 3],
-                "B_lag_1": [np.NaN, 3, 3, 3, 4],
-                "B_lag_2": [np.NaN, np.NaN, 3, 3, 3],
+                "B_lag_1": [np.nan, 3, 3, 3, 4],
+                "B_lag_2": [np.nan, np.nan, 3, 3, 3],
                 "C": [2, 3, 1, 2, 3],
-                "C_lag_1": [np.NaN, 2, 3, 1, 2],
-                "C_lag_2": [np.NaN, np.NaN, 2, 3, 1],
+                "C_lag_1": [np.nan, 2, 3, 1, 2],
+                "C_lag_2": [np.nan, np.nan, 2, 3, 1],
             }
         )
 
