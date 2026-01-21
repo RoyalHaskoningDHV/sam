@@ -99,7 +99,7 @@ def keras_joint_mse_tilted_loss(
         quantiles = []
     # select the last column (nodes) of the output
     k = len(quantiles)
-    
+
     # slice(x, start_indices, shape)
     mean_pred = K.slice(y_pred, [0, k * n_targets], [-1, n_targets])
     # The last node will be fit with regular mean squared error
