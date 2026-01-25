@@ -8,7 +8,6 @@ try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=DeprecationWarning)
         warnings.simplefilter("ignore", category=FutureWarning)
-        import tensorflow as tf
         import keras.ops as K
 except ImportError:
     # These are optional dependencies so it's not necessary to crash if they aren't found.
