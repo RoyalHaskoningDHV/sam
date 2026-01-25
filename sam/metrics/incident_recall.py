@@ -33,7 +33,7 @@ def incident_recall(
 
     Returns
     -------
-    result: float
+    result: np.float64
         The percentage of incidents that was positively predicted
 
     Examples
@@ -43,7 +43,7 @@ def incident_recall(
     >>> y_incidents = [0,1,0,0,0,0,1]
     >>> range_pred = (0,2)
     >>> incident_recall(y_incidents, y_pred, range_pred)
-    0.5
+    np.float64(0.5)
     """
     if range_pred[0] < 0 or range_pred[1] < 0:
         raise ValueError("Prediction window range_pred must be positive")
@@ -94,7 +94,7 @@ def make_incident_recall_scorer(
     >>>
     >>> scorer = make_incident_recall_scorer((1, 3), "incident")
     >>> scorer(op(), data)
-    0.6666666666666666
+    np.float64(0.6666666666666666)
     """
 
     def incident_recall_scorer(clf, X):

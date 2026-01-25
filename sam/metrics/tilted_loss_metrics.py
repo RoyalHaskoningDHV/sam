@@ -43,7 +43,7 @@ def tilted_loss(y_true: np.ndarray, y_pred: np.ndarray, quantile: float = 0.5, a
 
     Returns
     -------
-    float:
+    np.float64:
         The quantile loss
 
     Examples
@@ -53,7 +53,7 @@ def tilted_loss(y_true: np.ndarray, y_pred: np.ndarray, quantile: float = 0.5, a
     >>> actual = np.array([1, 2, 3, 4])
     >>> pred = np.array([0.9, 2.1, 2.9, 3.1])
     >>> tilted_loss(actual, pred, quantile=0.5)
-    0.15000000000000002
+    np.float64(0.15000000000000002)
     """
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     e = y_true - y_pred
@@ -95,7 +95,7 @@ def joint_mae_tilted_loss(
 
     Returns
     -------
-    float:
+    np.float64:
         The joint mae tilted loss
 
     Examples
@@ -109,7 +109,7 @@ def joint_mae_tilted_loss(
     ...     columns=["output_1_quantile_1", "output_1_quantile_2", "output_1_mean"],
     ... )
     >>> joint_mae_tilted_loss(y_true, y_pred, quantiles=[0.1, 0.9], n_targets=1)
-    3.44
+    np.float(3.44)
     """
     if quantiles is None:
         quantiles = []
@@ -160,7 +160,7 @@ def joint_mse_tilted_loss(
 
     Returns
     -------
-    float:
+    np.float64:
         The joint mse tilted loss
 
     Examples
@@ -174,7 +174,7 @@ def joint_mse_tilted_loss(
     ...     columns=["output_1_quantile_1", "output_1_quantile_2", "output_1_mean"],
     ... )
     >>> joint_mse_tilted_loss(y_true, y_pred, quantiles=[0.1, 0.9], n_targets=1)
-    7.410000000000002
+    np.float64(7.410000000000002)
     """
     if quantiles is None:
         quantiles = []
