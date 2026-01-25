@@ -91,7 +91,9 @@ def top_n_correlations(
         pos_corr["GROUP"] = pos_corr["index"].apply(lambda x: x.split(sep)[0])
         pos_corr = (
             pos_corr.groupby("GROUP")
-            .apply(lambda x: x.nlargest(n, goal_feature))[["index", goal_feature]]
+            .apply(lambda x: x.nlargest(n, goal_feature), include_groups=False)[
+                ["index", goal_feature]
+            ]
             .reset_index(drop=False)
         )
         pos_corr = pos_corr.drop("level_1", axis=1)
