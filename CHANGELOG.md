@@ -9,6 +9,14 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 6.0.0
+
+### Changes
+- Remove support for python 3.9 and 3.10, and add support for 3.12.
+- User Keras directly instead of tensorflow wrapper. This triggered some changes in the types of the docstrings.
+- Use numpy 2.
+- Fix a few deprecation warnings.
+
 ## Version 5.1.0
 
 ### Changes

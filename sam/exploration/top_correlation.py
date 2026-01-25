@@ -69,9 +69,9 @@ def top_n_correlations(
     7           RAIN            RAIN#lag_9            -0.944911
 
     >>> top_n_correlations(res, goal_feature, n=2, grouped=False)
-                      index  DEBIET_TOTAAL#lag_0
-    0  DEBIET_TOTAAL#lag_10                 -1.0
-    1       DEBIET_A#lag_10                  1.0
+                index  DEBIET_TOTAAL#lag_0
+    0  DEBIET_A#lag_10                  1.0
+    1  DEBIET_B#lag_10                 -1.0
     """
 
     if goal_feature not in df.columns:
