@@ -109,7 +109,7 @@ def joint_mae_tilted_loss(
     ...     columns=["output_1_quantile_1", "output_1_quantile_2", "output_1_mean"],
     ... )
     >>> joint_mae_tilted_loss(y_true, y_pred, quantiles=[0.1, 0.9], n_targets=1)
-    np.float(3.44)
+    np.float64(3.44)
     """
     if quantiles is None:
         quantiles = []

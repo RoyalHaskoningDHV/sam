@@ -99,7 +99,11 @@ def top_n_correlations(
         pos_corr = pos_corr.drop("level_1", axis=1)
 
     else:
-        pos_corr = pos_corr.sort_values(goal_feature, ascending=False).head(n)
+        # Add a secondary sort key on the "index" column to ensure stable, deterministic
+        # ordering when correlation values are tied.
+        pos_corr = pos_corr.sort_values(
+            [goal_feature, "index"], ascending=[False, True]
+        ).head(n)
 
     corrs = df.corr()  # replace correlations with the correct negative ones
     corrs = corrs.loc[goal_feature].reset_index()
