@@ -25,7 +25,7 @@ name = "sam"
 version = "6.0.0"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [{name = "Royal HaskoningDHV", email = "ruben.peters@rhdhv.com"}]
 keywords = ["python", "data-science", "time-series", "forecasting", "anomaly-detection", "asset-management"]
@@ -46,8 +46,8 @@ all = [
     "requests",
     "scipy~=1.13.1",
     "seaborn",
-    "tensorflow>=2.16,<3",
-    "keras>=3.0",
+    "tensorflow>=2.17,<3",
+    "keras>=3.0,<4",
     "Jinja2~=3.0.3",
     "onnx~=1.16.1",
     "onnxruntime~=1.19.2",
@@ -59,8 +59,8 @@ all = [
 plotting = ["matplotlib", "plotly", "seaborn"]
 data-engineering = ["requests", "pymongo"]
 data-science = [
-    "tensorflow>=2.16,<3",
-    "keras>=3.0",
+    "tensorflow>=2.17,<3",
+    "keras>=3.0,<4",
     "cloudpickle",
     "onnx~=1.16.1",
     "onnxruntime~=1.19.2",
@@ -80,8 +80,6 @@ docs = [
     "readthedocs-sphinx-search",
     "sphinx-markdown-tables",
     "toml",
-    "tensorflow>=2.16,<3",
-    "keras>=3.0",
 ]
 
 [project.urls]
