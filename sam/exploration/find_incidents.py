@@ -119,7 +119,9 @@ def incident_curves(
     # Find the streaks of gaps. Gaps are defined as anything that's not an outlier
     data["GAP"] = _number_true_streaks(~data["OUTLIER"])
     # Then, all gaps with length of max_gap or lower are merged with neighbouring outliers
-    new_val = data.groupby("GAP").apply(lambda x: True if (x.shape[0] <= max_gap) else False)
+    new_val = data.groupby("GAP").apply(
+        lambda x: True if (x.shape[0] <= max_gap) else False, include_groups=False
+    )
     new_val[0] = True  # because this is not an outlier, it's treated seperately
     new_val.name = "OUTLIER_FILLED"  # Attribute needed for join
     data = data.join(new_val, on="GAP")  # Add OUTLIER_FILLED column
@@ -151,7 +153,8 @@ def incident_curves(
     real_outlier = data.groupby("OUTLIER_CURVE").apply(
         lambda x: (x.shape[0] >= min_duration)
         and (x.OUTLIER_DIST.sum() >= min_dist_total)
-        and (1 - (x.OUTLIER.sum() / x.shape[0]) <= max_gap_perc)
+        and (1 - (x.OUTLIER.sum() / x.shape[0]) <= max_gap_perc),
+        include_groups=False,
     )
     real_outlier.name = "REAL_OUTLIER"
     data = data.join(real_outlier, on="OUTLIER_CURVE")

@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 
-from keras import Optimizer
+from keras.optimizers import Optimizer
 
 from sam.metrics import keras_joint_mae_tilted_loss, keras_joint_mse_tilted_loss
 
@@ -82,15 +82,15 @@ def create_keras_quantile_mlp(
     >>> model.fit(X, y, batch_size=16, epochs=20, verbose=0)  # doctest: +ELLIPSIS
     <keras.src.callbacks.history.History ...
     """
-    from tensorflow.keras.layers import (
+    from keras.layers import (
         Activation,
         BatchNormalization,
         Dense,
         Dropout,
         Input,
     )
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.optimizers import Adam
+    from keras.models import Model
+    from keras.optimizers import Adam
 
     if quantiles is None:
         quantiles = []
@@ -207,9 +207,9 @@ def create_keras_quantile_rnn(
     >>> model.fit(X_3d, y, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
     <keras.src.callbacks.history.History ...
     """
-    from tensorflow.keras.layers import GRU, LSTM, Dense, Input
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.optimizers import Adam
+    from keras.layers import GRU, LSTM, Dense, Input
+    from keras.models import Model
+    from keras.optimizers import Adam
 
     if quantiles is None:
         quantiles = []
@@ -315,15 +315,15 @@ def create_keras_autoencoder_mlp(
     >>> model.fit(X.T, X.T, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
     <keras.src.callbacks.history.History ...
     """
-    from tensorflow.keras.layers import (
+    from keras.layers import (
         Activation,
         BatchNormalization,
         Dense,
         Dropout,
         Input,
     )
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.optimizers import Adam
+    from keras.models import Model
+    from keras.optimizers import Adam
 
     if dropout is None:
         dropout = 0.0
@@ -420,7 +420,7 @@ def create_keras_autoencoder_rnn(
     >>> model.fit(X_3d, X_3d, batch_size=32, epochs=5, verbose=0)  # doctest: +ELLIPSIS
     <keras.src.callbacks.history.History ...
     """
-    from tensorflow.keras.layers import (
+    from keras.layers import (
         GRU,
         LSTM,
         Dense,
@@ -428,8 +428,8 @@ def create_keras_autoencoder_rnn(
         RepeatVector,
         TimeDistributed,
     )
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.optimizers import Adam
+    from keras.models import Model
+    from keras.optimizers import Adam
 
     if dropout is None:
         dropout = 0.0

@@ -12,15 +12,23 @@ def set_seed(func):
 
     def wrapper(*args, **kwargs):
         try:
-            import tensorflow as tf
+            import keras
 
-            tf.random.set_seed(42)
+            keras.utils.set_random_seed(42)
+            # Make sure to set output to be deterministic
+            os.environ["TF_DETERMINISTIC_OPS"] = "1"
         except ImportError:
-            pass
+            try:
+                import tensorflow as tf
 
-        random.seed(42)
-        np.random.seed(42)
-        os.environ["PYTHONHASHSEED"] = "0"
+                tf.random.set_seed(42)
+            except ImportError:
+                pass
+
+            random.seed(42)
+            np.random.seed(42)
+            os.environ["PYTHONHASHSEED"] = "0"
+
         return func(*args, **kwargs)
 
     return wrapper

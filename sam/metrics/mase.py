@@ -50,7 +50,7 @@ def mean_absolute_scaled_error(
 
     Returns
     -------
-    loss: float or ndarray of floats
+    loss: np.float64 or ndarray of floats
         MASE output is non-negative floating point. The best value is 0.0.
 
     Examples
@@ -59,7 +59,7 @@ def mean_absolute_scaled_error(
     >>> y_pred = [0.5, 1.5, 2.5]
     >>> # persistence benchmark would have a loss of 1. Our prediction has a loss of 0.5
     >>> mean_absolute_scaled_error(y_true, y_pred, shift=1)
-    0.5
+    np.float64(0.5)
     """
     if shift != int(shift) or shift <= 0:
         raise ValueError("Shift must be a positive integer")
