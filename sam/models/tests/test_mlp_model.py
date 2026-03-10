@@ -1,7 +1,10 @@
+import logging
 import unittest
 from pathlib import Path
 import numpy as np
 import pytest
+from sklearn.impute import SimpleImputer
+
 from sam.feature_engineering.simple_feature_engineering import SimpleFeatureEngineer
 from sam.models import MLPTimeseriesRegressor
 from sam.models.tests.utils import (
@@ -153,13 +156,113 @@ class TestPipelineFeatureEngineer(unittest.TestCase):
 
         X, y = get_dataset()
         fe = Pipeline(
-            [("roll", BuildRollingFeatures(window_size="1h")), ("scaler", StandardScaler())]
+            [
+                ("roll", BuildRollingFeatures(window_size="1h")),
+                ("scaler", StandardScaler()),
+                ("impute", SimpleImputer()),
+            ]
         )
         model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
         model.fit(X, y)
         feature_names = model.get_feature_names_out()
         self.assertListEqual(list(feature_names), ["x", "x#mean_1h"])
 
+    def test_stitching_no_nans(self):
+        from sklearn.pipeline import Pipeline
+        from sam.feature_engineering import BuildRollingFeatures
+        from sklearn.impute import SimpleImputer
+
+        X, y = get_dataset()
+        fe = Pipeline(
+            [
+                ("roll", BuildRollingFeatures(window_size="1h")),
+                ("scaler", StandardScaler()),
+                ("impute", SimpleImputer()),
+            ]
+        )
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
+
+        with self.assertLogs(level="WARNING") as cm:
+            model.fit(X, y)
+
+        # cm.output is a list of formatted log strings
+        warnings = cm.output
+        self.assertEqual(len(warnings), 1)
+        warning_string = warnings[0]
+        self.assertTrue("Applying stitching:" in warning_string)
+        self.assertTrue("0.00%" in warning_string)
+        self.assertTrue("stitch_on_x: False" in warning_string)
+
+    def test_stitching_target_nans(self):
+        from sklearn.pipeline import Pipeline
+        from sam.feature_engineering import BuildRollingFeatures
+
+        X, y = get_dataset()
+        fe = Pipeline(
+            [
+                ("roll", BuildRollingFeatures(window_size="1h")),
+                ("scaler", StandardScaler()),
+                ("impute", SimpleImputer()),
+            ]
+        )
+
+        # Set middle 10% of y to NaN
+        n = len(y)
+        start = n // 2 - n // 20
+        end = n // 2 + n // 20
+        y_with_nans = y.copy()
+        y_with_nans.iloc[start:end] = np.nan
+
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
+
+        with self.assertLogs(level="WARNING") as cm:
+            model.fit(X, y_with_nans)
+
+        # cm.output is a list of formatted log strings
+        warnings = cm.output
+        self.assertEqual(len(warnings), 1)
+        warning_string = warnings[0]
+        self.assertIn("Applying stitching:", warning_string)
+        self.assertIn("10.00%" , warning_string)
+        self.assertIn("stitch_on_x: False", warning_string)
+
+    def test_stitching_data_nans(self):
+        from sklearn.pipeline import Pipeline
+        from sam.feature_engineering import BuildRollingFeatures
+
+        X, y = get_dataset()
+        fe = Pipeline(
+            [
+                ("roll", BuildRollingFeatures(window_size="1h")),
+                ("scaler", StandardScaler()),
+            ]
+        )
+
+        # Set middle 10% of X to NaN
+        n = len(X)
+        start = n // 2 - n // 20
+        end = n // 2 + n // 20
+        X_with_nans = X.copy()
+        X_with_nans.iloc[start:end] = np.nan
+        fraction_removed = (end - start + 1) / len(X)
+
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
+
+        with self.assertRaises(expected_exception=ValueError):
+            model.fit(X_with_nans, y)
+
+        model.stitch_on_x = True
+
+        with self.assertLogs(level="WARNING") as cm:
+            model.fit(X_with_nans, y)
+
+        # cm.output is a list of formatted log strings
+        warnings = cm.output
+        self.assertEqual(len(warnings), 1)
+        warning_string = warnings[0]
+        self.assertIn("Applying stitching:", warning_string)
+        self.assertIn(f"{fraction_removed*100:.2f}" , warning_string)
+        self.assertIn("stitch_on_x: True", warning_string)
 
 class TestLoadDump(unittest.TestCase):
     file_dir = Path(PATH).parent / "files"

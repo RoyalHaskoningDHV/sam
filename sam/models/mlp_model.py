@@ -179,7 +179,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             )
 
         self.to_save_objects = ["feature_engineer_", "y_scaler"]
-        self.to_save_parameters = ["prediction_cols_", "quantiles", "predict_ahead"]
+        self.to_save_parameters = ["prediction_cols_", "quantiles", "predict_ahead", "stitch_on_x"]
 
     def get_untrained_model(self) -> Callable:
         """

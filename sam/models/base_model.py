@@ -8,10 +8,10 @@ from typing import Callable, List, Sequence, Tuple, Union, Any
 import numpy as np
 import pandas as pd
 from sam.feature_engineering import BaseFeatureEngineer, IdentityFeatureEngineer
-from sam.models.utils import remove_target_nan, remove_until_first_value
+from sam.models.utils import apply_stitching
 from sam.metrics import joint_mae_tilted_loss, joint_mse_tilted_loss
 from sam.preprocessing import inverse_differenced_target, make_shifted_target
-from sam.utils import assert_contains_nans, make_df_monotonic
+from sam.utils import make_df_monotonic
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 
@@ -89,6 +89,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         y_scaler: TransformerMixin = None,
         average_type: str = "mean",
         feature_engineer: BaseFeatureEngineer = None,
+        stitch_on_x: bool = False,
         **kwargs,
     ) -> None:
         self.predict_ahead = predict_ahead
@@ -100,6 +101,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.feature_engineer_ = (
             feature_engineer if feature_engineer else IdentityFeatureEngineer()
         )
+        self.stitch_on_x = stitch_on_x
 
         self.prediction_cols_ = []
 
@@ -200,7 +202,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             name="weights",
         )
 
-    def preprocess(self, X: pd.DataFrame, y: pd.DataFrame, train: bool = False):
+    def preprocess(self, X: pd.DataFrame, y: pd.DataFrame, train: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series]:
         """
         Preprocess the data. This is the first step in the pipeline.
         """
@@ -234,8 +236,18 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             )
 
         weights = self.create_weights(original_X, X, y, is_train=train)
-        X, y, weights = remove_until_first_value(X, y, weights)
-        X, y, weights = remove_target_nan(X, y, weights, use_x=False)
+        X, y, weights = apply_stitching(X, y, weights, stitch_on_x=self.stitch_on_x)
+
+        # Check if there are still nans in X, and if so, raise an error.
+        # The developer themselves should decide how to handle nans before fitting the model.
+        if X.isna().any().any():
+            number_of_nans = X.isna().sum().sum()
+            raise ValueError(
+                f"Input data contains: {number_of_nans} NaN values after preprocessing."
+                f" Please handle these NaN values before fitting the model this can be done with:\n"
+                f"1) feature_engineering (e.g. with imputation)\n"
+                f"2) setting stitch_on_x to True, which will remove all rows containing NaN.\n"
+            )
 
         return X, y, weights
 
@@ -295,10 +307,6 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         self.n_outputs_ = len(self.prediction_cols_)
 
         X_transformed, y_transformed, weights = self.preprocess(X, y, train=True)
-
-        assert_contains_nans(
-            X_transformed, "Data cannot contain nans. Imputation not supported for now"
-        )
 
         # Apply transformations to validation data if provided:
         if validation_data is not None:
@@ -669,7 +677,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
         # actual usually has some missings at the end
         # prediction usually has some missings at the beginning
         # We ignore the rows with missings
-        prediction, actual, _ = remove_target_nan(prediction, actual, weights, use_x=True)
+        prediction, actual, _ = apply_stitching(prediction, actual, weights, stitch_on_x=True)
 
         # Calculate the joint tilted loss of all the average and quantile predictions
         if self.average_type == "median":
