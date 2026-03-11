@@ -351,6 +351,8 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
         if isinstance(self.model_, Model):
             prediction = self.model_.predict(X_transformed, verbose=self.verbose)
+            # To make predictions consistent, put NaNs where the X_transformed was NaN
+            prediction[np.isnan(X_transformed).any(axis=1)] = np.nan
 
         prediction = self.postprocess_predict(
             prediction, X, y, force_monotonic_quantiles=force_monotonic_quantiles

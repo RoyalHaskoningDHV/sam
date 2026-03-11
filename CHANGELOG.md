@@ -15,6 +15,7 @@ Version X.Y.Z stands for:
 - Added the option to choose whether to remove NaNs in the input data.
 - Changed naming of removing NaNs to "stitching".
 - Added more logging for the stitching/NaN removal process.
+- Updated logic of keras Model, NaN inputs now result in NaN outputs.
 
 ## Version 6.0.0
 
