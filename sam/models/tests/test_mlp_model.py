@@ -1,4 +1,3 @@
-import logging
 import unittest
 from pathlib import Path
 import numpy as np
@@ -223,7 +222,7 @@ class TestPipelineFeatureEngineer(unittest.TestCase):
         self.assertEqual(len(warnings), 1)
         warning_string = warnings[0]
         self.assertIn("Applying stitching:", warning_string)
-        self.assertIn("10.00%" , warning_string)
+        self.assertIn("10.00%", warning_string)
         self.assertIn("stitch_on_x: False", warning_string)
 
     def test_stitching_data_nans(self):
@@ -261,8 +260,9 @@ class TestPipelineFeatureEngineer(unittest.TestCase):
         self.assertEqual(len(warnings), 1)
         warning_string = warnings[0]
         self.assertIn("Applying stitching:", warning_string)
-        self.assertIn(f"{fraction_removed*100:.2f}" , warning_string)
+        self.assertIn(f"{fraction_removed*100:.2f}", warning_string)
         self.assertIn("stitch_on_x: True", warning_string)
+
 
 class TestLoadDump(unittest.TestCase):
     file_dir = Path(PATH).parent / "files"
@@ -322,7 +322,6 @@ class TestLoadDump(unittest.TestCase):
 
         self.assertTrue(np.all(np.isclose(y_pred_onnx.values, y_pred_tf.values)))
 
-
     def test_dump_load_parameters_with_nan(self):
         import onnxruntime as ort
         import keras
@@ -336,7 +335,6 @@ class TestLoadDump(unittest.TestCase):
         # Set last 5 entries to NaN to test that the model behaviour
 
         X.iloc[-5:] = np.nan
-
 
         y_pred_tf = model.predict(X=X)
         self.assertIsInstance(model.model_, keras.Model)

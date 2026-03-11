@@ -3,6 +3,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+
 def apply_stitching(X, y, weights, stitch_on_x=False):
     """
     Remove rows with nan that can't be used for fitting ML models based on the target
