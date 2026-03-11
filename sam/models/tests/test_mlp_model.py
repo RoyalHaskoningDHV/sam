@@ -321,3 +321,32 @@ class TestLoadDump(unittest.TestCase):
         y_pred_onnx = model.predict(X=X)
 
         self.assertTrue(np.all(np.isclose(y_pred_onnx.values, y_pred_tf.values)))
+
+
+    def test_dump_load_parameters_with_nan(self):
+        import onnxruntime as ort
+        import keras
+
+        X, y = get_dataset()
+        fe = SimpleFeatureEngineer(keep_original=True)
+        model = MLPTimeseriesRegressor(epochs=1, feature_engineer=fe)
+        model.fit(X, y)
+
+        model.dump_parameters(foldername=self.file_dir, file_extension=".onnx")
+        # Set last 5 entries to NaN to test that the model behaviour
+
+        X.iloc[-5:] = np.nan
+
+
+        y_pred_tf = model.predict(X=X)
+        self.assertIsInstance(model.model_, keras.Model)
+        model.model_ = model.load_parameters(obj=model, foldername=self.file_dir)
+
+        self.assertIsInstance(model.model_, ort.InferenceSession)
+        y_pred_onnx = model.predict(X=X)
+        # check whether both final outputs were NaN
+        self.assertTrue(np.isnan(y_pred_onnx.values[-5:]).all())
+        self.assertTrue(np.isnan(y_pred_tf.values[-5:]).all())
+        # check whether the non-NaN outputs are close to each other
+
+        self.assertTrue(np.all(np.isclose(y_pred_onnx.values[:-5], y_pred_tf.values[:-5])))
