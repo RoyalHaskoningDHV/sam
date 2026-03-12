@@ -99,6 +99,7 @@ def performance_evaluation_fixed_predict_ahead(
     ...     predict_ahead=(0,1),
     ...     feature_engineer=simple_features,
     ...     verbose=0,
+    ...     stitch_on_x=True,
     ... )
     ...
     >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
