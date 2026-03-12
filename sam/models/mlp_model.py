@@ -123,6 +123,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     ...     predict_ahead=(0,),
     ...     feature_engineer=simple_features,
     ...     verbose=0,
+    ...     stitch_on_x=True,
     ... )
     >>> model.fit(X, y)  # doctest: +ELLIPSIS
     <keras.src.callbacks.history.History ...
@@ -545,6 +546,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ...     predict_ahead=(0,),
         ...     feature_engineer=simple_features,
         ...     verbose=0,
+        ...     stitch_on_x=True,
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
@@ -663,6 +665,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ...     predict_ahead=(0,),
         ...     feature_engineer=simple_features,
         ...     verbose=0,
+        ...     stitch_on_x=True,
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
