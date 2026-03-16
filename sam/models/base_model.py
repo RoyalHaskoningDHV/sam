@@ -204,7 +204,7 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
 
     def preprocess(
         self, X: pd.DataFrame, y: pd.DataFrame, train: bool = False
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series]:
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series]:
         """
         Preprocess the data. This is the first step in the pipeline.
         """
@@ -246,9 +246,9 @@ class BaseTimeseriesRegressor(BaseEstimator, RegressorMixin, ABC):
             number_of_nans = X.isna().sum().sum()
             raise ValueError(
                 f"Input data contains: {number_of_nans} NaN values after preprocessing. "
-                f"Please handle these NaN values before fitting the model this can be done with:\n"
-                f"1) feature_engineering (e.g. with imputation)\n"
-                f"2) setting stitch_on_x to True, which will remove all rows containing NaN.\n"
+                "Please handle these NaN values before fitting the model this can be done with:\n"
+                "1) feature_engineering (e.g. with imputation)\n"
+                "2) setting stitch_on_x to True, which will remove all rows containing NaN.\n"
             )
 
         return X, y, weights
