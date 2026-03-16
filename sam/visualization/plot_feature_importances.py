@@ -63,6 +63,7 @@ def plot_feature_importances(importances: pd.DataFrame, feature_names: Iterable 
     ...     predict_ahead=(0,),
     ...     feature_engineer=simple_features,
     ...     verbose=0,
+    ...     stitch_on_x=True,
     ... )
     ...
     >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS

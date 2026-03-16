@@ -1,9 +1,12 @@
+import logging
 import pandas as pd
 
+logger = logging.getLogger(__name__)
 
-def remove_target_nan(X, y, weights, use_x=False):
+
+def apply_stitching(X, y, weights, stitch_on_x=False):
     """
-    Remove rows with nan that can't be used for fitting ML models
+    Remove rows with nan that can't be used for fitting ML models based on the target
 
     Parameters
     ----------
@@ -13,17 +16,24 @@ def remove_target_nan(X, y, weights, use_x=False):
         Target data (dependent variable) used to 'train' the model.
     weights: pd.Series
         Weights for the samples, used to 'train' the model.
-    use_x: bool
+    stitch_on_x: bool
         If True, remove rows with nan in X and y. Otherwise, remove rows with nan in y.
 
     """
     X, y = X.copy(), y.copy()
-    targetnanrows = pd.DataFrame(y).isna().any(axis=1)
-    if use_x:
-        targetnanrows = targetnanrows | pd.DataFrame(X).isna().any(axis=1)
-    X = X.loc[~targetnanrows]
-    y = y.loc[~targetnanrows]
-    weights = weights.loc[~targetnanrows]
+    nan_rows = pd.DataFrame(y).isna().any(axis=1)
+    if stitch_on_x:
+        nan_rows = nan_rows | pd.DataFrame(X).isna().any(axis=1)
+
+    logger.warning(
+        "Applying stitching:\n"
+        f"  • Rows with NaNs: {nan_rows.sum()}/{len(X)} ({(nan_rows.sum()/len(X))*100:.2f}%)\n"
+        f"  • stitch_on_x: {stitch_on_x}"
+    )
+
+    X = X.loc[~nan_rows]
+    y = y.loc[~nan_rows]
+    weights = weights.loc[~nan_rows]
 
     return X, y, weights
 

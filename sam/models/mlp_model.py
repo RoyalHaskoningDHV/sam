@@ -123,6 +123,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
     ...     predict_ahead=(0,),
     ...     feature_engineer=simple_features,
     ...     verbose=0,
+    ...     stitch_on_x=True,
     ... )
     >>> model.fit(X, y)  # doctest: +ELLIPSIS
     <keras.src.callbacks.history.History ...
@@ -179,7 +180,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
             )
 
         self.to_save_objects = ["feature_engineer_", "y_scaler"]
-        self.to_save_parameters = ["prediction_cols_", "quantiles", "predict_ahead"]
+        self.to_save_parameters = ["prediction_cols_", "quantiles", "predict_ahead", "stitch_on_x"]
 
     def get_untrained_model(self) -> Callable:
         """
@@ -351,6 +352,8 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
         if isinstance(self.model_, Model):
             prediction = self.model_.predict(X_transformed, verbose=self.verbose)
+            # To make predictions consistent, put NaNs where the X_transformed was NaN
+            prediction[np.isnan(X_transformed).any(axis=1)] = np.nan
 
         prediction = self.postprocess_predict(
             prediction, X, y, force_monotonic_quantiles=force_monotonic_quantiles
@@ -543,6 +546,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ...     predict_ahead=(0,),
         ...     feature_engineer=simple_features,
         ...     verbose=0,
+        ...     stitch_on_x=True,
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
@@ -661,6 +665,7 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         ...     predict_ahead=(0,),
         ...     feature_engineer=simple_features,
         ...     verbose=0,
+        ...     stitch_on_x=True,
         ... )
         ...
         >>> model.fit(X_train, y_train)  # doctest: +ELLIPSIS
