@@ -420,12 +420,14 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         """
         import keras
         import os
+        import onnx
         import onnxruntime as ort
 
         foldername = Path(foldername)
         loss = obj._get_loss()
         file_path = foldername / prefix
         if os.path.exists(file_path := file_path.with_suffix(".onnx")):
+            onnx.checker.check_model(file_path)
             return ort.InferenceSession(file_path, providers=["CPUExecutionProvider"])
         if os.path.exists(file_path := file_path.with_suffix(".h5")):
             return keras.models.load_model(file_path, custom_objects={"mse_tilted": loss})
