@@ -74,7 +74,7 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     Examples
     --------
     >>> import pandas as pd
-    >>> from sam.models import MLPTimeseriesRegressor
+    >>> from sam.models import LassoTimeseriesRegressor
     >>> from sam.feature_engineering import SimpleFeatureEngineer
     >>> from sam.datasets import load_rainbow_beach
     ...
@@ -82,7 +82,7 @@ class LassoTimeseriesRegressor(BaseTimeseriesRegressor):
     >>> X, y = data, data["water_temperature"]
 
     >>> simple_features = SimpleFeatureEngineer(keep_original=False)
-    >>> model = MLPTimeseriesRegressor(
+    >>> model = LassoTimeseriesRegressor(
     ...     predict_ahead=(0,),
     ...     feature_engineer=simple_features,
     ...     verbose=0,
