@@ -49,9 +49,9 @@ all = [
     "tensorflow>=2.17,<3",
     "keras>=3.0,<4",
     "Jinja2~=3.0.3",
-    "onnx~=1.16.1",
+    "onnx~=1.21.0",
     "onnxruntime~=1.19.2",
-    "tf2onnx~=1.16.1",
+    "tf2onnx~=1.17.0",
     "shap",
     "plotly",
     "statsmodels"
