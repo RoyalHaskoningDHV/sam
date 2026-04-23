@@ -42,14 +42,11 @@ class LinearQuantileRegression(BaseEstimator, RegressorMixin):
     Examples
     --------
     >>> from sam.models import LinearQuantileRegression
-    >>> from sam.data_sources import read_knmi
     >>> from sklearn.model_selection import train_test_split
-    >>>
-    >>> # Prepare data
-    >>> data = read_knmi('2018-02-01', '2019-10-01', freq='hourly',
-    ...                 variables=['FH', 'FF', 'FX', 'T']).set_index('TIME')
-    >>> y = data['T']
-    >>> X = data.drop('T', axis=1)
+    >>> from sam.datasets import load_rainbow_beach
+    ...
+    >>> data = load_rainbow_beach()
+    >>> X, y = data, data["water_temperature"]
     >>> # Fit model
     >>> model = LinearQuantileRegression()
     >>> model.fit(X, y)  # doctest: +SKIP

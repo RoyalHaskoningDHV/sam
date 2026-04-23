@@ -62,7 +62,7 @@ def read_openweathermap(latitude=52.11, longitude=5.18):
         "https://api.openweathermap.org/data/2.5/"
         f"forecast?units=metric&lat={latitude}&lon={longitude}&APPID={apikey}"
     )
-    res = requests.get(url).json()["list"]
+    res = requests.get(url, allow_redirects=False).json()["list"]
     data = json_normalize(res)
 
     data["TIME"] = pd.to_datetime(data["dt"], unit="s", utc=True)

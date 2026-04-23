@@ -9,6 +9,12 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 6.0.2
+
+### Changes
+- Update some packages and addressing some vulnerabilities for compliance.
+- Update a couple of docstrings.
+
 ## Version 6.0.1
 
 ### Changes
