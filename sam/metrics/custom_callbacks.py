@@ -2,8 +2,13 @@ from typing import Dict, Sequence
 
 import numpy as np
 import pandas as pd
-from tensorflow.python.keras.callbacks import Callback
 from sam.metrics.r2_calculation import train_r2
+
+try:
+    # tensorflow is an optional dependency so it's not necessary to crash on import if it
+    from tensorflow.python.keras.callbacks import Callback
+except ImportError:
+    Callback = object
 
 
 class R2Evaluation(Callback):

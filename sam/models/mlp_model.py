@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Callable, Sequence, Tuple, Union, Optional, Any
+from typing import TYPE_CHECKING, Callable, Sequence, Tuple, Union, Optional, Any
 
 import numpy as np
 import pandas as pd
-from keras.optimizers import Optimizer
-from keras.models import Model
 from sklearn.pipeline import Pipeline
 
 from sam.feature_engineering import BaseFeatureEngineer
@@ -16,6 +16,9 @@ from sklearn.base import TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sam.models.sam_shap_explainer import SamShapExplainer
 from sam.utils.score_importance import get_score_importances
+
+if TYPE_CHECKING:
+    from keras.optimizers import Optimizer
 
 
 class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
@@ -349,11 +352,15 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         prediction = None
         if isinstance(self.model_, ort.InferenceSession):
             prediction = self.model_.run([], {"X": X_transformed.values.astype(np.float32)})[0]
+        else:
+            # Only needed for keras models, so import lazily: an ONNX-only install
+            # (the "prediction" extra) should not require keras/tensorflow.
+            from keras.models import Model
 
-        if isinstance(self.model_, Model):
-            prediction = self.model_.predict(X_transformed, verbose=self.verbose)
-            # To make predictions consistent, put NaNs where the X_transformed was NaN
-            prediction[np.isnan(X_transformed).any(axis=1)] = np.nan
+            if isinstance(self.model_, Model):
+                prediction = self.model_.predict(X_transformed, verbose=self.verbose)
+                # To make predictions consistent, put NaNs where the X_transformed was NaN
+                prediction[np.isnan(X_transformed).any(axis=1)] = np.nan
 
         prediction = self.postprocess_predict(
             prediction, X, y, force_monotonic_quantiles=force_monotonic_quantiles
@@ -418,7 +425,6 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
 
         Overwrites the abstract method from BaseTimeseriesRegressor
         """
-        import keras
         import os
         import onnxruntime as ort
 
@@ -428,6 +434,10 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         if os.path.exists(file_path := file_path.with_suffix(".onnx")):
             return ort.InferenceSession(file_path, providers=["CPUExecutionProvider"])
         if os.path.exists(file_path := file_path.with_suffix(".h5")):
+            # Only needed for keras models, so import lazily: an ONNX-only install
+            # (the "prediction" extra) should not require keras/tensorflow.
+            import keras
+
             return keras.models.load_model(file_path, custom_objects={"mse_tilted": loss})
         raise FileNotFoundError(f"Could not find parameter file: {prefix}.onnx or {prefix}.h5")
 

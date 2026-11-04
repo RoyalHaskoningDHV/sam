@@ -38,38 +38,31 @@ classifiers = [
 dependencies = ["pandas~=2.2", "numpy~=2.0", "scikit-learn~=1.5.2"]
 
 [project.optional-dependencies]
-all = [
-    "matplotlib",
-    "cloudpickle",
-    "nfft",
-    "pymongo",
-    "requests",
-    "scipy~=1.13.1",
-    "seaborn",
-    "tensorflow>=2.17,<3",
+data-science-common = [
     "keras>=3.0,<4",
-    "Jinja2~=3.0.3",
+    "cloudpickle",
     "onnx~=1.16.1",
     "onnxruntime~=1.19.2",
     "tf2onnx~=1.16.1",
+    "nfft",
+    "scipy~=1.13.1",
     "shap",
-    "plotly",
+    "Jinja2~=3.0.3",
     "statsmodels"
 ]
+tensorflow-cpu = ["sam[data-science-common]", "tensorflow>=2.17,<3"]
+tensorflow-gpu = ["sam[data-science-common]", "tensorflow[and-cuda]>=2.17,<3"]
+# Kept for backwards compatibility; equivalent to tensorflow-cpu.
+data-science = ["sam[tensorflow-cpu]"]
+# Minimal install for serving/inference with an already-exported ONNX model;
+# no keras/tensorflow/training deps required.
+prediction = ["onnxruntime~=1.19.2"]
 plotting = ["matplotlib", "plotly", "seaborn"]
 data-engineering = ["requests", "pymongo"]
-data-science = [
-    "tensorflow>=2.17,<3",
-    "keras>=3.0,<4",
-    "cloudpickle",
-    "onnx~=1.16.1",
-    "onnxruntime~=1.19.2",
-    "tf2onnx~=1.16.1",
-    "nfft",
-    "scipy~=1.13.1",
-    "shap",
-    "Jinja2~=3.0.3",
-    "statsmodels"
+all = [
+    "sam[plotting]",
+    "sam[data-engineering]",
+    "sam[tensorflow-cpu]"
 ]
 test = ["pytest", "pytest-cov", "pytest-mpl<=0.15.0", "fastparquet"]
 docs = [
