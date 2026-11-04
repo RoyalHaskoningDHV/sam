@@ -426,12 +426,14 @@ class MLPTimeseriesRegressor(BaseTimeseriesRegressor):
         Overwrites the abstract method from BaseTimeseriesRegressor
         """
         import os
+        import onnx
         import onnxruntime as ort
 
         foldername = Path(foldername)
         loss = obj._get_loss()
         file_path = foldername / prefix
         if os.path.exists(file_path := file_path.with_suffix(".onnx")):
+            onnx.checker.check_model(file_path)
             return ort.InferenceSession(file_path, providers=["CPUExecutionProvider"])
         if os.path.exists(file_path := file_path.with_suffix(".h5")):
             # Only needed for keras models, so import lazily: an ONNX-only install

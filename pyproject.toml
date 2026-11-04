@@ -22,7 +22,7 @@ packages = [
 
 [project]
 name = "sam"
-version = "6.0.1"
+version = "6.0.2"
 description = "Time series anomaly detection and forecasting"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -41,13 +41,12 @@ dependencies = ["pandas~=2.2", "numpy~=2.0", "scikit-learn~=1.5.2"]
 data-science-common = [
     "keras>=3.0,<4",
     "cloudpickle",
-    "onnx~=1.16.1",
+    "onnx~=1.21.0",
     "onnxruntime~=1.19.2",
-    "tf2onnx~=1.16.1",
+    "tf2onnx~=1.17.0",
     "nfft",
     "scipy~=1.13.1",
     "shap",
-    "Jinja2~=3.0.3",
     "statsmodels"
 ]
 tensorflow-cpu = ["sam[data-science-common]", "tensorflow>=2.17,<3"]

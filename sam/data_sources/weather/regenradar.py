@@ -137,7 +137,7 @@ def read_regenradar(
         params.update(kwargs)
         params = "&".join("%s=%s" % (k, v) for k, v in params.items() if v is not None)
 
-        res = requests.get(regenradar_url + params, auth=(user, password))
+        res = requests.get(regenradar_url + params, auth=(user, password), allow_redirects=False)
         res = res.json()
         data = json_normalize(res, "data")
 
