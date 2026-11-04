@@ -64,7 +64,7 @@ all = [
     "sam[data-engineering]",
     "sam[tensorflow-cpu]"
 ]
-test = ["pytest", "pytest-cov", "pytest-mpl<=0.15.0", "fastparquet"]
+test = ["pytest<9", "pytest-cov", "pytest-mpl<=0.15.0", "fastparquet"]
 docs = [
     "sphinx",
     "sphinx_rtd_theme",
