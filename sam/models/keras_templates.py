@@ -1,8 +1,11 @@
-from typing import Callable, Optional
+from __future__ import annotations
 
-from keras.optimizers import Optimizer
+from typing import TYPE_CHECKING, Callable, Optional
 
 from sam.metrics import keras_joint_mae_tilted_loss, keras_joint_mse_tilted_loss
+
+if TYPE_CHECKING:
+    from keras.optimizers import Optimizer
 
 
 def create_keras_quantile_mlp(

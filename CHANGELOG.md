@@ -9,6 +9,13 @@ Version X.Y.Z stands for:
 
 -------------
 
+## Version 6.0.3
+
+### Changes
+- Added new package versions:
+  - `sam[prediction]` can be used for predicting using only ONNX, making images smaller and faster.
+  - `sam[tensorflow-gpu]` for when you need more power.
+
 ## Version 6.0.2
 
 ### Changes
