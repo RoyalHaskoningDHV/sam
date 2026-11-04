@@ -54,8 +54,9 @@ tensorflow-gpu = ["sam[data-science-common]", "tensorflow[and-cuda]>=2.17,<3"]
 # Kept for backwards compatibility; equivalent to tensorflow-cpu.
 data-science = ["sam[tensorflow-cpu]"]
 # Minimal install for serving/inference with an already-exported ONNX model;
-# no keras/tensorflow/training deps required.
-prediction = ["onnxruntime~=1.19.2"]
+# no keras/tensorflow/training deps required. Includes "onnx" itself since
+# load_parameters() runs onnx.checker.check_model() before loading.
+prediction = ["onnx~=1.21.0", "onnxruntime~=1.19.2"]
 plotting = ["matplotlib", "plotly", "seaborn"]
 data-engineering = ["requests", "pymongo"]
 all = [
